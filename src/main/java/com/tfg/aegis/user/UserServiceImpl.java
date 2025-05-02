@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Transactional
-public class UserServiceImpl implements UserService {
+public class    UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
@@ -47,9 +47,8 @@ public class UserServiceImpl implements UserService {
             user.setEmail(userDto.getEmail());
             user.setVerify(userDto.getVerify());
 
-            userRepository.save(user);
-
-            return user.getId(); // Devuelve el ID del usuario creado
+            User savedUser = userRepository.save(user);
+            return savedUser.getId();
 
         } catch (UserCreationException e) {
             throw e; // ya está controlada como 400

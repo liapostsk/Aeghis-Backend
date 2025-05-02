@@ -1,6 +1,5 @@
 package com.tfg.aegis.user;
 
-import com.tfg.aegis.exception.user.UserNotFoundException;
 import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.model.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
