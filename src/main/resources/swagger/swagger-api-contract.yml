@@ -1,0 +1,219 @@
+openapi: 3.0.3
+info:
+  title: API AEGIS
+  description: API para gestión de usuarios y recursos del sistema AEGIS
+  version: 1.0.0
+  contact:
+    name: Equipo de desarrollo
+    email: contacto@aegis.com
+    url: https://www.aegis.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:8080
+    description: Servidor de desarrollo
+  - url: https://api.aegis.com
+    description: Servidor de producción
+
+tags:
+  - name: User
+    description: API de gestión de usuarios
+
+components:
+  securitySchemes:
+    JWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Introduce el token JWT para autenticación
+
+  schemas:
+    UserDto:
+      type: object
+      description: Objeto de transferencia de datos para usuarios
+      required:
+        - name
+        - phone
+        - email
+        - dateOfBirth
+        - verify
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID único del usuario
+          example: 1
+        name:
+          type: string
+          description: Nombre completo del usuario
+          example: Juan García
+        phone:
+          type: string
+          description: Número de teléfono del usuario
+          example: "+34600123456"
+        email:
+          type: string
+          format: email
+          description: Correo electrónico del usuario
+          example: juan.garcia@ejemplo.com
+        dateOfBirth:
+          type: string
+          format: date
+          description: Fecha de nacimiento del usuario
+          example: 1990-01-01
+        image:
+          type: string
+          description: Imagen de perfil del usuario (URL)
+          example: https://example.com/profile.jpg
+        verify:
+          type: boolean
+          description: Indica si el usuario está verificado
+          example: true
+          default: false
+
+    ErrorResponse:
+      type: object
+      description: Estructura estándar para las respuestas de error
+      properties:
+        message:
+          type: string
+          description: Mensaje detallado del error
+          example: Usuario con ID 999 no encontrado
+        status:
+          type: integer
+          format: int32
+          description: Código de estado HTTP
+          example: 404
+        timestamp:
+          type: string
+          format: date-time
+          description: Fecha y hora en que ocurrió el error
+          example: 2025-05-01T14:30:00Z
+
+security:
+  - JWT: []
+
+paths:
+  /user/{id}:
+    get:
+      tags:
+        - User
+      summary: Obtener usuario por ID
+      description: Obtiene la información de un usuario específico mediante su ID
+      parameters:
+        - name: id
+          in: path
+          description: ID del usuario a buscar
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Usuario encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - User
+      summary: Actualizar usuario
+      description: Actualiza la información de un usuario existente
+      parameters:
+        - name: id
+          in: path
+          description: ID del usuario a actualizar
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Nuevos datos del usuario
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDto'
+      responses:
+        '204':
+          description: Usuario actualizado correctamente
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - User
+      summary: Eliminar usuario
+      description: Elimina un usuario existente del sistema
+      parameters:
+        - name: id
+          in: path
+          description: ID del usuario a eliminar
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Usuario eliminado correctamente
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /user:
+    post:
+      tags:
+        - User
+      summary: Crear usuario
+      description: Crea un nuevo usuario en el sistema
+      requestBody:
+        description: Datos del usuario a crear
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDto'
+      responses:
+        '201':
+          description: Usuario creado correctamente
+        '400':
+          description: Datos de usuario inválidos o duplicados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
