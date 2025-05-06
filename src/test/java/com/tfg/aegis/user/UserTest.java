@@ -157,6 +157,15 @@ class UserTest {
     }
 
     @Test
+    void testUpdateUserUnexpectedError() {
+        Long userId = 2L;
+        UserDto dto = new UserDto();
+        when(userRepository.findById(userId)).thenThrow(new NullPointerException("DB error"));
+
+        assertThrows(InternalServerException.class, () -> userService.updateUser(userId, dto));
+    }
+
+    @Test
     void testDeleteUserOk() {
         Long userId = 1L;
         User existingUser = new User();

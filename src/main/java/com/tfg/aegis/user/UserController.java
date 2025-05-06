@@ -7,13 +7,14 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "User", description = "API of Users")
 @RequestMapping(value = "/user")
 @RestController
-@CrossOrigin(origins = "*")
 public class UserController {
 
     @Autowired
@@ -25,6 +26,13 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> getCurrentUser() {
+        User user = userService.getUserByClerkId(clerkId); // debes implementar esto
+        return ResponseEntity.ok(mapper.map(user, UserDto.class));
+    }
+
+
     @Operation(summary = "Get", description = "Method that gets a User")
     @GetMapping(path = "/{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable(name = "id") Long id) {
@@ -35,7 +43,10 @@ public class UserController {
 
     @Operation(summary = "Create", description = "Method that creates a User")
     @PostMapping
-    public ResponseEntity<Long> createUser(@RequestBody UserDto userDto) {
+    public ResponseEntity<Long> createUser(@RequestBody UserDto userDto, @AuthenticationPrincipal Jwt jwt) {
+        System.out.println("🔥 LLEGÓ AL BACKEND!");
+        System.out.println(userDto);
+        String clerkId = principal.getSubject(); // user_xxx
         Long id = this.userService.createUser(userDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
