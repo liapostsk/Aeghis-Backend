@@ -18,8 +18,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserTest {
@@ -67,6 +66,7 @@ class UserTest {
     void testCreateUserOk() {
         UserDto userDto = new UserDto();
         userDto.setDateOfBirth(new Date());
+        userDto.setClerkId("user_123456");
         userDto.setName("John Doe");
         userDto.setPhone("123456789");
         userDto.setEmail("juan.perez@example.com");
@@ -88,6 +88,7 @@ class UserTest {
     @Test
     void testCreateUserPhoneAlreadyExists() {
         UserDto userDto = new UserDto();
+        userDto.setClerkId("user_123456");
         userDto.setPhone("123456789");
         userDto.setEmail("john@example.com");
 

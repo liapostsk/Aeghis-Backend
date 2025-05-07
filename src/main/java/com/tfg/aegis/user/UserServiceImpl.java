@@ -1,6 +1,7 @@
 package com.tfg.aegis.user;
 
 import com.tfg.aegis.exception.InternalServerException;
+import com.tfg.aegis.exception.user.ResourceNotFoundException;
 import com.tfg.aegis.exception.user.UserCreationException;
 import com.tfg.aegis.exception.user.UserNotFoundException;
 import com.tfg.aegis.user.model.User;
@@ -16,6 +17,15 @@ public class    UserServiceImpl implements UserService {
 
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public User getUserByClerkId(String clerkId) {
+        return userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with clerkId: " + clerkId));
     }
 
     /**
@@ -46,6 +56,7 @@ public class    UserServiceImpl implements UserService {
             user.setPhone(userDto.getPhone());
             user.setEmail(userDto.getEmail());
             user.setVerify(userDto.getVerify());
+            user.setClerkId(userDto.getClerkId());
 
             User savedUser = userRepository.save(user);
             return savedUser.getId();

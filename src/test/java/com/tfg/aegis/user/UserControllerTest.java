@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -49,8 +50,10 @@ class UserControllerTest {
     @Test
     void testCreateUser() {
         UserDto userDto = new UserDto();
+        Jwt jwt = mock(Jwt.class);
+        when(jwt.getSubject()).thenReturn("user_123456");
 
-        ResponseEntity<Long> response = userController.createUser(userDto);
+        ResponseEntity<Long> response = userController.createUser(userDto, jwt);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }

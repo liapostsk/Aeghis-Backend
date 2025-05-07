@@ -4,6 +4,13 @@ import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.model.UserDto;
 
 public interface UserService {
+    /**
+     * Method that gets the current user
+     * @param clerkId
+     * @return
+     */
+    User getUserByClerkId(String clerkId);
+
 
     /**
      * Method that gets a User

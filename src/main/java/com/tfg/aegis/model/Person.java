@@ -18,6 +18,9 @@ public abstract class Person {
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Column(name = "clerkId", nullable = false)
+    private String clerkId;
+
     @Column(name = "name", nullable = false)
     private String name;
 
