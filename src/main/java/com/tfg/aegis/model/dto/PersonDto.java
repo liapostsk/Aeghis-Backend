@@ -1,4 +1,4 @@
-package com.tfg.aegis.model;
+package com.tfg.aegis.model.dto;
 
 import lombok.Data;
 

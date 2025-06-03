@@ -1,6 +1,6 @@
 package com.tfg.aegis.user;
 
-import com.tfg.aegis.security.JwtAuthFilter;
+import org.springframework.security.core.context.SecurityContextHolder;
 import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.model.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,8 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -33,15 +31,10 @@ public class UserController {
 
     @Operation(summary = "Get current user", description = "Returns the currently authenticated user based on JWT")
     @GetMapping("/me")
-    public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
-        String clerkId = jwt.getSubject(); // Clerk user ID del token
-
+    public ResponseEntity<UserDto> getCurrentUser() {
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userService.getUserByClerkId(clerkId);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        UserDto userDto = mapper.map(user, UserDto.class);
+        UserDto userDto = mapper.map(user, UserDto.class); // Ya cargado completamente
         return ResponseEntity.ok(userDto);
     }
 
@@ -55,10 +48,10 @@ public class UserController {
 
     @Operation(summary = "Create", description = "Method that creates a User")
     @PostMapping
-    public ResponseEntity<Long> createUser(@RequestBody UserDto userDto, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<Long> createUser(@RequestBody UserDto userDto) {
         log.info("🔥 LLEGÓ AL BACKEND!");
         log.info("UserDto: {}", userDto);
-        String clerkId = jwt.getSubject();
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         userDto.setClerkId(clerkId);
         Long id = this.userService.createUser(userDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(id);

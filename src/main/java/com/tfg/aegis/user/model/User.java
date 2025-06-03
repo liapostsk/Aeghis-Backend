@@ -1,9 +1,14 @@
 package com.tfg.aegis.user.model;
 
-import com.tfg.aegis.model.Person;
+import com.tfg.aegis.emergencycontact.model.EmergencyContact;
+import com.tfg.aegis.model.entity.Person;
+import com.tfg.aegis.safelocation.model.SafeLocation;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -11,10 +16,16 @@ import lombok.Setter;
 @Table(name = "user")
 public class User extends Person {
 
-    @Column(name = "image")
     private String image;
 
-    @Column(name = "verify", nullable = false)
-    private Boolean verify;
+    @Column(name = "accepted_privacy_policy", nullable = false)
+    private Boolean acceptedPrivacyPolicy;
 
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EmergencyContact> emergencyContacts = new HashSet<>();
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<SafeLocation> safeLocations = new HashSet<>();
+
+    private Boolean verify;
 }

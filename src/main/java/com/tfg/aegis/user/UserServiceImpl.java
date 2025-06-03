@@ -4,6 +4,7 @@ import com.tfg.aegis.exception.InternalServerException;
 import com.tfg.aegis.exception.user.ResourceNotFoundException;
 import com.tfg.aegis.exception.user.UserCreationException;
 import com.tfg.aegis.exception.user.UserNotFoundException;
+import com.tfg.aegis.mapper.UserMapper;
 import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.model.UserDto;
 import jakarta.transaction.Transactional;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Transactional
-public class    UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
@@ -50,13 +51,8 @@ public class    UserServiceImpl implements UserService {
                 throw new UserCreationException("A user with this email already exists.");
             }
 
-            User user = new User();
-            user.setDateOfBirth(userDto.getDateOfBirth());
-            user.setName(userDto.getName());
-            user.setPhone(userDto.getPhone());
-            user.setEmail(userDto.getEmail());
-            user.setVerify(userDto.getVerify());
-            user.setClerkId(userDto.getClerkId());
+            // UserDto a User con el mapper
+            User user = UserMapper.toEntity(userDto);
 
             User savedUser = userRepository.save(user);
             return savedUser.getId();
@@ -76,6 +72,7 @@ public class    UserServiceImpl implements UserService {
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new UserNotFoundException(id));
 
+            // Actualizamos los campos del usuario
             user.setDateOfBirth(userDto.getDateOfBirth());
             user.setName(userDto.getName());
             user.setPhone(userDto.getPhone());

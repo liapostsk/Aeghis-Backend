@@ -50,10 +50,8 @@ class UserControllerTest {
     @Test
     void testCreateUser() {
         UserDto userDto = new UserDto();
-        Jwt jwt = mock(Jwt.class);
-        when(jwt.getSubject()).thenReturn("user_123456");
 
-        ResponseEntity<Long> response = userController.createUser(userDto, jwt);
+        ResponseEntity<Long> response = userController.createUser(userDto);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
