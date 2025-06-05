@@ -3,6 +3,7 @@ package com.tfg.aegis.emergencycontact;
 import com.tfg.aegis.emergencycontact.model.EmergencyContact;
 import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
 import com.tfg.aegis.exception.user.ResourceNotFoundException;
+import com.tfg.aegis.mapper.EmergencyContactMapper;
 import com.tfg.aegis.user.UserRepository;
 import com.tfg.aegis.user.UserServiceImpl;
 import com.tfg.aegis.user.model.User;
@@ -40,18 +41,11 @@ public class EmergencyContactServiceImpl implements EmergencyContactService {
 
     @Override
     public void addEmergencyContactForCurrentUser(EmergencyContactDto emergencyContactDto) {
-        getOwnedContactOrThrow(emergencyContactDto.getId());
-        User user = userRepository.findById(emergencyContactDto.getOwnerId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + emergencyContactDto.getOwnerId()));
-        EmergencyContact contact = new EmergencyContact();
-        if (emergencyContactDto.getId() != null) {
-            contact = getOwnedContactOrThrow(emergencyContactDto.getId());
-        }
-        contact.setName(emergencyContactDto.getName());
-        contact.setPhone(emergencyContactDto.getPhone());
-        contact.setRelation(emergencyContactDto.getRelation());
-        contact.setConfirmed(emergencyContactDto.isConfirmed());
-        contact.setOwner(user);
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with clerkId: " + clerkId));
+        EmergencyContact contact = EmergencyContactMapper.toEntity(emergencyContactDto, user);
+        repository.save(contact);
     }
 
     @Override
