@@ -9,7 +9,7 @@ public interface SafeLocationService {
      *
      * @param dto the safe location data transfer object containing details of the safe location
      */
-    void addSafeLocationForCurrentUser(SafeLocationDto dto);
+    Long addSafeLocationForCurrentUser(SafeLocationDto dto);
 
     /**
      * Edits an existing safe location for the current user.

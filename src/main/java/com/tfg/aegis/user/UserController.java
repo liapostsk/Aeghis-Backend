@@ -41,7 +41,7 @@ public class UserController {
     @Operation(summary = "Get", description = "Method that gets a User")
     @GetMapping(path = "/{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable(name = "id") Long id) {
-        User user = this.userService.getUser(id);
+        User user = userService.getUser(id);
         UserDto userDto = mapper.map(user, UserDto.class); //de user a userDto
         return ResponseEntity.ok(userDto);
     }
@@ -49,25 +49,24 @@ public class UserController {
     @Operation(summary = "Create", description = "Method that creates a User")
     @PostMapping
     public ResponseEntity<Long> createUser(@RequestBody UserDto userDto) {
-        log.info("🔥 LLEGÓ AL BACKEND!");
         log.info("UserDto: {}", userDto);
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         userDto.setClerkId(clerkId);
-        Long id = this.userService.createUser(userDto);
+        Long id = userService.createUser(userDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
 
     @Operation(summary = "Update", description = "Method that update the info of a User")
     @PutMapping(path = "/{id}")
     public ResponseEntity<Void> updateUser(@PathVariable(name = "id", required = false) Long id,  @RequestBody UserDto userDto) {
-        this.userService.updateUser(id, userDto);
+        userService.updateUser(id, userDto);
         return ResponseEntity.noContent().build(); // HTTP 204 No Content
     }
 
     @Operation(summary = "Delete", description = "Method that deletes a User")
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable(name = "id", required = false) Long id) {
-        this.userService.deleteUser(id);
+        userService.deleteUser(id);
         return ResponseEntity.noContent().build(); // HTTP 204 No Content
     }
 

@@ -9,7 +9,7 @@ public interface EmergencyContactService {
      *
      * @param emergencyContactDto the emergency contact data transfer object containing details of the contact
      */
-    void addEmergencyContactForCurrentUser(EmergencyContactDto emergencyContactDto);
+    Long addEmergencyContactForCurrentUser(EmergencyContactDto emergencyContactDto);
 
     /**
      * Edits an existing emergency contact for the current user.

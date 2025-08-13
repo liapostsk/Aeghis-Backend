@@ -40,12 +40,13 @@ public class EmergencyContactServiceImpl implements EmergencyContactService {
     }
 
     @Override
-    public void addEmergencyContactForCurrentUser(EmergencyContactDto emergencyContactDto) {
+    public Long addEmergencyContactForCurrentUser(EmergencyContactDto emergencyContactDto) {
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByClerkId(clerkId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with clerkId: " + clerkId));
         EmergencyContact contact = EmergencyContactMapper.toEntity(emergencyContactDto, user);
         repository.save(contact);
+        return contact.getId();
     }
 
     @Override
@@ -60,10 +61,10 @@ public class EmergencyContactServiceImpl implements EmergencyContactService {
 
     @Override
     public void deleteEmergencyContactForCurrentUser(Long id) {
-        EmergencyContact contact = getOwnedContactOrThrow(id);
-        repository.delete(contact);
-        if (repository.existsById(id)) {
-            throw new ResourceNotFoundException("Emergency Contact not found after deletion");
+        boolean existed = repository.existsById(id);
+        repository.deleteById(id);
+        if (existed && repository.existsById(id)) {
+            throw new IllegalStateException("No se borró el EmergencyContact id=" + id);
         }
     }
 }

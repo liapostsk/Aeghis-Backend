@@ -1,5 +1,5 @@
 // File: JwtAuthFilter.java
-package com.tfg.aegis.security;
+package com.tfg.aegis.config.security;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.source.JWKSource;

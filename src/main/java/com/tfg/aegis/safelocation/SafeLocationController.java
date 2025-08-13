@@ -22,9 +22,9 @@ public class SafeLocationController {
 
     @Operation(summary = "Add", description = "Add a new SafeLocation for the current user")
     @PostMapping("/add")
-    public ResponseEntity<Void> addSafeLocationForCurrentUser(@RequestBody SafeLocationDto safeLocationDto) {
+    public ResponseEntity<Long> addSafeLocationForCurrentUser(@RequestBody SafeLocationDto safeLocationDto) {
         safeLocationService.addSafeLocationForCurrentUser(safeLocationDto);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(safeLocationDto.getId());
     }
 
     @Operation(summary = "Edit", description = "Method that edits an existing SafeLocation")
@@ -36,8 +36,8 @@ public class SafeLocationController {
 
     @Operation(summary = "Delete", description = "Method that delete a SafeLocation")
     @DeleteMapping("/{id}/delete")
-    public ResponseEntity<Void> deleteSafeLocation(@PathVariable Long id) {
-        this.safeLocationService.deleteSafeLocationForCurrentUser(id);
+    public ResponseEntity<Void> deleteSafeLocationForCurrentUser(@PathVariable Long id) {
+        safeLocationService.deleteSafeLocationForCurrentUser(id);
         return ResponseEntity.noContent().build();
     }
 }

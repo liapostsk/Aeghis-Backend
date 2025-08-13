@@ -1,4 +1,4 @@
-package com.tfg.aegis.externalapis;
+package com.tfg.aegis.config.externalapis;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;

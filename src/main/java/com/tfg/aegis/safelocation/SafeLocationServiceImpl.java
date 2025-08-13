@@ -7,10 +7,13 @@ import com.tfg.aegis.safelocation.model.SafeLocationDto;
 import com.tfg.aegis.user.UserRepository;
 import com.tfg.aegis.user.UserServiceImpl;
 import com.tfg.aegis.user.model.User;
-import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
@@ -21,6 +24,8 @@ public class SafeLocationServiceImpl implements SafeLocationService {
     private final UserRepository userRepository;
 
     private final UserServiceImpl userServiceImpl;
+
+    private static final Logger log = LoggerFactory.getLogger(SafeLocationServiceImpl.class);
 
     public SafeLocationServiceImpl(SafeLocationRepository repository, UserRepository userRepository, UserServiceImpl userServiceImpl) {
         this.repository = repository;
@@ -41,18 +46,20 @@ public class SafeLocationServiceImpl implements SafeLocationService {
             throw new AccessDeniedException("You do not own this SafeLocation");
         }
 
+        log.info("User {} accessed SafeLocation with ID {}", user.getId(), location);
         return location;
     }
 
     /**
      * {@inheritDoc}
      */
-    public void addSafeLocationForCurrentUser(SafeLocationDto dto) {
+    public Long addSafeLocationForCurrentUser(SafeLocationDto dto) {
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByClerkId(clerkId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with clerkId: " + clerkId));
         SafeLocation location = SafeLocationMapper.toEntity(dto, user);
         repository.save(location);
+        return location.getId();
     }
 
     /**
@@ -74,8 +81,12 @@ public class SafeLocationServiceImpl implements SafeLocationService {
     /**
      * {@inheritDoc}
      */
+    @Transactional
     public void deleteSafeLocationForCurrentUser(Long id) {
-        SafeLocation location = getOwnedLocationOrThrow(id);
-        repository.delete(location);
+        boolean existed = repository.existsById(id);
+        repository.deleteById(id);
+        if (existed && repository.existsById(id)) {
+            throw new IllegalStateException("No se borró el SafeLocation id=" + id);
+        }
     }
 }
