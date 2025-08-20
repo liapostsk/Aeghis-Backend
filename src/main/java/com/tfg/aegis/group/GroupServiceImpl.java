@@ -4,6 +4,7 @@ import com.tfg.aegis.group.model.Enums;
 import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.group.model.GroupDto;
 import com.tfg.aegis.invitation.InvitationService;
+import com.tfg.aegis.mapper.GroupMapper;
 import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.UserRepository;
 import jakarta.transaction.Transactional;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -47,6 +49,7 @@ public class GroupServiceImpl implements GroupService {
         Set<User> members = new HashSet<>();
         members.add(owner);
         group.setMembers(members);
+        group.setType(Enums.TypeGroup.CONFIANZA);
         group.setState(Enums.GroupState.PENDIENTE);
         group.setLastModified(LocalDateTime.now());
         return groupRepository.save(group).getId();
@@ -99,6 +102,22 @@ public class GroupServiceImpl implements GroupService {
         }
 
         groupRepository.save(group);
+    }
+
+    /**
+     * Method that retrieves all groups of a specific type
+     *
+     * @param type Type of group
+     * @return List of GroupDto
+     */
+    public List<GroupDto> getAllGroupsByType(Enums.TypeGroup type) {
+        if (type == null) {
+            throw new IllegalArgumentException("Group type cannot be null");
+        }
+        return groupRepository.findAllByType(type)
+                .stream()
+                .map(GroupMapper::toDto)
+                .toList();
     }
 
     /**

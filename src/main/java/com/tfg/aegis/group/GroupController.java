@@ -1,5 +1,6 @@
 package com.tfg.aegis.group;
 
+import com.tfg.aegis.group.model.Enums;
 import com.tfg.aegis.group.model.GroupDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +33,13 @@ public class GroupController {
     public ResponseEntity<Void> joinGroup(@PathVariable Long groupId, @RequestParam Long userId, @RequestParam String code) {
         groupService.joinGroup(groupId, userId, code);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get all groups of the specific type", description = "Retrieves all groups of a specific type")
+    @GetMapping("/{type}")
+    public ResponseEntity<List<GroupDto>> getAllGroupsByType(@PathVariable(name = "type") Enums.TypeGroup type) {
+        List<GroupDto> groups = groupService.getAllGroupsByType(type);
+        return ResponseEntity.ok(groups);
     }
 
     @GetMapping("/{groupId}/exit")
