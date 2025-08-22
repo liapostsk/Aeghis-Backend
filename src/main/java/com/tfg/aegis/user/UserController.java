@@ -1,13 +1,11 @@
 package com.tfg.aegis.user;
 
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.model.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
-import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,33 +14,26 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "User", description = "API of Users")
 @RequestMapping(value = "/user")
 @RestController
+@AllArgsConstructor
 public class UserController {
-
-    @Autowired
-    ModelMapper mapper;
 
     private final UserService userService;
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-
     @Operation(summary = "Get current user", description = "Returns the currently authenticated user based on JWT")
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser() {
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userService.getUserByClerkId(clerkId);
-        UserDto userDto = mapper.map(user, UserDto.class); // Ya cargado completamente
+
+        UserDto userDto = userService.getUserByClerkId(clerkId);
         return ResponseEntity.ok(userDto);
     }
 
     @Operation(summary = "Get", description = "Method that gets a User")
     @GetMapping(path = "/{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable(name = "id") Long id) {
-        User user = userService.getUser(id);
-        UserDto userDto = mapper.map(user, UserDto.class); //de user a userDto
+        UserDto userDto = userService.getUser(id);
         return ResponseEntity.ok(userDto);
     }
 

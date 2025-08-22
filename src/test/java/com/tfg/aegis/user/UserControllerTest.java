@@ -38,8 +38,8 @@ class UserControllerTest {
         User user = new User();
         UserDto userDto = new UserDto();
 
-        when(userService.getUser(userId)).thenReturn(user);
         when(mapper.map(user, UserDto.class)).thenReturn(userDto);
+        when(userService.getUser(userId)).thenReturn(userDto);
 
         ResponseEntity<UserDto> response = userController.getUser(userId);
 

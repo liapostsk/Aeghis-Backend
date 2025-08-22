@@ -1,190 +1,148 @@
 package com.tfg.aegis.user;
 
-import com.tfg.aegis.exception.InternalServerException;
-import com.tfg.aegis.exception.user.UserCreationException;
-import com.tfg.aegis.exception.user.UserNotFoundException;
+import common.exception.ConflictException;
+import common.exception.NotFoundException;
+import com.tfg.aegis.user.mapper.UserMapper;
 import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.model.UserDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Date;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserTest {
+class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private UserMapper userMapper;
 
     @InjectMocks
-    private UserServiceImpl userService;
+    private UserService userService;
 
     @Test
-    void testGetUserWhenExists() {
-        Long userId = 1L;
-        Date dateOfBirth = new Date();
-        String name = "John Doe";
-        String phone = "123456789";
-        String email = "juan.perez@example.com";
+    void getUser_whenExists_returnsDto() {
+        Long id = 1L;
+        User entity = new User();
+        entity.setId(id);
+        when(userRepository.findById(id)).thenReturn(Optional.of(entity));
 
-        User user = new User();
-        user.setId(userId);
-        user.setDateOfBirth(dateOfBirth);
-        user.setName(name);
-        user.setPhone(phone);
-        user.setEmail(email);
-        user.setVerify(true);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-
-        User result = userService.getUser(userId);
-
-        assertNotNull(result);
-        assertEquals(user, result);
-    }
-
-    @Test
-    void testGetUserWhenNotExists() {
-        Long userId = 1L;
-
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        assertThrows(UserNotFoundException.class, () -> userService.getUser(userId));
-    }
-
-    @Test
-    void testCreateUserOk() {
-        UserDto userDto = new UserDto();
-        userDto.setDateOfBirth(new Date());
-        userDto.setClerkId("user_123456");
-        userDto.setName("John Doe");
-        userDto.setPhone("123456789");
-        userDto.setEmail("juan.perez@example.com");
-        userDto.setVerify(true);
-
-        when(userRepository.existsByPhone(userDto.getPhone())).thenReturn(false);
-        when(userRepository.existsByEmail(userDto.getEmail())).thenReturn(false);
-
-        // Simula que al guardar, el repo devuelve un User con ID asignado
-        User savedUser = new User();
-        savedUser.setId(1L);
-        when(userRepository.save(any(User.class))).thenReturn(savedUser);
-
-        Long idNewUser = userService.createUser(userDto);
-        assertNotNull(idNewUser);
-        assertEquals(1L, idNewUser);
-    }
-
-    @Test
-    void testCreateUserPhoneAlreadyExists() {
-        UserDto userDto = new UserDto();
-        userDto.setClerkId("user_123456");
-        userDto.setPhone("123456789");
-        userDto.setEmail("john@example.com");
-
-        when(userRepository.existsByPhone(userDto.getPhone())).thenReturn(true);
-
-        assertThrows(UserCreationException.class, () -> userService.createUser(userDto));
-    }
-
-    @Test
-    void testCreateUserEmailAlreadyExists() {
-        UserDto userDto = new UserDto();
-        userDto.setPhone("123456789");
-        userDto.setEmail("john@example.com");
-
-        when(userRepository.existsByPhone(userDto.getPhone())).thenReturn(false);
-        when(userRepository.existsByEmail(userDto.getEmail())).thenReturn(true);
-
-        assertThrows(UserCreationException.class, () -> userService.createUser(userDto));
-    }
-
-    @Test
-    void testCreateUserUnexpectedError() {
-        UserDto userDto = new UserDto();
-        userDto.setPhone("123456789");
-        userDto.setEmail("john@example.com");
-
-        when(userRepository.existsByPhone(userDto.getPhone())).thenReturn(false);
-        when(userRepository.existsByEmail(userDto.getEmail())).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenThrow(new NullPointerException("DB error"));
-
-        assertThrows(InternalServerException.class, () -> userService.createUser(userDto));
-    }
-
-    @Test
-    void testUpdateUserOk() {
-        Long userId = 1L;
-        User existingUser = new User();
-        existingUser.setId(userId);
-
-        UserDto updatedDto = new UserDto();
-        updatedDto.setDateOfBirth(new Date());
-        updatedDto.setName("Updated Name");
-        updatedDto.setPhone("987654321");
-        updatedDto.setEmail("updated@example.com");
-        updatedDto.setVerify(true);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(userRepository.save(any(User.class))).thenReturn(existingUser);
-
-        userService.updateUser(userId, updatedDto);
-        verify(userRepository).save(argThat(user ->
-                user.getName().equals(updatedDto.getName()) &&
-                        user.getPhone().equals(updatedDto.getPhone()) &&
-                        user.getEmail().equals(updatedDto.getEmail()) &&
-                        user.getVerify().equals(updatedDto.getVerify())
-        ));
-    }
-
-    @Test
-    void testUpdateUserNotFound() {
-        Long userId = 2L;
         UserDto dto = new UserDto();
+        dto.setEmail("juan.perez@example.com");
+        when(userMapper.toDto(entity)).thenReturn(dto);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        UserDto result = userService.getUser(id);
 
-        assertThrows(UserNotFoundException.class, () -> userService.updateUser(userId, dto));
+        assertSame(dto, result);               // el mismo objeto que devolvió el mapper
+        verify(userMapper).toDto(entity);
     }
 
     @Test
-    void testUpdateUserUnexpectedError() {
-        Long userId = 2L;
+    void getUser_whenNotExists_throwsNotFound() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> userService.getUser(99L));
+    }
+
+    @Test
+    void createUser_ok_returnsId() {
         UserDto dto = new UserDto();
-        when(userRepository.findById(userId)).thenThrow(new NullPointerException("DB error"));
+        dto.setName("John");
+        dto.setEmail("john@example.com");
+        dto.setPhone("123456789");
+        dto.setDateOfBirth(new Date());
 
-        assertThrows(InternalServerException.class, () -> userService.updateUser(userId, dto));
+        User toSave = new User();
+        when(userMapper.toEntity(dto)).thenReturn(toSave);
+
+        User saved = new User();
+        saved.setId(1L);
+        when(userRepository.save(toSave)).thenReturn(saved);
+
+        Long id = userService.createUser(dto);
+
+        assertEquals(1L, id);
+        verify(userRepository).save(toSave);
     }
 
     @Test
-    void testDeleteUserOk() {
-        Long userId = 1L;
-        User existingUser = new User();
-        existingUser.setId(userId);
+    void createUser_uniqueConstraint_throwsConflict() {
+        UserDto dto = new UserDto();
+        dto.setEmail("dup@example.com");
+        dto.setPhone("123");
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userMapper.toEntity(dto)).thenReturn(new User());
+        when(userRepository.save(any(User.class)))
+                .thenThrow(new DataIntegrityViolationException("unique constraint"));
 
-        userService.deleteUser(userId);
-        verify(userRepository).delete(existingUser);
+        assertThrows(ConflictException.class, () -> userService.createUser(dto));
     }
 
     @Test
-    void testDeleteUserNotFound() {
-        Long userId = 2L;
+    void updateUser_ok_savesWithNewFields() {
+        Long id = 5L;
+        User existing = new User();
+        existing.setId(id);
+        when(userRepository.findById(id)).thenReturn(Optional.of(existing));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        UserDto dto = new UserDto();
+        dto.setName("Updated");
+        dto.setEmail("upd@example.com");
+        dto.setPhone("987654321");
+        dto.setVerify(true);
+        dto.setDateOfBirth(new Date());
 
-        assertThrows(UserNotFoundException.class, () -> userService.deleteUser(userId));
+        when(userRepository.save(existing)).thenReturn(existing);
+
+        userService.updateUser(id, dto);
+
+        assertEquals("Updated", existing.getName());
+        assertEquals("upd@example.com", existing.getEmail());
+        assertEquals("987654321", existing.getPhone());
+        assertEquals(true, existing.getVerify());
+        verify(userRepository).save(existing);
     }
 
+    @Test
+    void updateUser_notFound_throwsNotFound() {
+        when(userRepository.findById(7L)).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> userService.updateUser(7L, new UserDto()));
+    }
+
+    @Test
+    void updateUser_uniqueConstraint_throwsConflict() {
+        Long id = 8L;
+        User existing = new User();
+        existing.setId(id);
+        when(userRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(userRepository.save(existing))
+                .thenThrow(new DataIntegrityViolationException("unique"));
+
+        assertThrows(ConflictException.class, () -> userService.updateUser(id, new UserDto()));
+    }
+
+    @Test
+    void deleteUser_ok_deletesById() {
+        Long id = 10L;
+        when(userRepository.existsById(id)).thenReturn(true);
+
+        userService.deleteUser(id);
+
+        verify(userRepository).deleteById(id);
+    }
+
+    @Test
+    void deleteUser_notFound_throwsNotFound() {
+        when(userRepository.existsById(11L)).thenReturn(false);
+        assertThrows(NotFoundException.class, () -> userService.deleteUser(11L));
+    }
 }

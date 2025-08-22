@@ -1,28 +1,94 @@
 package com.tfg.aegis.emergencycontact;
 
+import com.tfg.aegis.emergencycontact.model.EmergencyContact;
 import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
+import com.tfg.aegis.emergencycontact.mapper.EmergencyContactMapper;
+import com.tfg.aegis.user.UserRepository;
+import com.tfg.aegis.user.UserService;
+import com.tfg.aegis.user.model.User;
+import com.tfg.aegis.user.model.UserDto;
+import common.exception.NotFoundException;
+import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-public interface EmergencyContactService {
+@Service
+@Transactional
+@AllArgsConstructor
+public class EmergencyContactService {
+
+    private final EmergencyContactRepository repository;
+    private final UserRepository userRepository;
+    private final UserService userService;
+
+
+    /**
+     * Retrieves an emergency contact by its ID, ensuring that the contact belongs to the current user.
+     *
+     * @param contactId the ID of the emergency contact to retrieve
+     * @return the EmergencyContact object if found and owned by the current user
+     * @throws NotFoundException if the contact does not exist
+     * @throws AccessDeniedException if the contact does not belong to the current user
+     */
+    private EmergencyContact getOwnedContactOrThrow(Long contactId) {
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDto userDto = userService.getUserByClerkId(clerkId);
+        EmergencyContact contact = repository.findById(contactId)
+                .orElseThrow(() -> new NotFoundException("Emergency Contact not found"));
+        if (!contact.getOwner().getId().equals(userDto.getId())) {
+            throw new AccessDeniedException("You do not own this SafeLocation");
+        }
+        return contact;
+    }
 
     /**
      * Adds a new emergency contact for the current user.
      *
-     * @param emergencyContactDto the emergency contact data transfer object containing details of the contact
+     * @param emergencyContactDto the emergency contact data transfer object
+     * @return the ID of the newly created emergency contact
+     * @throws NotFoundException if the current user is not found
      */
-    Long addEmergencyContactForCurrentUser(EmergencyContactDto emergencyContactDto);
+    public Long addEmergencyContactForCurrentUser(EmergencyContactDto emergencyContactDto) {
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new NotFoundException("User not found with clerkId: " + clerkId));
+        EmergencyContact contact = EmergencyContactMapper.toEntity(emergencyContactDto, user);
+        repository.save(contact);
+        return contact.getId();
+    }
 
     /**
      * Edits an existing emergency contact for the current user.
      *
-     * @param id                   the ID of the emergency contact to edit
-     * @param emergencyContactDto  the updated emergency contact data transfer object
+     * @param id the ID of the emergency contact to edit
+     * @param emergencyContactDto the updated emergency contact data transfer object
+     * @throws NotFoundException if the contact does not exist
+     * @throws AccessDeniedException if the contact does not belong to the current user
      */
-    void editEmergencyContact(Long id, EmergencyContactDto emergencyContactDto);
+    public void editEmergencyContact(Long id, EmergencyContactDto emergencyContactDto) {
+        EmergencyContact contact = getOwnedContactOrThrow(id);
+        contact.setName(emergencyContactDto.getName());
+        contact.setPhone(emergencyContactDto.getPhone());
+        contact.setRelation(emergencyContactDto.getRelation());
+        contact.setConfirmed(emergencyContactDto.isConfirmed());
+        repository.save(contact);
+    }
 
     /**
      * Deletes an emergency contact for the current user.
      *
      * @param id the ID of the emergency contact to delete
+     * @throws NotFoundException if the contact does not exist
+     * @throws AccessDeniedException if the contact does not belong to the current user
+     * @throws IllegalStateException if the contact was not deleted successfully
      */
-    void deleteEmergencyContactForCurrentUser(Long id);
+    public void deleteEmergencyContactForCurrentUser(Long id) {
+        boolean existed = repository.existsById(id);
+        repository.deleteById(id);
+        if (existed && repository.existsById(id)) {
+            throw new IllegalStateException("No se borró el EmergencyContact id=" + id);
+        }
+    }
 }

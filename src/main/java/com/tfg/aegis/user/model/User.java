@@ -2,7 +2,7 @@ package com.tfg.aegis.user.model;
 
 import com.tfg.aegis.emergencycontact.model.EmergencyContact;
 import com.tfg.aegis.group.model.Group;
-import com.tfg.aegis.model.entity.Person;
+import com.tfg.aegis.person.entity.Person;
 import com.tfg.aegis.safelocation.model.SafeLocation;
 import jakarta.persistence.*;
 import lombok.Getter;

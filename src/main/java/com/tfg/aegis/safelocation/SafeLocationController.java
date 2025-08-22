@@ -23,8 +23,8 @@ public class SafeLocationController {
     @Operation(summary = "Add", description = "Add a new SafeLocation for the current user")
     @PostMapping("/add")
     public ResponseEntity<Long> addSafeLocationForCurrentUser(@RequestBody SafeLocationDto safeLocationDto) {
-        safeLocationService.addSafeLocationForCurrentUser(safeLocationDto);
-        return ResponseEntity.ok(safeLocationDto.getId());
+        Long id = safeLocationService.addSafeLocationForCurrentUser(safeLocationDto);
+        return ResponseEntity.ok(id);
     }
 
     @Operation(summary = "Edit", description = "Method that edits an existing SafeLocation")

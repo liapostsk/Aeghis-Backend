@@ -1,29 +1,88 @@
 package com.tfg.aegis.safelocation;
 
+import com.tfg.aegis.safelocation.mapper.SafeLocationMapper;
+import com.tfg.aegis.safelocation.model.SafeLocation;
 import com.tfg.aegis.safelocation.model.SafeLocationDto;
+import com.tfg.aegis.user.UserRepository;
+import com.tfg.aegis.user.UserService;
+import com.tfg.aegis.user.model.User;
+import com.tfg.aegis.user.model.UserDto;
+import common.exception.NotFoundException;
+import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-public interface SafeLocationService {
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Transactional
+@AllArgsConstructor
+public class SafeLocationService {
+
+    private final SafeLocationRepository repository;
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final SafeLocationMapper mapper;
+
+    private static final Logger log = LoggerFactory.getLogger(SafeLocationService.class);
 
     /**
-     * Adds a new safe location for the current user.
-     *
-     * @param dto the safe location data transfer object containing details of the safe location
+     * Retrieves a SafeLocation by its ID and checks if the current user is the owner.
      */
-    Long addSafeLocationForCurrentUser(SafeLocationDto dto);
+    private SafeLocation getOwnedLocationOrThrow(Long locationId) {
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDto userDto = userService.getUserByClerkId(clerkId);
+        SafeLocation location = repository.findById(locationId)
+                .orElseThrow(() -> new NotFoundException("SafeLocation not found"));
+
+        if (!location.getOwner().getId().equals(userDto.getId())) {
+            throw new AccessDeniedException("You do not own this SafeLocation");
+        }
+
+        log.info("User {} accessed SafeLocation with ID {}", userDto.getId(), location);
+        return location;
+    }
 
     /**
-     * Edits an existing safe location for the current user.
-     *
-     * @param id  the ID of the safe location to edit
-     * @param dto the updated safe location data transfer object
+     * {@inheritDoc}
      */
-    void editSafeLocationForCurrentUser(Long id, SafeLocationDto dto);
+    public Long addSafeLocationForCurrentUser(SafeLocationDto dto) {
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepository.findByClerkId(clerkId)
+                .orElseThrow(() -> new NotFoundException("User not found with clerkId: " + clerkId));
+        SafeLocation location = mapper.toEntity(dto, user);
+        repository.save(location);
+        return location.getId();
+    }
 
     /**
-     * Deletes a safe location for the current user.
-     *
-     * @param id the ID of the safe location to delete
+     * {@inheritDoc}
      */
-    void deleteSafeLocationForCurrentUser(Long id);
+    public void editSafeLocationForCurrentUser(Long id, SafeLocationDto dto) {
+        SafeLocation location = getOwnedLocationOrThrow(id);
+        location.setName(dto.getName());
+        location.setDescription(dto.getDescription());
+        location.setLatitude(dto.getLatitude());
+        location.setLongitude(dto.getLongitude());
+        location.setAddress(dto.getAddress());
+        location.setDistance(dto.getDistance());
+        location.setType(dto.getType());
 
+        repository.save(location);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Transactional
+    public void deleteSafeLocationForCurrentUser(Long id) {
+        boolean existed = repository.existsById(id);
+        repository.deleteById(id);
+        if (existed && repository.existsById(id)) {
+            throw new IllegalStateException("No se borró el SafeLocation id=" + id);
+        }
+    }
 }
