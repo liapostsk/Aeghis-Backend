@@ -7,5 +7,4 @@ import java.util.Set;
 
 public interface SafeLocationRepository extends JpaRepository<SafeLocation, Long> {
     Set<SafeLocation> findByOwner(User owner);
-
 }

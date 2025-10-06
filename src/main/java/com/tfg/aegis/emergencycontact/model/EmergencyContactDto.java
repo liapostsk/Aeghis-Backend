@@ -6,9 +6,7 @@ import lombok.Data;
 public class EmergencyContactDto {
     private Long id;
     private Long ownerId;
-    private Long emergencyContactId;
-    private String name;
-    private String phone;
+    private Long contactId;
     private String relation;
-    private boolean confirmed;
+    private Enums.Status status;
 }

@@ -7,7 +7,7 @@ import com.tfg.aegis.user.UserRepository;
 import com.tfg.aegis.user.UserService;
 import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.model.UserDto;
-import common.exception.NotFoundException;
+import com.tfg.aegis.common.exception.NotFoundException;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

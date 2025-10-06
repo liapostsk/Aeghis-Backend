@@ -9,8 +9,8 @@ import java.util.Optional;
 public interface UserRepository extends CrudRepository<User, Long> {
     boolean existsByEmail(String email);
 
-    boolean existsByPhone(String email);
-
     @EntityGraph(attributePaths = {"emergencyContacts", "safeLocations"})
     Optional<User> findByClerkId(String clerkId);
+
+    boolean existsByPhone(String phone);
 }

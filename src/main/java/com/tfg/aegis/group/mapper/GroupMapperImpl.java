@@ -5,11 +5,13 @@ import com.tfg.aegis.group.model.GroupDto;
 import com.tfg.aegis.user.model.User;
 import org.springframework.stereotype.Component;
 
+import java.util.stream.Collectors;
+
 @Component
 public class GroupMapperImpl implements GroupMapper {
 
     @Override
-    public Group toEntity(GroupDto dto, User owner) {
+    public Group toEntity(GroupDto dto) {
         if (dto == null) return null;
         Group group = new Group();
         group.setId(dto.getId());
@@ -21,7 +23,6 @@ public class GroupMapperImpl implements GroupMapper {
         group.setCreatedAt(dto.getCreatedAt());
         group.setExpirationDate(dto.getExpirationDate());
         group.setLastModified(dto.getLastModified());
-        group.setOwner(owner);
         return group;
     }
 
@@ -39,6 +40,16 @@ public class GroupMapperImpl implements GroupMapper {
         dto.setExpirationDate(group.getExpirationDate());
         dto.setLastModified(group.getLastModified());
         dto.setOwnerId(group.getOwner() != null ? group.getOwner().getId() : null);
+        dto.setMembersIds(group.getMembers() != null
+                ? group.getMembers().stream()
+                .map(User::getId)
+                .collect(Collectors.toSet())
+                : java.util.Collections.emptySet());
+        dto.setAdminsIds(group.getAdmins() != null
+                ? group.getAdmins().stream()
+                .map(User::getId)
+                .collect(Collectors.toSet())
+                : java.util.Collections.emptySet());
         return dto;
     }
 }

@@ -2,23 +2,23 @@ package com.tfg.aegis.emergencycontact;
 
 import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
+@AllArgsConstructor
 @RequestMapping("/me/emergency-contact")
 public class EmergencyContactController {
 
     private final EmergencyContactService emergencyContactService;
 
     private static final Logger log = LoggerFactory.getLogger(EmergencyContactController.class);
-
-    public EmergencyContactController(EmergencyContactService emergencyContactService) {
-        this.emergencyContactService = emergencyContactService;
-    }
 
     @Operation(summary = "Add", description = "Add a new EmergencyContact for the current user")
     @PostMapping("add")

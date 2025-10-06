@@ -5,10 +5,15 @@ import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.group.model.GroupDto;
 import com.tfg.aegis.invitation.InvitationService;
 import com.tfg.aegis.group.mapper.GroupMapper;
+import com.tfg.aegis.user.UserService;
 import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.UserRepository;
+import com.tfg.aegis.user.model.UserDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,9 +30,13 @@ public class GroupService {
 
     private final UserRepository userRepository;
 
+    private final UserService userService;
+
     private final InvitationService invitationService;
 
     private final GroupMapper mapper;
+
+    private static final Logger log = LoggerFactory.getLogger(GroupService.class);
 
 
     /**
@@ -55,38 +64,33 @@ public class GroupService {
     }
 
     /**
-     * Method that allows a user to join a group
-     *
-     * @param groupId Group id
-     * @param userId  User id
+     * Method that retrieves a Group by its id
      */
-    public void joinGroup(Long groupId, Long userId, String code) {
+    public GroupDto getGroupById(Long groupId) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("Group not found with id: " + groupId));
+        return mapper.toDto(group);
+    }
+
+    /**
+     * Method that allows a user to join a group
+     *
+     * @param userId  User id
+     */
+    public Long joinGroup(Long userId, String code) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
-        // 1) Grupo cerrado => no permite unirse
-        if (group.getState() == Enums.GroupState.CERRADO) {
-            throw new IllegalArgumentException("Group is closed and does not accept new members");
-        }
-
-        // 2) Ya es miembro
-        if (group.getMembers() != null && group.getMembers().stream().anyMatch(u -> u.getId().equals(userId))) {
-            throw new IllegalArgumentException("User is already a member of the group");
-        }
-
-        // 3) Código obligatorio + normalización
         if (code == null || code.isBlank()) {
             throw new IllegalArgumentException("Invitation code is required");
         }
         String normalized = code.trim().toUpperCase();
 
         // 4) Validación de invitación
-        boolean valid = invitationService.validateInvitation(groupId, normalized);
-        if (!valid) {
-            throw new IllegalArgumentException("Invalid or expired invitation code");
-        }
+        GroupDto valid = invitationService.validateInvitation(normalized);
+
+        Group group = groupRepository.findById(valid.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Group not found with id: " + valid.getId()));
 
         // 5) Añadir miembro
         if (group.getMembers() == null) {
@@ -98,24 +102,39 @@ public class GroupService {
         if (group.getState() == Enums.GroupState.PENDIENTE) {
             group.setState(Enums.GroupState.ACTIVO);
         }
-
+        log.info("User {} joined group {}", user.getId(), group);
         groupRepository.save(group);
+
+        return group.getId();
     }
 
     /**
-     * Method that retrieves all groups of a specific type
+     * Method that retrieves all groups of a specific type that the authenticated user belongs to
      *
      * @param type Type of group
      * @return List of GroupDto
      */
-    public List<GroupDto> getAllGroupsByType(Enums.TypeGroup type) {
+    public List<GroupDto> getAllMyGroupsByType(Enums.TypeGroup type) {
         if (type == null) {
             throw new IllegalArgumentException("Group type cannot be null");
         }
-        return groupRepository.findAllByType(type)
+
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        UserDto userDto = userService.getUserByClerkId(clerkId);
+
+        if (userDto.getId() == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+
+        List<GroupDto> listGroups = groupRepository.findByTypeAndMembers_Id(type, userDto.getId())
                 .stream()
                 .map(mapper::toDto)
                 .toList();
+
+        log.info("List of groups {}", listGroups);
+
+        return listGroups;
     }
 
     /**

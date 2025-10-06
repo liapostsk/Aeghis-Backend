@@ -13,6 +13,7 @@ public class SafeLocationMapperImpl implements SafeLocationMapper {
     public SafeLocation toEntity(SafeLocationDto dto, User user) {
         SafeLocation safeLocation = new SafeLocation();
 
+        safeLocation.setId(dto.getId());
         safeLocation.setName(dto.getName());
         safeLocation.setDescription(dto.getDescription());
         safeLocation.setLatitude(dto.getLatitude());
@@ -30,11 +31,14 @@ public class SafeLocationMapperImpl implements SafeLocationMapper {
     public SafeLocationDto toDto(SafeLocation safeLocation, UserDto userDto) {
         SafeLocationDto dto = new SafeLocationDto();
 
+        dto.setId(safeLocation.getId());
         dto.setName(safeLocation.getName());
         dto.setDescription(safeLocation.getDescription());
         dto.setLatitude(safeLocation.getLatitude());
         dto.setLongitude(safeLocation.getLongitude());
         dto.setExternalId(safeLocation.getExternalId());
+        dto.setAddress(safeLocation.getAddress());
+        dto.setDistance(safeLocation.getDistance());
         dto.setType(safeLocation.getType());
         dto.setUserId(userDto.getId());
 

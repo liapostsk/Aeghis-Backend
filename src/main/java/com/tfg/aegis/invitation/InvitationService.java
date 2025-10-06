@@ -1,12 +1,17 @@
 package com.tfg.aegis.invitation;
 
+import com.tfg.aegis.group.mapper.GroupMapper;
 import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.group.GroupRepository;
+import com.tfg.aegis.group.model.GroupDto;
 import com.tfg.aegis.invitation.model.Invitation;
 import com.tfg.aegis.invitation.model.InvitationDto;
 import com.tfg.aegis.invitation.mapper.InvitationMapper;
+import com.tfg.aegis.user.UserController;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -23,10 +28,14 @@ public class InvitationService {
     private final GroupRepository groupRepository;
     private final PasswordEncoder passwordEncoder;
     private final InvitationMapper mapper;
+    private final GroupMapper groupMapper;
 
     private static final String ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final int CODE_LENGTH = 8;
     private final SecureRandom random = new SecureRandom();
+
+    private static final Logger log = LoggerFactory.getLogger(InvitationService.class);
+
 
     /**
      * Method that creates an Invitation
@@ -69,17 +78,22 @@ public class InvitationService {
      * Method that validates an invitation
      * @return true if the invitation is valid, false otherwise
      */
-    public Boolean validateInvitation(Long groupId, String code) {
-        if (code == null || code.isBlank()) return false;
+    public GroupDto validateInvitation(String code) {
+        if (code == null || code.isBlank()) return null;
 
         String input = code.trim().toUpperCase();
         LocalDateTime now = LocalDateTime.now();
 
-        List<Invitation> activeInvites =
-                invitationRepository.findActiveByGroupId(groupId, now);
-        if (activeInvites.isEmpty()) return false;
+        List<Invitation> activeInvites = invitationRepository.findAllActive(now);
+        for (Invitation inv : activeInvites) {
+            if (passwordEncoder.matches(input, inv.getCodeHash())) {
+                GroupDto dto = groupMapper.toDto(inv.getGroup());
+                log.info("Invitation valid for group: {}", dto);
+                return dto;
+            }
+        }
+        log.info("Invalid invitation code: {}", input);
 
-        return activeInvites.stream()
-                .anyMatch(inv -> passwordEncoder.matches(input, inv.getCodeHash()));
+        return null;
     }
 }

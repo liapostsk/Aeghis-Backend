@@ -12,7 +12,7 @@ public class InvitationMapperImpl implements InvitationMapper {
         if (invitation == null) return null;
         InvitationDto dto = new InvitationDto();
         dto.setId(invitation.getId());
-        dto.setGroup(invitation.getGroup());
+        dto.setGroupId(invitation.getGroup().getId());
         dto.setCode(code);
         dto.setExpiresAt(invitation.getExpiresAt());
         dto.setRevokedAt(invitation.getRevokedAt());
@@ -25,7 +25,6 @@ public class InvitationMapperImpl implements InvitationMapper {
         if (dto == null) return null;
         Invitation invitation = new Invitation();
         invitation.setId(dto.getId());
-        invitation.setGroup(dto.getGroup());
         invitation.setExpiresAt(dto.getExpiresAt());
         invitation.setRevokedAt(dto.getRevokedAt());
         invitation.setCreatedAt(dto.getCreatedAt());

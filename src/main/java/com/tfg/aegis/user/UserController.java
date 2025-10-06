@@ -27,6 +27,8 @@ public class UserController {
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         UserDto userDto = userService.getUserByClerkId(clerkId);
+
+        log.info("Current user: {}", userDto);
         return ResponseEntity.ok(userDto);
     }
 
@@ -34,6 +36,7 @@ public class UserController {
     @GetMapping(path = "/{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable(name = "id") Long id) {
         UserDto userDto = userService.getUser(id);
+        log.info("Current user: {}", userDto);
         return ResponseEntity.ok(userDto);
     }
 
@@ -44,6 +47,7 @@ public class UserController {
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         userDto.setClerkId(clerkId);
         Long id = userService.createUser(userDto);
+        log.info("Current user id: {}", id);
         return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
 
@@ -59,6 +63,14 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable(name = "id", required = false) Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build(); // HTTP 204 No Content
+    }
+
+    @Operation(summary = "Check Existence", description = "Method that checks if a User exists by phone number")
+    @GetMapping(path = "/exists/{phone}")
+    public ResponseEntity<Boolean> userExistsByPhone(@PathVariable(name = "phone") String phone) {
+        boolean exists = userService.userExistsByPhone(phone);
+        log.info("Exists user: {}", exists);
+        return ResponseEntity.ok(exists);
     }
 
 }

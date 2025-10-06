@@ -2,12 +2,12 @@ package com.tfg.aegis.emergencycontact;
 
 import com.tfg.aegis.emergencycontact.model.EmergencyContact;
 import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
-import com.tfg.aegis.emergencycontact.mapper.EmergencyContactMapper;
+import com.tfg.aegis.emergencycontact.mapper.EmergencyContactMapperImpl;
 import com.tfg.aegis.user.UserRepository;
 import com.tfg.aegis.user.UserService;
 import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.model.UserDto;
-import common.exception.NotFoundException;
+import com.tfg.aegis.common.exception.NotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -22,7 +22,7 @@ public class EmergencyContactService {
     private final EmergencyContactRepository repository;
     private final UserRepository userRepository;
     private final UserService userService;
-
+    private final EmergencyContactMapperImpl emergencyContactMapper;
 
     /**
      * Retrieves an emergency contact by its ID, ensuring that the contact belongs to the current user.
@@ -52,11 +52,18 @@ public class EmergencyContactService {
      */
     public Long addEmergencyContactForCurrentUser(EmergencyContactDto emergencyContactDto) {
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userRepository.findByClerkId(clerkId)
+        User owner = userRepository.findByClerkId(clerkId)
                 .orElseThrow(() -> new NotFoundException("User not found with clerkId: " + clerkId));
-        EmergencyContact contact = EmergencyContactMapper.toEntity(emergencyContactDto, user);
-        repository.save(contact);
-        return contact.getId();
+
+        User contact = userRepository.findById(emergencyContactDto.getContactId())
+                .orElseThrow(() -> new NotFoundException("Contact user not found with id: " + emergencyContactDto.getContactId()));
+
+        EmergencyContact entity = emergencyContactMapper.toEntity(emergencyContactDto);
+        entity.setOwner(owner);
+        entity.setContact(contact);
+
+        repository.save(entity);
+        return entity.getId();
     }
 
     /**
@@ -68,11 +75,9 @@ public class EmergencyContactService {
      * @throws AccessDeniedException if the contact does not belong to the current user
      */
     public void editEmergencyContact(Long id, EmergencyContactDto emergencyContactDto) {
-        EmergencyContact contact = getOwnedContactOrThrow(id);
-        contact.setName(emergencyContactDto.getName());
-        contact.setPhone(emergencyContactDto.getPhone());
+        EmergencyContact contact = getOwnedContactOrThrow(id); // Verify ownership
+        // Update fields
         contact.setRelation(emergencyContactDto.getRelation());
-        contact.setConfirmed(emergencyContactDto.isConfirmed());
         repository.save(contact);
     }
 

@@ -1,5 +1,6 @@
 package com.tfg.aegis.invitation;
 
+import com.tfg.aegis.group.model.GroupDto;
 import com.tfg.aegis.invitation.model.InvitationDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,15 +20,15 @@ public class InvitationController {
 
     @PostMapping("/{groupId}/invite")
     @Operation(summary= "create an invitation", description = "Creates an invitation for a group")
-    public ResponseEntity<InvitationDto> createInvitation(@PathVariable Long groupId) {
+    public ResponseEntity<InvitationDto> createInvitation(@PathVariable Long groupId, @RequestParam(required = false) Long expiry) {
         InvitationDto invitationDto = invitationService.createInvitation(groupId, null);
         return ResponseEntity.status(HttpStatus.CREATED).body(invitationDto);
     }
     
-    @PostMapping("/{groupId}/validate")
+    @PostMapping("/validate")
     @Operation(summary = "validate an invitation code", description = "Validates an invitation code")
-    public ResponseEntity<Boolean> validateInvitation(@PathVariable Long groupId, @RequestParam String code) {
-        Boolean allowed = invitationService.validateInvitation(groupId, code);
+    public ResponseEntity<GroupDto> validateInvitation(@RequestParam String code) {
+        GroupDto allowed = invitationService.validateInvitation(code);
         return ResponseEntity.ok(allowed);
     }
 }

@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface GroupRepository extends CrudRepository<Group, Long> {
 
-    public List<Group> findAllByType(Enums.TypeGroup type);
+    List<Group> findByTypeAndMembers_Id(Enums.TypeGroup type, Long userId);
 }

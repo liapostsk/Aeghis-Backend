@@ -28,17 +28,24 @@ public class GroupController {
         return ResponseEntity.status(HttpStatus.CREATED).body(groupId);
     }
 
-    @PostMapping("/{groupId}/join")
+    @GetMapping("/{groupId}")
+    @Operation(summary = "Get group by ID", description = "Retrieves a group by its ID")
+    public ResponseEntity<GroupDto> getGroupById(@PathVariable Long groupId) {
+        GroupDto group = groupService.getGroupById(groupId);
+        return ResponseEntity.ok(group);
+    }
+
+    @PostMapping("/join")
     @Operation(summary = "Join a group", description = "Allows a user to join an existing group by its ID")
-    public ResponseEntity<Void> joinGroup(@PathVariable Long groupId, @RequestParam Long userId, @RequestParam String code) {
-        groupService.joinGroup(groupId, userId, code);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Long> joinGroup(@RequestParam Long userId, @RequestParam String code) {
+        Long groupId = groupService.joinGroup(userId, code);
+        return ResponseEntity.ok(groupId);
     }
 
     @Operation(summary = "Get all groups of the specific type", description = "Retrieves all groups of a specific type")
-    @GetMapping("/{type}")
-    public ResponseEntity<List<GroupDto>> getAllGroupsByType(@PathVariable(name = "type") Enums.TypeGroup type) {
-        List<GroupDto> groups = groupService.getAllGroupsByType(type);
+    @GetMapping("/{type}/my-groups")
+    public ResponseEntity<List<GroupDto>> getAllMyGroupsByType(@PathVariable(name = "type") Enums.TypeGroup type) {
+        List<GroupDto> groups = groupService.getAllMyGroupsByType(type);
         return ResponseEntity.ok(groups);
     }
 

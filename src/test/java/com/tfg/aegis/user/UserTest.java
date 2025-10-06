@@ -1,7 +1,7 @@
 package com.tfg.aegis.user;
 
-import common.exception.ConflictException;
-import common.exception.NotFoundException;
+import com.tfg.aegis.common.exception.ConflictException;
+import com.tfg.aegis.common.exception.NotFoundException;
 import com.tfg.aegis.user.mapper.UserMapper;
 import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.model.UserDto;
