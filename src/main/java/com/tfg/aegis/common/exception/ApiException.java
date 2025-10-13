@@ -1,11 +1,13 @@
 package com.tfg.aegis.common.exception;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /** Raíz de las excepciones de negocio de la API. */
+@Getter
 public class ApiException extends RuntimeException {
     private final HttpStatus status;
     private final String code;
@@ -25,11 +27,6 @@ public class ApiException extends RuntimeException {
         this.code = code;
         this.title = title;
     }
-
-    public HttpStatus getStatus() { return status; }
-    public String getCode() { return code; }
-    public String getTitle() { return title; }
-    public Map<String, Object> getMeta() { return meta; }
 
     /** Añade metadatos (se incluirán en la respuesta de error). */
     public ApiException withMeta(String key, Object value) {

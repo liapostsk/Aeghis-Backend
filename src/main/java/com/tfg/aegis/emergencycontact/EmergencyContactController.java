@@ -22,10 +22,10 @@ public class EmergencyContactController {
 
     @Operation(summary = "Add", description = "Add a new EmergencyContact for the current user")
     @PostMapping("add")
-    public ResponseEntity<Long> addEmergencyContactForCurrentUser(@RequestBody EmergencyContactDto emergencyContactDto) {
-        Long id = emergencyContactService.addEmergencyContactForCurrentUser(emergencyContactDto);
+    public ResponseEntity<EmergencyContactDto> addEmergencyContactForCurrentUser(@RequestBody EmergencyContactDto emergencyContactDto) {
+        EmergencyContactDto dto = emergencyContactService.addEmergencyContactForCurrentUser(emergencyContactDto);
 
-        return ResponseEntity.ok(id);
+        return ResponseEntity.ok(dto);
     }
 
     @Operation(summary = "Edit", description = "Method that edits an existing EmergencyContact")

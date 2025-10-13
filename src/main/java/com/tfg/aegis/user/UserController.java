@@ -67,10 +67,10 @@ public class UserController {
 
     @Operation(summary = "Check Existence", description = "Method that checks if a User exists by phone number")
     @GetMapping(path = "/exists/{phone}")
-    public ResponseEntity<Boolean> userExistsByPhone(@PathVariable(name = "phone") String phone) {
-        boolean exists = userService.userExistsByPhone(phone);
-        log.info("Exists user: {}", exists);
-        return ResponseEntity.ok(exists);
+    public ResponseEntity<Long> userExistsByPhone(@PathVariable(name = "phone") String phone) {
+        Long userId = userService.userExistsByPhone(phone);
+        log.info("Exists user with id: {}", userId);
+        return ResponseEntity.ok(userId);
     }
 
 }

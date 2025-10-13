@@ -2,38 +2,19 @@ package com.tfg.aegis.emergencycontact.mapper;
 
 import com.tfg.aegis.emergencycontact.model.EmergencyContact;
 import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
-import com.tfg.aegis.user.model.User;
-import com.tfg.aegis.common.exception.NotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component
 public class EmergencyContactMapperImpl implements EmergencyContactMapper {
 
-    public EmergencyContact toEntity(EmergencyContactDto dto) {
-        if (dto == null) return null;
+    public EmergencyContact toEntity(EmergencyContactDto emergencyContactDto) {
+        if (emergencyContactDto == null) return null;
 
-        EmergencyContact entity = new EmergencyContact();
-        entity.setId(dto.getId());
+        EmergencyContact emergencyContact = new EmergencyContact();
 
-        if (dto.getOwnerId() != null) {
-            User owner = new User();
-            owner.setId(dto.getOwnerId());
-            entity.setOwner(owner);
-        }
-
-        if (dto.getContactId() != null) {
-            User contact = new User();
-            contact.setId(dto.getContactId());
-            entity.setContact(contact);
-        }
-
-        if (dto.getRelation() != null) {
-            entity.setRelation(dto.getRelation());
-        }
-
-        entity.setStatus(dto.getStatus());
-
-        return entity;
+        emergencyContact.setRelation(emergencyContactDto.getRelation());
+        emergencyContact.setStatus(emergencyContactDto.getStatus());
+        return emergencyContact;
     }
 
     public EmergencyContactDto toDto(EmergencyContact entity) {

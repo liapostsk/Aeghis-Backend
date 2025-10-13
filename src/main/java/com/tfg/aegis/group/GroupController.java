@@ -42,17 +42,24 @@ public class GroupController {
         return ResponseEntity.ok(groupId);
     }
 
-    @Operation(summary = "Get all groups of the specific type", description = "Retrieves all groups of a specific type")
     @GetMapping("/{type}/my-groups")
+    @Operation(summary = "Get all groups of the specific type", description = "Retrieves all groups of a specific type")
     public ResponseEntity<List<GroupDto>> getAllMyGroupsByType(@PathVariable(name = "type") Enums.TypeGroup type) {
         List<GroupDto> groups = groupService.getAllMyGroupsByType(type);
         return ResponseEntity.ok(groups);
     }
 
-    @GetMapping("/{groupId}/exit")
+    @DeleteMapping("/{groupId}/exit")
     @Operation(summary = "Exit a group", description = "Allows a user to exit an existing group by its ID")
-    public ResponseEntity<Void> exitGroup(@PathVariable Long groupId, @RequestParam Long userId) {
-        groupService.exitGroup(groupId, userId);
+    public ResponseEntity<GroupDto> exitGroup(@PathVariable Long groupId, @RequestParam Long userId) {
+        GroupDto groupDto = groupService.exitGroup(groupId, userId);
+        return ResponseEntity.ok(groupDto);
+    }
+
+    @DeleteMapping("/{groupId}")
+    @Operation(summary = "Delete a group", description = "Deletes an existing group by its ID")
+    public ResponseEntity<Void> deleteGroup(@PathVariable Long groupId) {
+        groupService.deleteGroup(groupId);
         return ResponseEntity.noContent().build();
     }
 

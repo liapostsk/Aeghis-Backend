@@ -18,4 +18,5 @@ public class UserDto extends PersonDto {
     private Set<ExternalContactDto> externalContacts;
     private Set<SafeLocationDto> safeLocations;
     private Boolean verify;
+    private String clerkId;
 }

@@ -6,6 +6,7 @@ import com.tfg.aegis.emergencycontact.EmergencyContactRepository;
 import com.tfg.aegis.emergencycontact.mapper.EmergencyContactMapperImpl;
 import com.tfg.aegis.emergencycontact.model.EmergencyContact;
 import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
+import com.tfg.aegis.emergencycontact.model.Enums;
 import com.tfg.aegis.externalcontact.ExternalContactRepository;
 import com.tfg.aegis.externalcontact.mapper.ExternalContactMapperImpl;
 import com.tfg.aegis.externalcontact.model.ExternalContact;
@@ -15,11 +16,14 @@ import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.model.UserDto;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -34,6 +38,8 @@ public class UserService {
     private final UserMapper mapper;
     private final EmergencyContactMapperImpl emergencyContactMapper;
     private final ExternalContactMapperImpl externalContactMapper;
+
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     /**
      * Method that gets the current user
@@ -91,10 +97,18 @@ public class UserService {
 
             Set<EmergencyContact> contacts = new HashSet<>();
             if (userDto.getEmergencyContacts() != null) {
+                // Por cada contacto de emergencia, coger el numero de teléfono y buscar el usuario asociado
                 for (EmergencyContactDto contactDto : userDto.getEmergencyContacts()) {
-                    EmergencyContact contact = emergencyContactMapper.toEntity(contactDto);
-                    contact.setOwner(user);
-                    contacts.add(contact);
+                    Optional<User> contactUser = userRepository.findById(contactDto.getContactId());
+                    log.info("Contact user: {}", contactUser);
+                    if (contactUser.isPresent()) {
+                        EmergencyContact contact = emergencyContactMapper.toEntity(contactDto);
+                        contact.setOwner(user);
+                        contact.setContact(contactUser.get());
+                        contacts.add(contact);
+                    } else {
+                        throw new NotFoundException("Emergency Contact User", contactDto.getContactId());
+                    }
                 }
             }
             user.setEmergencyContacts(contacts);
@@ -155,9 +169,9 @@ public class UserService {
     /**
      * Method that checks if a User exists by phone number
      * @param phone Phone number
-     * @return boolean
+     * @return Long User id or null if not exists
      */
-    public Boolean userExistsByPhone(String phone) {
-        return userRepository.existsByPhone(phone);
+    public Long userExistsByPhone(String phone) {
+        return userRepository.findByPhone(phone).map(User::getId).orElse(null);
     }
 }

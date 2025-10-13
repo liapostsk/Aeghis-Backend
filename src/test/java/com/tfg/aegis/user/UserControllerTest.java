@@ -29,7 +29,6 @@ class UserControllerTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         mapper = mock(ModelMapper.class);
-        userController.mapper = mapper;
     }
 
     @Test

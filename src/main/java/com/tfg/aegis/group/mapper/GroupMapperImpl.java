@@ -40,6 +40,7 @@ public class GroupMapperImpl implements GroupMapper {
         dto.setExpirationDate(group.getExpirationDate());
         dto.setLastModified(group.getLastModified());
         dto.setOwnerId(group.getOwner() != null ? group.getOwner().getId() : null);
+        // Map members and admins to their IDs
         dto.setMembersIds(group.getMembers() != null
                 ? group.getMembers().stream()
                 .map(User::getId)

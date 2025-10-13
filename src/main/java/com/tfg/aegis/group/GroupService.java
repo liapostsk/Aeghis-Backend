@@ -3,6 +3,7 @@ package com.tfg.aegis.group;
 import com.tfg.aegis.group.model.Enums;
 import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.group.model.GroupDto;
+import com.tfg.aegis.invitation.InvitationRepository;
 import com.tfg.aegis.invitation.InvitationService;
 import com.tfg.aegis.group.mapper.GroupMapper;
 import com.tfg.aegis.user.UserService;
@@ -27,11 +28,9 @@ import java.util.Set;
 public class GroupService {
 
     private final GroupRepository groupRepository;
-
     private final UserRepository userRepository;
-
+    private final InvitationRepository invitationRepository;
     private final UserService userService;
-
     private final InvitationService invitationService;
 
     private final GroupMapper mapper;
@@ -57,7 +56,8 @@ public class GroupService {
         Set<User> members = new HashSet<>();
         members.add(owner);
         group.setMembers(members);
-        group.setType(Enums.TypeGroup.CONFIANZA);
+        // Cambiar el tipo del grupo a el TypeGroup que corresponda
+        group.setType(groupDto.getType());
         group.setState(Enums.GroupState.PENDIENTE);
         group.setLastModified(LocalDateTime.now());
         return groupRepository.save(group).getId();
@@ -143,7 +143,7 @@ public class GroupService {
      * @param groupId Group id
      * @param userId  User id
      */
-    public void exitGroup(Long groupId, Long userId) {
+    public GroupDto exitGroup(Long groupId, Long userId) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("Group not found with id: " + groupId));
         User user = userRepository.findById(userId)
@@ -154,14 +154,45 @@ public class GroupService {
             throw new IllegalArgumentException("User is not a member of the group");
         }
 
-        // 2) Eliminar al usuario del grupo
+        // 2) Si el usuario es admin del grupo y no hay mas admins, asignar otro admin
+        if (group.getAdmins() != null && group.getAdmins().contains(user)) {
+            group.getAdmins().remove(user);
+            if (group.getAdmins().isEmpty() && !group.getMembers().isEmpty()) {
+                log.info("Assigning new admin in group {} as the last admin {} is leaving", group.getId(), user.getId());
+                User newAdmin = group.getMembers().iterator().next();
+                group.getAdmins().add(newAdmin);
+                log.info("New admin assigned: {} in group {}", newAdmin.getId(), group.getId());
+            }
+        }
+        log.info("User {} is leaving group {}", user.getId(), group.getId());
+        // 3) Eliminar al usuario del grupo
         group.getMembers().remove(user);
 
-        // 3) Si el grupo se queda sin miembros, cerrarlo
+        // 4) Si el grupo se queda sin miembros, cerrarlo
         if (group.getMembers().isEmpty()) {
             group.setState(Enums.GroupState.CERRADO);
         }
 
         groupRepository.save(group);
+
+        return mapper.toDto(group);
+    }
+
+    /**
+     * Method that deletes a group by its id
+     *
+     * @param groupId Group id
+     */
+    public void deleteGroup(Long groupId) {
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new IllegalArgumentException("Group not found with id: " + groupId));
+        // Si solo queda un miembro, eliminar el grupo
+        if (group.getMembers() != null && group.getMembers().size() > 1) {
+            throw new IllegalArgumentException("Group cannot be deleted as it has more than one member");
+        }
+        group.getAdmins().clear();
+
+        invitationRepository.deleteByGroupId(groupId);
+        log.info("Deleting group {}", group.getId());
+        groupRepository.delete(group);
     }
 }

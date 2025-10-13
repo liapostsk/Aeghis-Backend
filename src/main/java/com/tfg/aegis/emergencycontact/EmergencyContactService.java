@@ -1,8 +1,12 @@
 package com.tfg.aegis.emergencycontact;
 
+import com.tfg.aegis.common.exception.ApiException;
+import com.tfg.aegis.emergencycontact.mapper.EmergencyContactMapper;
 import com.tfg.aegis.emergencycontact.model.EmergencyContact;
 import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
-import com.tfg.aegis.emergencycontact.mapper.EmergencyContactMapperImpl;
+import com.tfg.aegis.emergencycontact.model.Enums;
+import com.tfg.aegis.externalcontact.ExternalContactRepository;
+import com.tfg.aegis.externalcontact.model.ExternalContact;
 import com.tfg.aegis.user.UserRepository;
 import com.tfg.aegis.user.UserService;
 import com.tfg.aegis.user.model.User;
@@ -10,6 +14,7 @@ import com.tfg.aegis.user.model.UserDto;
 import com.tfg.aegis.common.exception.NotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -19,10 +24,11 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class EmergencyContactService {
 
-    private final EmergencyContactRepository repository;
+    private final EmergencyContactRepository emergencyContactRepository;
     private final UserRepository userRepository;
     private final UserService userService;
-    private final EmergencyContactMapperImpl emergencyContactMapper;
+    private final ExternalContactRepository externalContactRepository;
+    private final EmergencyContactMapper emergencyContactMapper;
 
     /**
      * Retrieves an emergency contact by its ID, ensuring that the contact belongs to the current user.
@@ -35,7 +41,7 @@ public class EmergencyContactService {
     private EmergencyContact getOwnedContactOrThrow(Long contactId) {
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserDto userDto = userService.getUserByClerkId(clerkId);
-        EmergencyContact contact = repository.findById(contactId)
+        EmergencyContact contact = emergencyContactRepository.findById(contactId)
                 .orElseThrow(() -> new NotFoundException("Emergency Contact not found"));
         if (!contact.getOwner().getId().equals(userDto.getId())) {
             throw new AccessDeniedException("You do not own this SafeLocation");
@@ -50,20 +56,26 @@ public class EmergencyContactService {
      * @return the ID of the newly created emergency contact
      * @throws NotFoundException if the current user is not found
      */
-    public Long addEmergencyContactForCurrentUser(EmergencyContactDto emergencyContactDto) {
+    public EmergencyContactDto addEmergencyContactForCurrentUser(EmergencyContactDto emergencyContactDto) {
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User owner = userRepository.findByClerkId(clerkId)
-                .orElseThrow(() -> new NotFoundException("User not found with clerkId: " + clerkId));
+                .orElseThrow(() -> new NotFoundException("User not found with clerkId: " + clerkId)); // Current user
 
+        // 1) No es usuario de la app
         User contact = userRepository.findById(emergencyContactDto.getContactId())
-                .orElseThrow(() -> new NotFoundException("Contact user not found with id: " + emergencyContactDto.getContactId()));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not at the app", "USER_NOT_IN_APP", "El usuario con id " + emergencyContactDto.getContactId() + " no está en la app"));
+
+        // 2) El contacto de emergencia eres tú mismo
+        if (contact.getPhone().equals(owner.getPhone())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Same user", "SELF_ADD", "No puedes agregarte a ti mismo");
+        }
 
         EmergencyContact entity = emergencyContactMapper.toEntity(emergencyContactDto);
         entity.setOwner(owner);
         entity.setContact(contact);
 
-        repository.save(entity);
-        return entity.getId();
+        emergencyContactRepository.save(entity);
+        return emergencyContactMapper.toDto(entity);
     }
 
     /**
@@ -78,7 +90,7 @@ public class EmergencyContactService {
         EmergencyContact contact = getOwnedContactOrThrow(id); // Verify ownership
         // Update fields
         contact.setRelation(emergencyContactDto.getRelation());
-        repository.save(contact);
+        emergencyContactRepository.save(contact);
     }
 
     /**
@@ -90,10 +102,40 @@ public class EmergencyContactService {
      * @throws IllegalStateException if the contact was not deleted successfully
      */
     public void deleteEmergencyContactForCurrentUser(Long id) {
-        boolean existed = repository.existsById(id);
-        repository.deleteById(id);
-        if (existed && repository.existsById(id)) {
+        boolean existed = emergencyContactRepository.existsById(id);
+        emergencyContactRepository.deleteById(id);
+        if (existed && emergencyContactRepository.existsById(id)) {
             throw new IllegalStateException("No se borró el EmergencyContact id=" + id);
+        }
+    }
+
+    public Long requestPromoteExternalToEmergencyContact(ExternalContact externalContact, Long userId) {
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User", userId));
+        // En este metodo se coge un external contact del usuaro y se convierte en un emergency contact
+        User contact = userRepository.findByPhone(externalContact.getPhone())
+                .orElseThrow(() -> new NotFoundException("User with phone %s not found".formatted(externalContact.getPhone())));
+
+        EmergencyContact emergencyContact = new EmergencyContact();
+        emergencyContact.setOwner(owner);
+        emergencyContact.setContact(contact);
+        emergencyContact.setRelation(externalContact.getRelation());
+        emergencyContact.setStatus(Enums.Status.PENDING);
+
+        EmergencyContact saved = emergencyContactRepository.save(emergencyContact);
+
+        // Elimino el contacto externo
+        externalContactRepository.delete(externalContact);
+
+        return saved.getId();
+    }
+
+    public void acceptEmergencyContact(Long emergencyContactId) {
+        EmergencyContact contact = emergencyContactRepository.findById(emergencyContactId)
+                .orElseThrow(() -> new NotFoundException("EmergencyContact", emergencyContactId));
+        if (contact.getStatus() == Enums.Status.PENDING) {
+            contact.setStatus(Enums.Status.ACCEPTED);
+            emergencyContactRepository.save(contact);
         }
     }
 }
