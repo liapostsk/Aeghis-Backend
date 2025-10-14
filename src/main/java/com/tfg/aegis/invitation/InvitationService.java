@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,10 +30,11 @@ public class InvitationService {
     private final PasswordEncoder passwordEncoder;
     private final InvitationMapper mapper;
     private final GroupMapper groupMapper;
+    private final CryptoService cryptoService;
+    private final SecureRandom random = new SecureRandom();
 
     private static final String ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final int CODE_LENGTH = 8;
-    private final SecureRandom random = new SecureRandom();
 
     private static final Logger log = LoggerFactory.getLogger(InvitationService.class);
 
@@ -48,22 +50,61 @@ public class InvitationService {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("Grupo no encontrado: " + groupId));
 
+        LocalDateTime now = LocalDateTime.now();
+
+        // 1) Reusar invitaciones activas
+        List<Invitation> actives = invitationRepository.findByGroupAndExpiresAtAfterAndRevokedAtIsNullOrderByCreatedAtDesc(group, now);
+        if (!actives.isEmpty()) {
+            Invitation existing = actives.get(0);
+            String code = decryptIfPresent(existing);
+
+            log.info("Existing valid invitation found for group {}: {}", groupId, existing);
+            return mapper.toDto(existing, code);
+        }
+
+        // 2) Crear una nueva
         String code = generateCode();
         String codeHash = passwordEncoder.encode(code);
 
         long minutes = (expiry == null) ? 60L : Math.max(1L, expiry); // evita 0 o negativos
-        LocalDateTime now = LocalDateTime.now();
+
         LocalDateTime expiresAt = now.plusMinutes(minutes);
+
+        // Cifrado del código
+        byte[] iv = new byte[12];
+        random.nextBytes(iv);
+        byte[] ciphertext;
+        try {
+            ciphertext = cryptoService.encrypt(code.getBytes(StandardCharsets.UTF_8), iv);
+        } catch (Exception e) {
+            throw new IllegalStateException("No se pudo cifrar el código de invitación", e);
+        }
 
         Invitation invitation = new Invitation();
         invitation.setGroup(group);
         invitation.setExpiresAt(expiresAt);
-        invitation.setCreatedAt(LocalDateTime.now());
-        invitation.setCodeHash(codeHash); // Método para generar un código hash único
+        invitation.setCodeIv(iv);
+        invitation.setCodeCiphertext(ciphertext);
+        invitation.setCreatedAt(now);
+        invitation.setCodeHash(codeHash);
 
         Invitation saved = invitationRepository.save(invitation);
 
         return mapper.toDto(saved, code);
+    }
+
+    private String decryptIfPresent(Invitation inv) {
+        byte[] ct = inv.getCodeCiphertext();
+        byte[] iv = inv.getCodeIv();
+        if (ct == null || iv == null) return null; // filas legacy o sin cifrado
+
+        try {
+            byte[] plain = cryptoService.decrypt(ct, iv);
+            return new String(plain, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.warn("No se pudo descifrar el código de Invitation id={}", inv.getId(), e);
+            return null; // evita romper el flujo; devolverás null y el front ocultará el código
+        }
     }
 
     private String generateCode() {

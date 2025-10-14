@@ -1,5 +1,6 @@
 package com.tfg.aegis.invitation;
 
+import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.invitation.model.Invitation;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,4 +17,8 @@ public interface InvitationRepository extends CrudRepository<Invitation, Long> {
     @Modifying
     @Query("delete from Invitation i where i.group.id = :groupId")
     void deleteByGroupId(@Param("groupId") Long groupId);
+
+    List<Invitation> findByGroupAndExpiresAtAfterAndRevokedAtIsNullOrderByCreatedAtDesc(
+            Group group, LocalDateTime now
+    );
 }
