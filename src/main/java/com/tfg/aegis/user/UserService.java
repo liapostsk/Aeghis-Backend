@@ -3,12 +3,11 @@ package com.tfg.aegis.user;
 import com.tfg.aegis.common.exception.ConflictException;
 import com.tfg.aegis.common.exception.NotFoundException;
 import com.tfg.aegis.emergencycontact.EmergencyContactRepository;
-import com.tfg.aegis.emergencycontact.mapper.EmergencyContactMapperImpl;
+import com.tfg.aegis.emergencycontact.mapper.EmergencyContactMapper;
 import com.tfg.aegis.emergencycontact.model.EmergencyContact;
 import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
-import com.tfg.aegis.emergencycontact.model.Enums;
 import com.tfg.aegis.externalcontact.ExternalContactRepository;
-import com.tfg.aegis.externalcontact.mapper.ExternalContactMapperImpl;
+import com.tfg.aegis.externalcontact.mapper.ExternalContactMapper;
 import com.tfg.aegis.externalcontact.model.ExternalContact;
 import com.tfg.aegis.externalcontact.model.ExternalContactDto;
 import com.tfg.aegis.user.mapper.UserMapper;
@@ -22,7 +21,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,8 +34,8 @@ public class UserService {
     private final ExternalContactRepository externalContactRepository;
 
     private final UserMapper mapper;
-    private final EmergencyContactMapperImpl emergencyContactMapper;
-    private final ExternalContactMapperImpl externalContactMapper;
+    private final EmergencyContactMapper emergencyContactMapper;
+    private final ExternalContactMapper externalContactMapper;
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
@@ -75,6 +73,7 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User", id));
         UserDto dto = mapper.toDto(user);
+
         Set<EmergencyContactDto> contacts = emergencyContactRepository.findByOwnerId(user.getId()).stream()
                 .map(emergencyContactMapper::toDto)
                 .collect(java.util.stream.Collectors.toSet());

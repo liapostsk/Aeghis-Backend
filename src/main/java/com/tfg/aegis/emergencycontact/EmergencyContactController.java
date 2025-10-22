@@ -6,10 +6,7 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -24,7 +21,6 @@ public class EmergencyContactController {
     @PostMapping("add")
     public ResponseEntity<EmergencyContactDto> addEmergencyContactForCurrentUser(@RequestBody EmergencyContactDto emergencyContactDto) {
         EmergencyContactDto dto = emergencyContactService.addEmergencyContactForCurrentUser(emergencyContactDto);
-
         return ResponseEntity.ok(dto);
     }
 

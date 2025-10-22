@@ -7,7 +7,6 @@ import com.tfg.aegis.group.model.GroupDto;
 import com.tfg.aegis.invitation.model.Invitation;
 import com.tfg.aegis.invitation.model.InvitationDto;
 import com.tfg.aegis.invitation.mapper.InvitationMapper;
-import com.tfg.aegis.user.UserController;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

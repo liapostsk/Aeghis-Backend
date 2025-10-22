@@ -179,6 +179,22 @@ public class GroupService {
     }
 
     /**
+     * Method that edits a group by its id
+     *
+     * @param groupId  Group id
+     * @param groupDto GroupDto
+     * @return GroupDto
+     */
+    public GroupDto editGroup(Long groupId, GroupDto groupDto) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Group not found with id: " + groupId));
+        group.setName(groupDto.getName());
+        group.setDescription(groupDto.getDescription());
+        group.setLastModified(LocalDateTime.now());
+        return mapper.toDto(groupRepository.save(group));
+    }
+
+    /**
      * Method that deletes a group by its id
      *
      * @param groupId Group id

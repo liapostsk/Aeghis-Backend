@@ -2,6 +2,14 @@ package com.tfg.aegis.user;
 
 import com.tfg.aegis.common.exception.ConflictException;
 import com.tfg.aegis.common.exception.NotFoundException;
+import com.tfg.aegis.emergencycontact.EmergencyContactRepository;
+import com.tfg.aegis.emergencycontact.mapper.EmergencyContactMapper;
+import com.tfg.aegis.emergencycontact.model.EmergencyContact;
+import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
+import com.tfg.aegis.externalcontact.ExternalContactRepository;
+import com.tfg.aegis.externalcontact.mapper.ExternalContactMapper;
+import com.tfg.aegis.externalcontact.model.ExternalContact;
+import com.tfg.aegis.externalcontact.model.ExternalContactDto;
 import com.tfg.aegis.user.mapper.UserMapper;
 import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.user.model.UserDto;
@@ -12,8 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,7 +32,15 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private UserMapper userMapper;
+    private UserMapper mapper;
+    @Mock
+    private EmergencyContactRepository emergencyContactRepository;
+    @Mock
+    private ExternalContactRepository externalContactRepository;
+    @Mock
+    private EmergencyContactMapper emergencyContactMapper;
+    @Mock
+    private ExternalContactMapper externalContactMapper;
 
     @InjectMocks
     private UserService userService;
@@ -35,16 +50,46 @@ class UserServiceTest {
         Long id = 1L;
         User entity = new User();
         entity.setId(id);
+
+        User contact = new User();
+        contact.setId(2L);
+
         when(userRepository.findById(id)).thenReturn(Optional.of(entity));
 
+        Set<EmergencyContact> emergencyContacts = new HashSet<>();
+
+        EmergencyContact ec1 = new EmergencyContact();
+        ec1.setId(1L);
+        ec1.setOwner(entity);
+        ec1.setContact(contact);
+        emergencyContacts.add(ec1);
+
+        when(emergencyContactRepository.findByOwnerId(id)).thenReturn(emergencyContacts);
+
+        EmergencyContactDto ecDto = new EmergencyContactDto();
+        ecDto.setId(1L);
+        when(emergencyContactMapper.toDto(any(EmergencyContact.class))).thenReturn(ecDto);
+
+        Set<ExternalContact> externalContacts = new HashSet<>();
+
+        ExternalContact ext1 = new ExternalContact();
+        ext1.setId(1L);
+        ext1.setOwner(entity);
+        ext1.setPhone("123456789");
+        externalContacts.add(ext1);
+
+        when(externalContactRepository.findByOwnerId(id)).thenReturn(externalContacts);
+
+        ExternalContactDto extDto = new ExternalContactDto();
+        extDto.setId(1L);
+        when(externalContactMapper.toDto(any(ExternalContact.class))).thenReturn(extDto);
+
         UserDto dto = new UserDto();
-        dto.setEmail("juan.perez@example.com");
-        when(userMapper.toDto(entity)).thenReturn(dto);
+        when(mapper.toDto(entity)).thenReturn(dto);
 
         UserDto result = userService.getUser(id);
 
-        assertSame(dto, result);               // el mismo objeto que devolvió el mapper
-        verify(userMapper).toDto(entity);
+        assertSame(dto, result);
     }
 
     @Test
@@ -62,7 +107,7 @@ class UserServiceTest {
         dto.setDateOfBirth(new Date());
 
         User toSave = new User();
-        when(userMapper.toEntity(dto)).thenReturn(toSave);
+        when(mapper.toEntity(dto)).thenReturn(toSave);
 
         User saved = new User();
         saved.setId(1L);
@@ -80,7 +125,7 @@ class UserServiceTest {
         dto.setEmail("dup@example.com");
         dto.setPhone("123");
 
-        when(userMapper.toEntity(dto)).thenReturn(new User());
+        when(mapper.toEntity(dto)).thenReturn(new User());
         when(userRepository.save(any(User.class)))
                 .thenThrow(new DataIntegrityViolationException("unique constraint"));
 

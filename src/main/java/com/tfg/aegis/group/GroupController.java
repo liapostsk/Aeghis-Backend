@@ -56,6 +56,13 @@ public class GroupController {
         return ResponseEntity.ok(groupDto);
     }
 
+    @PutMapping("/{groupId}")
+    @Operation(summary = "Edit a group", description = "Edit an existing group by its ID")
+    public ResponseEntity<GroupDto> editGroup(@PathVariable Long groupId, @RequestBody GroupDto groupDto) {
+        GroupDto updatedGroup = groupService.editGroup(groupId, groupDto);
+        return ResponseEntity.ok(updatedGroup);
+    }
+
     @DeleteMapping("/{groupId}")
     @Operation(summary = "Delete a group", description = "Deletes an existing group by its ID")
     public ResponseEntity<Void> deleteGroup(@PathVariable Long groupId) {
