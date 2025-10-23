@@ -4,19 +4,17 @@ import com.tfg.aegis.group.model.GroupDto;
 import com.tfg.aegis.invitation.model.InvitationDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Group", description = "API of groups")
+@Tag(name = "Invitation", description = "API of invitations")
 @RestController
 @RequestMapping("/invitation")
+@AllArgsConstructor
 public class InvitationController {
     private final InvitationService invitationService;
-
-    public InvitationController(InvitationService groupService) {
-        this.invitationService = groupService;
-    }
 
     @PostMapping("/{groupId}/invite")
     @Operation(summary= "create an invitation", description = "Creates an invitation for a group")

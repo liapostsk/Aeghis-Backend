@@ -1,4 +1,4 @@
-package com.tfg.aegis.trayecto.model;
+package com.tfg.aegis.journey.model;
 
 public class Enums {
     public enum EstadoTrayecto {

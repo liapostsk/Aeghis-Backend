@@ -1,7 +1,8 @@
-package com.tfg.aegis.trayecto.model;
+package com.tfg.aegis.journey.model;
 
-import com.tfg.aegis.participacion.model.Participacion;
-import com.tfg.aegis.ubicacion.model.Ubicacion;
+import com.tfg.aegis.group.model.Group;
+import com.tfg.aegis.participacion.model.Participation;
+import com.tfg.aegis.location.model.Location;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +15,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Table(name = "trayectos")
-public class Trayecto {
+public class Journey {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,13 +32,18 @@ public class Trayecto {
     // Puntos de salida/llegada
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "source_point_id", nullable = false)
-    private Ubicacion sourcePoint;
+    private Location sourcePoint;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "destino_id", nullable = false)
-    private Ubicacion destino;
+    private Location destino;
+
+    //grupo asociado
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "grupo_id", nullable = false)
+    private Group grupo;
 
     // 1..* Participaciones
     @OneToMany(mappedBy = "trayecto", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Participacion> participations = new HashSet<>();
+    private Set<Participation> participations = new HashSet<>();
 }

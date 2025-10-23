@@ -1,7 +1,7 @@
 package com.tfg.aegis.participacion.model;
 
-import com.tfg.aegis.trayecto.model.Trayecto;
-import com.tfg.aegis.ubicacion.model.Ubicacion;
+import com.tfg.aegis.journey.model.Journey;
+import com.tfg.aegis.location.model.Location;
 import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.valoracion.model.Valoracion;
 import jakarta.persistence.*;
@@ -10,14 +10,14 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "participaciones")
-public class Participacion {
+public class Participation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "trayecto_id", nullable = false)
-    private Trayecto trayecto;
+    private Journey trayecto;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "persona_id", nullable = false)
@@ -29,15 +29,15 @@ public class Participacion {
     // Ubicaciones asociadas
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ultima_ubicacion_id")
-    private Ubicacion ultimaUbicacion;
+    private Location ultimaUbicacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "origen_id")
-    private Ubicacion origen;
+    private Location origen;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "destino_id")
-    private Ubicacion destino;
+    private Location destino;
 
     @Enumerated(EnumType.STRING) @Column(nullable = false)
     private Enums.EstadoParticipacion estado;

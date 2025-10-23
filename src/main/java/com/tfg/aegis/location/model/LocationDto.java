@@ -1,11 +1,11 @@
-package com.tfg.aegis.ubicacion.model;
+package com.tfg.aegis.location.model;
 
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
-public class UbicacionDto {
+public class LocationDto {
     private Long id;
     private Double latitud;
     private Double longitud;
