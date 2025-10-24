@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @AllArgsConstructor
 public class JourneyController {
+
     private final JourneyService journeyService;
 
     @Operation(summary = "Get Journey", description = "Method that gets a Journey")
@@ -37,8 +38,8 @@ public class JourneyController {
 
     @Operation(summary = "Create Journey", description = "Method that creates a Journey")
     @PostMapping(path = "/create")
-    public ResponseEntity<Long> createJourney(@RequestBody JourneyDto journeyDto, @RequestParam java.util.Set<Long> participationIds) {
-        Long id = journeyService.createJourney(journeyDto, participationIds);
+    public ResponseEntity<Long> createJourney(@RequestBody JourneyDto journeyDto) {
+        Long id = journeyService.createJourney(journeyDto);
         return ResponseEntity.status(201).body(id);
     }
 

@@ -1,7 +1,7 @@
 package com.tfg.aegis.journey.model;
 
 import com.tfg.aegis.group.model.Group;
-import com.tfg.aegis.participacion.model.Participation;
+import com.tfg.aegis.participation.model.Participation;
 import com.tfg.aegis.location.model.Location;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -21,17 +21,17 @@ public class Journey {
     private Long id;
 
     @Enumerated(EnumType.STRING) @Column(nullable = false)
-    private Enums.EstadoTrayecto estado;
+    private Enums.EstadoTrayecto state;
 
     @Enumerated(EnumType.STRING) @Column(nullable = false)
-    private Enums.TipoTrayecto tipoTrayecto;
+    private Enums.TipoTrayecto journeyType;
 
-    @Column(nullable = false) private LocalDateTime fechaInicio;
-    @Column(nullable = false) private LocalDateTime fechaFin;
+    @Column(nullable = false) private LocalDateTime iniDate;
+    @Column(nullable = false) private LocalDateTime endDate;
 
-    // Puntos de salida/llegada
+    // Puntos de origen y destino
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "source_point_id", nullable = false)
+    @JoinColumn(name = "source_id", nullable = false)
     private Location sourcePoint;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -41,9 +41,9 @@ public class Journey {
     //grupo asociado
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "grupo_id", nullable = false)
-    private Group grupo;
+    private Group group;
 
     // 1..* Participaciones
-    @OneToMany(mappedBy = "trayecto", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "participations", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Participation> participations = new HashSet<>();
 }

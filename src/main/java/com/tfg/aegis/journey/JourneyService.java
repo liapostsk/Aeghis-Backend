@@ -4,8 +4,10 @@ import com.tfg.aegis.journey.mapper.JourneyMapper;
 import com.tfg.aegis.journey.model.Enums;
 import com.tfg.aegis.journey.model.Journey;
 import com.tfg.aegis.journey.model.JourneyDto;
-import com.tfg.aegis.participacion.mapper.ParticipationMapper;
-import com.tfg.aegis.participacion.model.Participation;
+import com.tfg.aegis.location.model.Location;
+import com.tfg.aegis.participation.ParticipationService;
+import com.tfg.aegis.participation.mapper.ParticipationMapper;
+import com.tfg.aegis.participation.model.Participation;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ public class JourneyService {
     private final JourneyRepository journeyRepository;
     private final JourneyMapper journeyMapper;
     private final ParticipationMapper participationMapper;
+    private final ParticipationService participationService;
 
     /**
      * Retrieves a journey entity by its ID.
@@ -52,7 +55,7 @@ public class JourneyService {
         java.util.List<Journey> journeys = (java.util.List<Journey>) journeyRepository.findAll();
         java.util.List<JourneyDto> journeyDtos = new java.util.ArrayList<>();
         for (Journey journey : journeys) {
-            if (journey.getEstado().equals(Enums.EstadoTrayecto.ACTIVO)) {
+            if (journey.getState().equals(Enums.EstadoTrayecto.ACTIVO)) {
                 journeyDtos.add(journeyMapper.toDto(journey));
             }
         }
@@ -65,16 +68,30 @@ public class JourneyService {
      * @param journeyDto The journey entity to be saved.
      * @return The saved journey entity.
      */
-    public Long createJourney(JourneyDto journeyDto, Set<Long> participacionDtoSet) {
+    public Long createJourney(JourneyDto journeyDto) {
         // Map JourneyDto to Journey entity
         Journey journey = journeyMapper.toEntity(journeyDto);
+
         //Map ParticipationDto to Participation entity
         Set<Participation> participations = new HashSet<>();
-        for (Long participationId : participacionDtoSet) {
-            Participation participation = new Participation();
+        for (Long participationId : journeyDto.getParticipationIds()) {
+            Participation participation = participationMapper.toEntity(participationService.getParticipation(participationId));
             participations.add(participation);
         }
         journey.setParticipations(participations);
+
+        if (journey.getState() == null) {
+            journey.setState(Enums.EstadoTrayecto.PENDIENTE);
+        }
+
+        // En caso de que el trayecto sea comun a todos. <-- REVISAR IF (TIPO DE TRAYECTO)
+        if (journey.getDestino() != null && journey.getSourcePoint() != null) {
+            Location destino = journey.getDestino();
+            journey.setDestino(destino);
+
+            Location sourcePoint = journey.getSourcePoint();
+            journey.setSourcePoint(sourcePoint);
+        }
 
         journey = journeyRepository.save(journey);
         return journey.getId();
@@ -87,6 +104,9 @@ public class JourneyService {
      */
     public void updateJourney(JourneyDto journeyDto) {
         Journey updatedJourney = journeyMapper.toEntity(journeyDto);
+        if (updatedJourney.getState().equals(Enums.EstadoTrayecto.ACABADO)) {
+            updatedJourney.setEndDate(java.time.LocalDateTime.now());
+        }
         journeyRepository.save(updatedJourney);
     }
 
@@ -99,4 +119,6 @@ public class JourneyService {
         var journey = journeyRepository.findById(id).orElseThrow(() -> new RuntimeException("Journey with id %s not found".formatted(id)));
         journeyRepository.delete(journey);
     }
+
+    // Cuando en un trayecto todas sus participaciones estén a "FINALIZADA", el trayecto pasará a estar en estado "FINALIZADO".
 }

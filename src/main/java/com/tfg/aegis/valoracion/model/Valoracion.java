@@ -20,4 +20,7 @@ public class Valoracion {
 
     @Column(length = 500) private String comentario; // [0..1] opcional
     @Column(nullable = false) private LocalDateTime fecha;
+
+    @Column(name = "participation_id", nullable = false)
+    private Long participationId;
 }

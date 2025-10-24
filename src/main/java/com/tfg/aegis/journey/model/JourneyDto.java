@@ -4,16 +4,17 @@ import com.tfg.aegis.location.model.LocationDto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 public class JourneyDto {
     private Long id;
     private Long groupId;
-    private Enums.EstadoTrayecto estado;
-    private Enums.TipoTrayecto tipoTrayecto;
-    private LocalDateTime fechaInicio;
-    private LocalDateTime fechaFin;
+    private Enums.EstadoTrayecto state;
+    private Enums.TipoTrayecto journeyType;
+    private LocalDateTime iniDate;
+    private LocalDateTime endDate;
     private LocationDto sourcePoint;
-    private LocationDto destino;
-    // si necesitas, añade contadores o un resumen de participaciones
+    private LocationDto destination;
+    private Set<Long> participationIds;
 }

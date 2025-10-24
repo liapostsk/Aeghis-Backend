@@ -18,9 +18,10 @@ public class JourneyMapperImpl implements JourneyMapper {
         Journey journey = new Journey();
 
         journey.setId(journeyDto.getId());
-        journey.setFechaInicio(journeyDto.getFechaInicio());
-        journey.setFechaFin(journeyDto.getFechaFin());
-        journey.setEstado(journeyDto.getEstado());
+        journey.setIniDate(journeyDto.getIniDate());
+        journey.setEndDate(journeyDto.getEndDate());
+        journey.setState(journeyDto.getState());
+        journey.setJourneyType(journeyDto.getJourneyType());
 
         return journey;
     }
@@ -32,9 +33,9 @@ public class JourneyMapperImpl implements JourneyMapper {
         }
         JourneyDto journeyDto = new JourneyDto();
         journeyDto.setId(journey.getId());
-        journeyDto.setFechaInicio(journey.getFechaInicio());
-        journeyDto.setFechaFin(journey.getFechaFin());
-        journeyDto.setEstado(journey.getEstado());
+        journeyDto.setIniDate(journey.getIniDate());
+        journeyDto.setEndDate(journey.getEndDate());
+        journeyDto.setState(journey.getState());
         return journeyDto;
     }
 }

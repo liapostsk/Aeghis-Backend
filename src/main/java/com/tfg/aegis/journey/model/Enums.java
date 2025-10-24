@@ -2,6 +2,7 @@ package com.tfg.aegis.journey.model;
 
 public class Enums {
     public enum EstadoTrayecto {
+        PENDIENTE,
         ACTIVO,
         ACABADO,
         CANCELADO

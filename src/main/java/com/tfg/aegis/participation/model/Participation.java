@@ -1,15 +1,19 @@
-package com.tfg.aegis.participacion.model;
+package com.tfg.aegis.participation.model;
 
 import com.tfg.aegis.journey.model.Journey;
 import com.tfg.aegis.location.model.Location;
 import com.tfg.aegis.user.model.User;
 import com.tfg.aegis.valoracion.model.Valoracion;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "participaciones")
+@Getter
+@Setter
+@Table(name = "participations")
 public class Participation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,32 +21,32 @@ public class Participation {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "trayecto_id", nullable = false)
-    private Journey trayecto;
+    private Journey journey;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "persona_id", nullable = false)
     private User persona;
 
     @Column(nullable = false)
-    private Boolean compartirUbi;
+    private Boolean shareLocation;
 
     // Ubicaciones asociadas
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ultima_ubicacion_id")
-    private Location ultimaUbicacion;
+    @JoinColumn(name = "last_location_id")
+    private Location lastLocation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "origen_id")
-    private Location origen;
+    @JoinColumn(name = "source_id")
+    private Location source;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "destino_id")
-    private Location destino;
+    @JoinColumn(name = "destination_id")
+    private Location destination;
 
     @Enumerated(EnumType.STRING) @Column(nullable = false)
-    private Enums.EstadoParticipacion estado;
+    private Enums.EstadoParticipacion state;
 
-    private LocalDateTime horaLlegada; // [0..1]
+    private LocalDateTime arrivalTime; // [0..1]
 
     // 0..1 Valoración
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)

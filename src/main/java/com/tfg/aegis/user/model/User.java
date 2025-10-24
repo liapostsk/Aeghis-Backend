@@ -3,7 +3,7 @@ package com.tfg.aegis.user.model;
 import com.tfg.aegis.emergencycontact.model.EmergencyContact;
 import com.tfg.aegis.externalcontact.model.ExternalContact;
 import com.tfg.aegis.group.model.Group;
-import com.tfg.aegis.participacion.model.Participation;
+import com.tfg.aegis.participation.model.Participation;
 import com.tfg.aegis.safelocation.model.SafeLocation;
 import jakarta.persistence.*;
 import lombok.Getter;

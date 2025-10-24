@@ -10,4 +10,5 @@ public class ValoracionDto {
     private Enums.TipoValoracion valor;
     private String comentario;
     private LocalDateTime fecha;
+    private Long participationId;
 }

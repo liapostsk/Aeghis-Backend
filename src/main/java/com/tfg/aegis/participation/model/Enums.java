@@ -1,4 +1,4 @@
-package com.tfg.aegis.participacion.model;
+package com.tfg.aegis.participation.model;
 
 public class Enums {
     public enum EstadoParticipacion {

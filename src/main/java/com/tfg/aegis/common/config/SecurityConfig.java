@@ -1,6 +1,6 @@
 package com.tfg.aegis.common.config;
 
-import com.tfg.aegis.security.JwtAuthFilter;
+import com.tfg.aegis.common.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;

@@ -1,7 +1,7 @@
-package com.tfg.aegis.participacion.mapper;
+package com.tfg.aegis.participation.mapper;
 
-import com.tfg.aegis.participacion.model.Participation;
-import com.tfg.aegis.participacion.model.ParticipationDto;
+import com.tfg.aegis.participation.model.Participation;
+import com.tfg.aegis.participation.model.ParticipationDto;
 
 public interface ParticipationMapper {
     Participation toEntity(ParticipationDto participationDto);
