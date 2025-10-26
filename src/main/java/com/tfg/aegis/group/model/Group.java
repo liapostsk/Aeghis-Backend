@@ -1,6 +1,7 @@
 package com.tfg.aegis.group.model;
 
-import com.tfg.aegis.user.model.User;
+import com.tfg.aegis.journey.model.Journey;
+import com.tfg.aegis.person.user.model.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -61,6 +62,9 @@ public class Group {
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<User> admins = new HashSet<>();
+
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Journey> journeys = new HashSet<>();
 
     @PrePersist
     private void prePersist() {

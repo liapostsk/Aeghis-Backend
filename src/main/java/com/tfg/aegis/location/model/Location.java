@@ -8,16 +8,18 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@Table(name = "locations")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class Location {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private Double latitud;
+    private Double latitude;
 
     @Column(nullable = false)
-    private Double longitud;
+    private Double longitude;
 
     @Column(nullable = false)
-    private LocalDateTime timestamp;
+    private LocalDateTime timestamp = LocalDateTime.now();
 }

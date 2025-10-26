@@ -1,7 +1,8 @@
-package com.tfg.aegis.user.model;
+package com.tfg.aegis.person.user.model;
 
 import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
-import com.tfg.aegis.externalcontact.model.ExternalContactDto;
+import com.tfg.aegis.person.externalcontact.model.ExternalContactDto;
+import com.tfg.aegis.person.model.PersonDto;
 import com.tfg.aegis.safelocation.model.SafeLocationDto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,11 +12,8 @@ import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class UserDto {
-    private Long id;
+public class UserDto extends PersonDto {
     private String clerkId;
-    private String name;
-    private String phone;
     private String email;
     private Date dateOfBirth;
     private String image;

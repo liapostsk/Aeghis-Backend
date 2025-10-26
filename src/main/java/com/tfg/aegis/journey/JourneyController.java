@@ -4,8 +4,12 @@ import com.tfg.aegis.journey.model.JourneyDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Set;
 
 @Tag(name = "Journey", description = "API of Journeys")
 @RequestMapping(value = "/journey")
@@ -15,24 +19,32 @@ public class JourneyController {
 
     private final JourneyService journeyService;
 
+    private static final Logger log = LoggerFactory.getLogger(JourneyController.class);
+
     @Operation(summary = "Get Journey", description = "Method that gets a Journey")
     @GetMapping(path = "{id}")
     public ResponseEntity<JourneyDto> getJourney(@PathVariable(name = "id") Long id) {
         JourneyDto journeyDto = journeyService.getJourney(id);
+
+        log.info("New group created: {}", journeyDto);
         return ResponseEntity.ok(journeyDto);
     }
 
-    @Operation(summary = "Get Current Journey", description = "Method that gets the current Journey for a user")
-    @GetMapping(path = "/current/{userId}")
-    public ResponseEntity<JourneyDto> getCurrentJourney(@PathVariable(name = "userId") Long userId) {
-        JourneyDto journeyDto = journeyService.getCurrentJourney(userId);
+    @Operation(summary = "Get Current Journey", description = "Method that gets the current Journey for a group")
+    @GetMapping(path = "/current/{groupId}")
+    public ResponseEntity<JourneyDto> getCurrentJourneyForGroup(@PathVariable(name = "groupId") Long groupId) {
+        JourneyDto journeyDto = journeyService.getCurrentJourneyForGroup(groupId);
+
+        log.info("Current journey for group {}: {}", groupId, journeyDto);
         return ResponseEntity.ok(journeyDto);
     }
 
     @Operation(summary = "Get Active Journeys", description = "Method that gets all active Journeys")
     @GetMapping(path = "/active")
-    public ResponseEntity<java.util.List<JourneyDto>> getActiveJourneys() {
-        java.util.List<JourneyDto> journeys = journeyService.getActiveJourneys();
+    public ResponseEntity<Set<JourneyDto>> getActiveJourneys() {
+        Set<JourneyDto> journeys = journeyService.getActiveJourneys();
+
+        log.info("Get active journeys: {}", journeys);
         return ResponseEntity.ok(journeys);
     }
 
@@ -40,6 +52,8 @@ public class JourneyController {
     @PostMapping(path = "/create")
     public ResponseEntity<Long> createJourney(@RequestBody JourneyDto journeyDto) {
         Long id = journeyService.createJourney(journeyDto);
+
+        log.info("New journey created with id: {}", id);
         return ResponseEntity.status(201).body(id);
     }
 
@@ -47,6 +61,8 @@ public class JourneyController {
     @PutMapping(path = "/update")
     public ResponseEntity<Void> updateJourney( @RequestBody JourneyDto journeyDto) {
         journeyService.updateJourney(journeyDto);
+
+        log.info("Journey updated: {}", journeyDto);
         return ResponseEntity.noContent().build();
     }
 
@@ -54,6 +70,8 @@ public class JourneyController {
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteJourney(@PathVariable(name = "id") Long id) {
         journeyService.deleteJourney(id);
+
+        log.info("Journey deleted with id: {}", id);
         return ResponseEntity.noContent().build();
     }
 }

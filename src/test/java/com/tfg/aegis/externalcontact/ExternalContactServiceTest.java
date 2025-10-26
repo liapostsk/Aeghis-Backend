@@ -1,13 +1,15 @@
 package com.tfg.aegis.externalcontact;
 
 import com.tfg.aegis.common.exception.NotFoundException;
-import com.tfg.aegis.externalcontact.mapper.ExternalContactMapper;
-import com.tfg.aegis.externalcontact.model.ExternalContact;
-import com.tfg.aegis.externalcontact.model.ExternalContactDto;
-import com.tfg.aegis.user.UserRepository;
-import com.tfg.aegis.user.UserService;
-import com.tfg.aegis.user.model.User;
-import com.tfg.aegis.user.model.UserDto;
+import com.tfg.aegis.person.externalcontact.ExternalContactRepository;
+import com.tfg.aegis.person.externalcontact.ExternalContactService;
+import com.tfg.aegis.person.externalcontact.mapper.ExternalContactMapper;
+import com.tfg.aegis.person.externalcontact.model.ExternalContact;
+import com.tfg.aegis.person.externalcontact.model.ExternalContactDto;
+import com.tfg.aegis.person.user.UserRepository;
+import com.tfg.aegis.person.user.UserService;
+import com.tfg.aegis.person.user.model.User;
+import com.tfg.aegis.person.user.model.UserDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

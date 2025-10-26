@@ -18,8 +18,8 @@ public class LocationMapperImpl implements LocationMapper {
         Location location = new Location();
 
         location.setId(dto.getId());
-        location.setLatitud(dto.getLatitud());
-        location.setLongitud(dto.getLongitud());
+        location.setLatitude(dto.getLatitude());
+        location.setLongitude(dto.getLongitude());
         location.setTimestamp(dto.getTimestamp());
 
         return location;
@@ -32,8 +32,8 @@ public class LocationMapperImpl implements LocationMapper {
         }
         LocationDto dto = new LocationDto();
         dto.setId(location.getId());
-        dto.setLongitud(location.getLongitud());
-        dto.setLatitud(location.getLatitud());
+        dto.setLongitude(location.getLongitude());
+        dto.setLatitude(location.getLatitude());
         dto.setTimestamp(location.getTimestamp());
         return dto;
     }

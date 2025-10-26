@@ -1,9 +1,10 @@
-package com.tfg.aegis.user.model;
+package com.tfg.aegis.person.user.model;
 
 import com.tfg.aegis.emergencycontact.model.EmergencyContact;
-import com.tfg.aegis.externalcontact.model.ExternalContact;
+import com.tfg.aegis.person.externalcontact.model.ExternalContact;
 import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.participation.model.Participation;
+import com.tfg.aegis.person.model.Person;
 import com.tfg.aegis.safelocation.model.SafeLocation;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -17,21 +18,10 @@ import java.util.Set;
 @Getter
 @Setter
 @Table(name = "users")
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+public class User extends Person {
 
     @Column(name = "clerkId", nullable = false)
     private String clerkId;
-
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @Column(name = "phone", nullable = false)
-    private String phone;
 
     @Column(name = "email", nullable = false)
     private String email;

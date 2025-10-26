@@ -1,6 +1,6 @@
-package com.tfg.aegis.externalcontact;
+package com.tfg.aegis.person.externalcontact;
 
-import com.tfg.aegis.externalcontact.model.ExternalContact;
+import com.tfg.aegis.person.externalcontact.model.ExternalContact;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;

@@ -26,11 +26,13 @@ public class LocationController {
         return ResponseEntity.ok(locationDto);
     }
 
-    @Operation(summary = "Save", description = "Method that saves a Location")
+    @Operation(summary = "Create", description = "Method that create a Location")
     @PostMapping
-    public ResponseEntity<Void> saveLocation(@RequestBody LocationDto locationDto) {
-        locationService.saveLocation(locationDto);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Long> createLocation(@RequestBody LocationDto locationDto) {
+        Long id = locationService.createLocation(locationDto);
+
+        log.info("New location created with ID: {}", id);
+        return ResponseEntity.ok(id);
     }
 
     @Operation(summary = "Delete", description = "Method that deletes a Location")

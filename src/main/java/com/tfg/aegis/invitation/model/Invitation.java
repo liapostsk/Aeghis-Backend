@@ -1,7 +1,6 @@
 package com.tfg.aegis.invitation.model;
 
 import com.tfg.aegis.group.model.Group;
-import com.tfg.aegis.user.model.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,13 +1,13 @@
-package com.tfg.aegis.externalcontact;
+package com.tfg.aegis.person.externalcontact;
 
 import com.tfg.aegis.common.exception.NotFoundException;
-import com.tfg.aegis.externalcontact.mapper.ExternalContactMapper;
-import com.tfg.aegis.externalcontact.model.ExternalContact;
-import com.tfg.aegis.externalcontact.model.ExternalContactDto;
-import com.tfg.aegis.user.UserService;
-import com.tfg.aegis.user.UserRepository;
-import com.tfg.aegis.user.model.User;
-import com.tfg.aegis.user.model.UserDto;
+import com.tfg.aegis.person.externalcontact.mapper.ExternalContactMapper;
+import com.tfg.aegis.person.externalcontact.model.ExternalContact;
+import com.tfg.aegis.person.externalcontact.model.ExternalContactDto;
+import com.tfg.aegis.person.user.UserService;
+import com.tfg.aegis.person.user.UserRepository;
+import com.tfg.aegis.person.user.model.User;
+import com.tfg.aegis.person.user.model.UserDto;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;

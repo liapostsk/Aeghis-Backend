@@ -1,11 +1,20 @@
 package com.tfg.aegis.participation;
 
+import com.tfg.aegis.journey.JourneyRepository;
+import com.tfg.aegis.journey.model.Journey;
+import com.tfg.aegis.location.LocationRepository;
+import com.tfg.aegis.location.model.Location;
 import com.tfg.aegis.participation.mapper.ParticipationMapper;
+import com.tfg.aegis.participation.model.Enums;
 import com.tfg.aegis.participation.model.Participation;
 import com.tfg.aegis.participation.model.ParticipationDto;
+import com.tfg.aegis.person.user.UserRepository;
+import com.tfg.aegis.person.user.model.User;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @Transactional
@@ -14,6 +23,9 @@ public class ParticipationService {
 
     private final ParticipationRepository participationRepository;
     private final ParticipationMapper participationMapper;
+    private final LocationRepository locationRepository;
+    private final JourneyRepository journeyRepository;
+    private final UserRepository userRepository;
 
     /**
      * Get a participation by its ID.
@@ -32,7 +44,20 @@ public class ParticipationService {
      */
     public Long createParticipation(ParticipationDto participationDto) {
         Participation participation = participationMapper.toEntity(participationDto);
+        Location source = locationRepository.findById(participationDto.getSourceId()).orElseThrow(() -> new RuntimeException("Source location not found"));
+        Location destination = locationRepository.findById(participationDto.getDestinationId()).orElseThrow(() -> new RuntimeException("Destination location not found"));
+
+        Journey journey = journeyRepository.findById(participationDto.getJourneyId()).orElseThrow(() -> new RuntimeException("Journey not found"));
+        User user = userRepository.findById(participationDto.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
+        participation.setJourney(journey);
+        participation.setParticipant(user);
+        participation.setSource(source);
+        participation.setDestination(destination);
+
+        //participation.setLastLocation();
+
         Participation savedParticipation = participationRepository.save(participation);
+
         return savedParticipation.getId();
     }
 
@@ -42,9 +67,14 @@ public class ParticipationService {
      */
     public void updateParticipation(ParticipationDto participationDto) {
         Long id = participationDto.getId();
-        Participation existingParticipation = participationRepository.findById(id).orElseThrow(() -> new RuntimeException("Participation not found"));
+        participationRepository.findById(id).orElseThrow(() -> new RuntimeException("Participation not found"));
+
+        Participation updatedParticipation = participationMapper.toEntity(participationDto);
         // Update fields as necessary
-        participationRepository.save(existingParticipation);
+        if (participationDto.getState().equals(Enums.ParticipationState.ARRIVED)) {
+            updatedParticipation.setArrivalTime(LocalDateTime.now());
+        }
+        participationRepository.save(updatedParticipation);
     }
 
 }

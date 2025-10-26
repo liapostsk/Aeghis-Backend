@@ -1,6 +1,8 @@
 package com.tfg.aegis.externalcontact;
 
-import com.tfg.aegis.externalcontact.model.ExternalContactDto;
+import com.tfg.aegis.person.externalcontact.ExternalContactController;
+import com.tfg.aegis.person.externalcontact.ExternalContactService;
+import com.tfg.aegis.person.externalcontact.model.ExternalContactDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;

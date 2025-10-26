@@ -1,6 +1,7 @@
-package com.tfg.aegis.externalcontact.model;
+package com.tfg.aegis.person.externalcontact.model;
 
-import com.tfg.aegis.user.model.User;
+import com.tfg.aegis.person.model.Person;
+import com.tfg.aegis.person.user.model.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,23 +19,13 @@ import lombok.Setter;
             @Index(name = "ix_en_phone", columnList = "phone")
     }
 )
-public class ExternalContact {
-
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class ExternalContact extends Person {
 
     /** Quién define el contacto de emergencia externo */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_ext_owner"))
     private User owner;
-
-    @Column(length = 120, nullable = false)
-    private String name;
-
-    /** Guarda en formato E.164 (+34...) para poder “promocionar” si se registra */
-    @Column(length = 32, nullable = false)
-    private String phone;
 
     @Column(length = 16)
     private String relation;

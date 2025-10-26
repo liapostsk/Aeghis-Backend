@@ -1,19 +1,18 @@
 package com.tfg.aegis.safelocation.model;
 
-import com.tfg.aegis.user.model.User;
+import com.tfg.aegis.location.model.Location;
+import com.tfg.aegis.person.user.model.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "safe_location")
-public class SafeLocation {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class SafeLocation extends Location {
 
     @Column(unique = true)
     private String externalId;
@@ -22,10 +21,6 @@ public class SafeLocation {
     private String name;
 
     private String description;
-
-    private Double latitude;
-
-    private Double longitude;
 
     private String address; // opcional: para guardar la dirección del lugar
 
@@ -37,5 +32,5 @@ public class SafeLocation {
     @JoinColumn(name = "owner", nullable = false)
     private User owner;
 
-    private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

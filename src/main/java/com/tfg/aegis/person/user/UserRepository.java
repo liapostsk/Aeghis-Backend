@@ -1,6 +1,6 @@
-package com.tfg.aegis.user;
+package com.tfg.aegis.person.user;
 
-import com.tfg.aegis.user.model.User;
+import com.tfg.aegis.person.user.model.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.repository.CrudRepository;
 

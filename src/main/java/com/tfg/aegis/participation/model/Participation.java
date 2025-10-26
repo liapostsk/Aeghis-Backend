@@ -2,18 +2,19 @@ package com.tfg.aegis.participation.model;
 
 import com.tfg.aegis.journey.model.Journey;
 import com.tfg.aegis.location.model.Location;
-import com.tfg.aegis.user.model.User;
+import com.tfg.aegis.person.user.model.User;
 import com.tfg.aegis.valoracion.model.Valoracion;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "participations")
+@Table(name = "participants")
 public class Participation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,15 +26,15 @@ public class Participation {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "persona_id", nullable = false)
-    private User persona;
+    private User participant;
 
     @Column(nullable = false)
-    private Boolean shareLocation;
+    private Boolean sharedLocation;
 
-    // Ubicaciones asociadas
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "last_location_id")
-    private Location lastLocation;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "participation_id")
+    @OrderBy("timestamp ASC")
+    private Set<Location> positions;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_id")
@@ -44,7 +45,7 @@ public class Participation {
     private Location destination;
 
     @Enumerated(EnumType.STRING) @Column(nullable = false)
-    private Enums.EstadoParticipacion state;
+    private Enums.ParticipationState state;
 
     private LocalDateTime arrivalTime; // [0..1]
 

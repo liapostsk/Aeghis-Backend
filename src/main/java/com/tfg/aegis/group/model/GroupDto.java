@@ -1,6 +1,5 @@
 package com.tfg.aegis.group.model;
 
-import com.tfg.aegis.user.model.User;
 import lombok.Data;
 
 import com.tfg.aegis.group.model.Enums.*;

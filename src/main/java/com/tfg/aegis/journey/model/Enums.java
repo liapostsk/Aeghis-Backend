@@ -1,15 +1,16 @@
 package com.tfg.aegis.journey.model;
 
 public class Enums {
-    public enum EstadoTrayecto {
-        PENDIENTE,
-        ACTIVO,
-        ACABADO,
-        CANCELADO
+    public enum JourneyState {
+        PENDING,
+        ACTIVE,
+        COMPLETED,
+        CANCELLED
     }
 
-    public enum TipoTrayecto {
-        GRUPO,
-        COMPARTIDO
+    public enum JourneyType {
+        INDIVIDUAL,
+        COMMON_DESTINATION,
+        PERSONALIZED
     }
 }

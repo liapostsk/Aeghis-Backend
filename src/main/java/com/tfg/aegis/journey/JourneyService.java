@@ -1,5 +1,7 @@
 package com.tfg.aegis.journey;
 
+import com.tfg.aegis.group.GroupRepository;
+import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.journey.mapper.JourneyMapper;
 import com.tfg.aegis.journey.model.Enums;
 import com.tfg.aegis.journey.model.Journey;
@@ -23,6 +25,7 @@ public class JourneyService {
     private final JourneyMapper journeyMapper;
     private final ParticipationMapper participationMapper;
     private final ParticipationService participationService;
+    private final GroupRepository groupRepository;
 
     /**
      * Retrieves a journey entity by its ID.
@@ -37,12 +40,12 @@ public class JourneyService {
     }
 
     /**
-     * Retrieves the current journey for a user.
+     * Retrieves the current journey for a group.
      *
-     * @param groupId The ID of the user.
+     * @param groupId The ID of the group.
      * @return The current journey entity for the specified user.
      */
-    public JourneyDto getCurrentJourney(Long groupId) {
+    public JourneyDto getCurrentJourneyForGroup(Long groupId) {
         return journeyMapper.toDto(journeyRepository.findCurrentJourneyByGroupId(groupId));
     }
 
@@ -51,11 +54,11 @@ public class JourneyService {
      *
      * @return A list of all active journey entities.
      */
-    public java.util.List<JourneyDto> getActiveJourneys() {
-        java.util.List<Journey> journeys = (java.util.List<Journey>) journeyRepository.findAll();
-        java.util.List<JourneyDto> journeyDtos = new java.util.ArrayList<>();
+    public Set<JourneyDto> getActiveJourneys() {
+        Set<Journey> journeys = (Set<Journey>)journeyRepository.findAll();
+        Set<JourneyDto> journeyDtos = new HashSet<>();
         for (Journey journey : journeys) {
-            if (journey.getState().equals(Enums.EstadoTrayecto.ACTIVO)) {
+            if (journey.getState().equals(Enums.JourneyState.ACTIVE)) {
                 journeyDtos.add(journeyMapper.toDto(journey));
             }
         }
@@ -74,24 +77,20 @@ public class JourneyService {
 
         //Map ParticipationDto to Participation entity
         Set<Participation> participations = new HashSet<>();
-        for (Long participationId : journeyDto.getParticipationIds()) {
+        for (Long participationId : journeyDto.getParticipantsIds()) {
             Participation participation = participationMapper.toEntity(participationService.getParticipation(participationId));
             participations.add(participation);
         }
         journey.setParticipations(participations);
 
         if (journey.getState() == null) {
-            journey.setState(Enums.EstadoTrayecto.PENDIENTE);
+            journey.setState(Enums.JourneyState.PENDING);
         }
 
-        // En caso de que el trayecto sea comun a todos. <-- REVISAR IF (TIPO DE TRAYECTO)
-        if (journey.getDestino() != null && journey.getSourcePoint() != null) {
-            Location destino = journey.getDestino();
-            journey.setDestino(destino);
+        Group group = groupRepository.findById(journeyDto.getGroupId())
+            .orElseThrow(() -> new RuntimeException("Group with id %s not found".formatted(journeyDto.getGroupId())));
 
-            Location sourcePoint = journey.getSourcePoint();
-            journey.setSourcePoint(sourcePoint);
-        }
+        journey.setGroup(group);
 
         journey = journeyRepository.save(journey);
         return journey.getId();
@@ -104,7 +103,7 @@ public class JourneyService {
      */
     public void updateJourney(JourneyDto journeyDto) {
         Journey updatedJourney = journeyMapper.toEntity(journeyDto);
-        if (updatedJourney.getState().equals(Enums.EstadoTrayecto.ACABADO)) {
+        if (updatedJourney.getState().equals(Enums.JourneyState.COMPLETED)) {
             updatedJourney.setEndDate(java.time.LocalDateTime.now());
         }
         journeyRepository.save(updatedJourney);

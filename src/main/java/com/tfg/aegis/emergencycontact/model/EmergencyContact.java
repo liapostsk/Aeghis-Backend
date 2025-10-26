@@ -1,6 +1,6 @@
 package com.tfg.aegis.emergencycontact.model;
 
-import com.tfg.aegis.user.model.User;
+import com.tfg.aegis.person.user.model.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import lombok.Getter;

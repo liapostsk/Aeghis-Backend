@@ -16,6 +16,10 @@ public class ParticipationMapperImpl implements ParticipationMapper {
         }
 
         Participation participation = new Participation();
+        participation.setId(participation.getId());
+        participation.setState(participationDto.getState());
+        participation.setSharedLocation(participationDto.getSharedLocation());
+        participation.setArrivalTime(participationDto.getArrivalTime());
 
         return participation;
     }
@@ -26,6 +30,11 @@ public class ParticipationMapperImpl implements ParticipationMapper {
             return null;
         }
         ParticipationDto dto = new ParticipationDto();
+        dto.setId(participation.getId());
+        dto.setState(participation.getState());
+        dto.setSharedLocation(participation.getSharedLocation());
+        dto.setArrivalTime(participation.getArrivalTime());
+
         return dto;
     }
 }

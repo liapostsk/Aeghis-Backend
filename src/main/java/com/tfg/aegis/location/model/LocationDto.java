@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class LocationDto {
     private Long id;
-    private Double latitud;
-    private Double longitud;
+    private Double latitude;
+    private Double longitude;
     private LocalDateTime timestamp;
 }

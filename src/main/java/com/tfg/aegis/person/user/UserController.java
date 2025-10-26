@@ -1,8 +1,8 @@
-package com.tfg.aegis.user;
+package com.tfg.aegis.person.user;
 
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import com.tfg.aegis.user.model.UserDto;
+import com.tfg.aegis.person.user.model.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

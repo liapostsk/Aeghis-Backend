@@ -1,7 +1,9 @@
 package com.tfg.aegis.user;
 
-import com.tfg.aegis.user.model.User;
-import com.tfg.aegis.user.model.UserDto;
+import com.tfg.aegis.person.user.UserController;
+import com.tfg.aegis.person.user.UserService;
+import com.tfg.aegis.person.user.model.User;
+import com.tfg.aegis.person.user.model.UserDto;
 import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

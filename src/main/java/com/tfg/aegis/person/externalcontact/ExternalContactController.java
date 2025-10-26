@@ -1,6 +1,6 @@
-package com.tfg.aegis.externalcontact;
+package com.tfg.aegis.person.externalcontact;
 
-import com.tfg.aegis.externalcontact.model.ExternalContactDto;
+import com.tfg.aegis.person.externalcontact.model.ExternalContactDto;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;

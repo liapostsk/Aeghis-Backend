@@ -3,8 +3,11 @@ package com.tfg.aegis.location;
 import com.tfg.aegis.location.mapper.LocationMapper;
 import com.tfg.aegis.location.model.Location;
 import com.tfg.aegis.location.model.LocationDto;
+import com.tfg.aegis.person.user.UserController;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,10 +36,13 @@ public class LocationService {
      * @param locationDto The location entity to be saved.
      * @return The saved location entity.
      */
-    public void saveLocation(LocationDto locationDto) {
+    public Long createLocation(LocationDto locationDto) {
         // Map LocationDto to Location entity
         Location location = locationMapper.toEntity(locationDto);
+
         locationRepository.save(location);
+
+        return location.getId();
     }
 
     /**

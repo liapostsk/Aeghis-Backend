@@ -1,4 +1,4 @@
-package com.tfg.aegis.user;
+package com.tfg.aegis.person.user;
 
 import com.tfg.aegis.common.exception.ConflictException;
 import com.tfg.aegis.common.exception.NotFoundException;
@@ -6,13 +6,14 @@ import com.tfg.aegis.emergencycontact.EmergencyContactRepository;
 import com.tfg.aegis.emergencycontact.mapper.EmergencyContactMapper;
 import com.tfg.aegis.emergencycontact.model.EmergencyContact;
 import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
-import com.tfg.aegis.externalcontact.ExternalContactRepository;
-import com.tfg.aegis.externalcontact.mapper.ExternalContactMapper;
-import com.tfg.aegis.externalcontact.model.ExternalContact;
-import com.tfg.aegis.externalcontact.model.ExternalContactDto;
-import com.tfg.aegis.user.mapper.UserMapper;
-import com.tfg.aegis.user.model.User;
-import com.tfg.aegis.user.model.UserDto;
+import com.tfg.aegis.person.externalcontact.ExternalContactRepository;
+import com.tfg.aegis.person.externalcontact.mapper.ExternalContactMapper;
+import com.tfg.aegis.person.externalcontact.model.ExternalContact;
+import com.tfg.aegis.person.externalcontact.model.ExternalContactDto;
+import com.tfg.aegis.person.user.mapper.UserMapper;
+import com.tfg.aegis.person.user.model.Enums;
+import com.tfg.aegis.person.user.model.User;
+import com.tfg.aegis.person.user.model.UserDto;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -121,6 +122,7 @@ public class UserService {
                 }
             }
             user.setExternalContacts(externalContacts);
+            user.setRole(Enums.TypeRole.USER);
             User saved = userRepository.save(user);
 
             return saved.getId();

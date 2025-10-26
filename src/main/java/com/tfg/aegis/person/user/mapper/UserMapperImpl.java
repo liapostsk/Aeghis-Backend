@@ -1,10 +1,10 @@
-package com.tfg.aegis.user.mapper;
+package com.tfg.aegis.person.user.mapper;
 
 import com.tfg.aegis.safelocation.mapper.SafeLocationMapperImpl;
 import com.tfg.aegis.safelocation.model.SafeLocation;
 import com.tfg.aegis.safelocation.model.SafeLocationDto;
-import com.tfg.aegis.user.model.UserDto;
-import com.tfg.aegis.user.model.User;
+import com.tfg.aegis.person.user.model.UserDto;
+import com.tfg.aegis.person.user.model.User;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

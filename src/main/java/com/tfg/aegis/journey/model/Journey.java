@@ -2,7 +2,7 @@ package com.tfg.aegis.journey.model;
 
 import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.participation.model.Participation;
-import com.tfg.aegis.location.model.Location;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,22 +21,13 @@ public class Journey {
     private Long id;
 
     @Enumerated(EnumType.STRING) @Column(nullable = false)
-    private Enums.EstadoTrayecto state;
+    private Enums.JourneyState state;
 
     @Enumerated(EnumType.STRING) @Column(nullable = false)
-    private Enums.TipoTrayecto journeyType;
+    private Enums.JourneyType journeyType;
 
     @Column(nullable = false) private LocalDateTime iniDate;
     @Column(nullable = false) private LocalDateTime endDate;
-
-    // Puntos de origen y destino
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "source_id", nullable = false)
-    private Location sourcePoint;
-
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "destino_id", nullable = false)
-    private Location destino;
 
     //grupo asociado
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -44,6 +35,6 @@ public class Journey {
     private Group group;
 
     // 1..* Participaciones
-    @OneToMany(mappedBy = "participations", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "journey", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Participation> participations = new HashSet<>();
 }
