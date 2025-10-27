@@ -2,7 +2,7 @@ package com.tfg.aegis.participation.model;
 
 public class Enums {
     public enum ParticipationState {
-        PENDING,
+        ACCEPTED,
         IN_PROGRESS,
         ARRIVED,
         CANCELLED,

@@ -27,7 +27,8 @@ public class Journey {
     private Enums.JourneyType journeyType;
 
     @Column(nullable = false) private LocalDateTime iniDate;
-    @Column(nullable = false) private LocalDateTime endDate;
+
+    private LocalDateTime endDate;
 
     //grupo asociado
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

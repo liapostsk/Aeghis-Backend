@@ -70,6 +70,7 @@ public class ParticipationService {
         participationRepository.findById(id).orElseThrow(() -> new RuntimeException("Participation not found"));
 
         Participation updatedParticipation = participationMapper.toEntity(participationDto);
+
         // Update fields as necessary
         if (participationDto.getState().equals(Enums.ParticipationState.ARRIVED)) {
             updatedParticipation.setArrivalTime(LocalDateTime.now());

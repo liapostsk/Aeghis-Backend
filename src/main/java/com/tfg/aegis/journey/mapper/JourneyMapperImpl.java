@@ -1,5 +1,6 @@
 package com.tfg.aegis.journey.mapper;
 
+import com.tfg.aegis.journey.model.Enums;
 import com.tfg.aegis.journey.model.Journey;
 import com.tfg.aegis.journey.model.JourneyDto;
 import lombok.AllArgsConstructor;

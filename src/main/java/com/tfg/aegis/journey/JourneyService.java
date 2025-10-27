@@ -6,7 +6,7 @@ import com.tfg.aegis.journey.mapper.JourneyMapper;
 import com.tfg.aegis.journey.model.Enums;
 import com.tfg.aegis.journey.model.Journey;
 import com.tfg.aegis.journey.model.JourneyDto;
-import com.tfg.aegis.location.model.Location;
+import com.tfg.aegis.participation.ParticipationRepository;
 import com.tfg.aegis.participation.ParticipationService;
 import com.tfg.aegis.participation.mapper.ParticipationMapper;
 import com.tfg.aegis.participation.model.Participation;
@@ -24,7 +24,7 @@ public class JourneyService {
     private final JourneyRepository journeyRepository;
     private final JourneyMapper journeyMapper;
     private final ParticipationMapper participationMapper;
-    private final ParticipationService participationService;
+    private final ParticipationRepository participationRepository;
     private final GroupRepository groupRepository;
 
     /**
@@ -58,7 +58,7 @@ public class JourneyService {
         Set<Journey> journeys = (Set<Journey>)journeyRepository.findAll();
         Set<JourneyDto> journeyDtos = new HashSet<>();
         for (Journey journey : journeys) {
-            if (journey.getState().equals(Enums.JourneyState.ACTIVE)) {
+            if (journey.getState().equals(Enums.JourneyState.IN_PROGRESS)) {
                 journeyDtos.add(journeyMapper.toDto(journey));
             }
         }
@@ -78,7 +78,8 @@ public class JourneyService {
         //Map ParticipationDto to Participation entity
         Set<Participation> participations = new HashSet<>();
         for (Long participationId : journeyDto.getParticipantsIds()) {
-            Participation participation = participationMapper.toEntity(participationService.getParticipation(participationId));
+            Participation participation = participationRepository.findById(participationId)
+                .orElseThrow(() -> new RuntimeException("Participation with id %s not found".formatted(participationId)));
             participations.add(participation);
         }
         journey.setParticipations(participations);
@@ -105,6 +106,22 @@ public class JourneyService {
         Journey updatedJourney = journeyMapper.toEntity(journeyDto);
         if (updatedJourney.getState().equals(Enums.JourneyState.COMPLETED)) {
             updatedJourney.setEndDate(java.time.LocalDateTime.now());
+        }
+
+        if (journeyDto.getGroupId() != null) {
+            Group group = groupRepository.findById(journeyDto.getGroupId())
+                .orElseThrow(() -> new RuntimeException("Group with id %s not found".formatted(journeyDto.getGroupId())));
+            updatedJourney.setGroup(group);
+        }
+
+        if (journeyDto.getParticipantsIds() != null) {
+            Set<Participation> participations = new HashSet<>();
+            for (Long participationId : journeyDto.getParticipantsIds()) {
+                Participation participation = participationRepository.findById(participationId)
+                    .orElseThrow(() -> new RuntimeException("Participation with id %s not found".formatted(participationId)));
+                participations.add(participation);
+            }
+            updatedJourney.setParticipations(participations);
         }
         journeyRepository.save(updatedJourney);
     }

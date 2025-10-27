@@ -17,7 +17,6 @@ public class LocationMapperImpl implements LocationMapper {
 
         Location location = new Location();
 
-        location.setId(dto.getId());
         location.setLatitude(dto.getLatitude());
         location.setLongitude(dto.getLongitude());
         location.setTimestamp(dto.getTimestamp());
