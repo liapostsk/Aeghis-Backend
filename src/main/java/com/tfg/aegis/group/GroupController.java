@@ -49,6 +49,13 @@ public class GroupController {
         return ResponseEntity.ok(groups);
     }
 
+    @GetMapping("/my-groups")
+    @Operation(summary = "Get all groups of the user", description = "Retrieves all groups")
+    public ResponseEntity<List<GroupDto>> getAllMyGroups() {
+        List<GroupDto> groups = groupService.getAllMyGroups();
+        return ResponseEntity.ok(groups);
+    }
+
     @DeleteMapping("/{groupId}/exit")
     @Operation(summary = "Exit a group", description = "Allows a user to exit an existing group by its ID")
     public ResponseEntity<GroupDto> exitGroup(@PathVariable Long groupId, @RequestParam Long userId) {

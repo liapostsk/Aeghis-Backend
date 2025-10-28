@@ -138,6 +138,25 @@ public class GroupService {
     }
 
     /**
+     * Method that retrieves all groups that the authenticated user belongs to
+     *
+     * @return List of GroupDto
+     */
+    public List<GroupDto> getAllMyGroups() {
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDto userDto = userService.getUserByClerkId(clerkId);
+        if (userDto.getId() == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+        List<GroupDto> listGroups = groupRepository.findByMembers_Id(userDto.getId())
+                .stream()
+                .map(mapper::toDto)
+                .toList();
+        log.info("List of groups {}", listGroups);
+        return listGroups;
+    }
+
+    /**
      * Method that allows a user to exit a group
      *
      * @param groupId Group id

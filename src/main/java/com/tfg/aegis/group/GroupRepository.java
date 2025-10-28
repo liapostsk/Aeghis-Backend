@@ -9,4 +9,6 @@ import java.util.List;
 public interface GroupRepository extends CrudRepository<Group, Long> {
 
     List<Group> findByTypeAndMembers_Id(Enums.TypeGroup type, Long userId);
+
+    List<Group> findByMembers_Id(Long id);
 }

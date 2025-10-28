@@ -3,8 +3,12 @@ package com.tfg.aegis.journey.mapper;
 import com.tfg.aegis.journey.model.Enums;
 import com.tfg.aegis.journey.model.Journey;
 import com.tfg.aegis.journey.model.JourneyDto;
+import com.tfg.aegis.participation.model.Participation;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.HashSet;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -37,6 +41,11 @@ public class JourneyMapperImpl implements JourneyMapper {
         journeyDto.setIniDate(journey.getIniDate());
         journeyDto.setEndDate(journey.getEndDate());
         journeyDto.setState(journey.getState());
+        journeyDto.setJourneyType(journey.getJourneyType());
+        journeyDto.setGroupId(journey.getGroup().getId());
+        journeyDto.setParticipantsIds(journey.getParticipations() != null
+                ? journey.getParticipations().stream().map(Participation::getId).collect(Collectors.toSet())
+                : new HashSet<>());
         return journeyDto;
     }
 }
