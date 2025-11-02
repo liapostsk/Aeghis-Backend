@@ -13,12 +13,8 @@ import lombok.Setter;
     name = "external_contact",
     // Activa la unique si NO quieres duplicar teléfonos externos para el mismo owner:
     uniqueConstraints = @UniqueConstraint(
-            name = "uk_ext_owner_phone", columnNames = {"owner_id","phone"}),
-    indexes = {
-            @Index(name = "ix_en_owner", columnList = "owner_id"),
-            @Index(name = "ix_en_phone", columnList = "phone")
-    }
-)
+            name = "uk_ext_owner_phone", columnNames = {"owner_id","phone"})
+    )
 public class ExternalContact extends Person {
 
     /** Quién define el contacto de emergencia externo */
