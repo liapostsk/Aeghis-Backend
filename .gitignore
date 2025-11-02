@@ -34,3 +34,6 @@ build/
 
 ### Firebase ###
 src/main/resources/firebase/firebase-adminsdk.json
+
+# Evitar subir credenciales locales
+.env
