@@ -80,6 +80,7 @@ public class JourneyService {
         for (Long participationId : journeyDto.getParticipantsIds()) {
             Participation participation = participationRepository.findById(participationId)
                 .orElseThrow(() -> new RuntimeException("Participation with id %s not found".formatted(participationId)));
+            // en teoria si creas una participacion que ya exsite no deberia crear una nueva
             participations.add(participation);
         }
         journey.setParticipations(participations);

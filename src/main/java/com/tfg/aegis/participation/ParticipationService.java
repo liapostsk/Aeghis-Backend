@@ -44,11 +44,14 @@ public class ParticipationService {
      */
     public Long createParticipation(ParticipationDto participationDto) {
         Participation participation = participationMapper.toEntity(participationDto);
+
         Location source = locationRepository.findById(participationDto.getSourceId()).orElseThrow(() -> new RuntimeException("Source location not found"));
         Location destination = locationRepository.findById(participationDto.getDestinationId()).orElseThrow(() -> new RuntimeException("Destination location not found"));
 
         Journey journey = journeyRepository.findById(participationDto.getJourneyId()).orElseThrow(() -> new RuntimeException("Journey not found"));
+
         User user = userRepository.findById(participationDto.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
+
         participation.setJourney(journey);
         participation.setParticipant(user);
         participation.setSource(source);
@@ -56,6 +59,10 @@ public class ParticipationService {
 
         //participation.setLastLocation();
 
+        // si ya hay una participacion con ese journey y user, lanzar excepcion
+        if (participationRepository.existsByJourneyAndParticipant(journey, user)) {
+            throw new RuntimeException("Participation already exists for this journey and user");
+        }
         Participation savedParticipation = participationRepository.save(participation);
 
         return savedParticipation.getId();

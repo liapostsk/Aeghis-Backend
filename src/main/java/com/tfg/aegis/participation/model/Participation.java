@@ -14,18 +14,19 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@Table(name = "participants")
+@Table(name = "participants", uniqueConstraints = @UniqueConstraint(columnNames = {"journey_id", "user_id"})
+)
 public class Participation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "trayecto_id", nullable = false)
+    @JoinColumn(name = "journey_id", nullable = false)
     private Journey journey;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "persona_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User participant;
 
     @Column(nullable = false)

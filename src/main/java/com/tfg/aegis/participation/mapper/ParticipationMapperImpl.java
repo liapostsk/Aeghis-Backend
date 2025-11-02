@@ -31,6 +31,7 @@ public class ParticipationMapperImpl implements ParticipationMapper {
         }
         ParticipationDto dto = new ParticipationDto();
         dto.setId(participation.getId());
+        dto.setUserId(participation.getParticipant().getId());
         dto.setState(participation.getState());
         dto.setSharedLocation(participation.getSharedLocation());
         dto.setArrivalTime(participation.getArrivalTime());
