@@ -77,4 +77,63 @@ public class GroupController {
         return ResponseEntity.noContent().build();
     }
 
+
+    /* ========== MEMBRESÍA (NO ROLES) ========== */
+
+    @PostMapping("/{groupId}/add-member/{userId}")
+    @Operation(summary = "Add member", description = "Adds a user as member of the group (idempotent)")
+    public ResponseEntity<GroupDto> addMember(@PathVariable Long groupId, @PathVariable Long userId) {
+        GroupDto dto = groupService.addMember(groupId, userId);
+        return ResponseEntity.ok(dto);
+    }
+
+    @DeleteMapping("/{groupId}/remove-member/{userId}")
+    @Operation(summary = "Remove member", description = "Removes a user from the group")
+    public ResponseEntity<Void> removeMember(@PathVariable Long groupId, @PathVariable Long userId) {
+        groupService.removeMember(groupId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /* ========== ROLES (ADMINS) ========== */
+
+    @PostMapping("/{groupId}/promote-admin/{userId}")
+    @Operation(summary = "Promote to admin", description = "Promotes a member to admin (idempotent)")
+    public ResponseEntity<GroupDto> promoteToAdmin(@PathVariable Long groupId, @PathVariable Long userId) {
+        GroupDto dto = groupService.promoteToAdmin(groupId, userId);
+        return ResponseEntity.ok(dto);
+    }
+
+    @DeleteMapping("/{groupId}/demote-admin/{userId}")
+    @Operation(summary = "Demote admin", description = "Removes admin role from a user")
+    public ResponseEntity<GroupDto> demoteAdmin(@PathVariable Long groupId, @PathVariable Long userId) {
+        GroupDto dto = groupService.demoteAdmin(groupId, userId);
+        return ResponseEntity.ok(dto);
+    }
+
+//    /* ========== OWNERSHIP / ESTADO ========== */
+//
+//    @PostMapping("/{groupId}/transfer-ownership")
+//    @Operation(summary = "Transfer ownership", description = "Transfers group ownership to an admin")
+//    public ResponseEntity<GroupDto> transferOwnership(@PathVariable Long groupId, @RequestBody IdRequest body) {
+//        GroupDto dto = groupService.transferOwnership(groupId, body.userId());
+//        return ResponseEntity.ok(dto);
+//    }
+//
+//    @PostMapping("/{groupId}/close")
+//    @Operation(summary = "Close/Archive group", description = "Marks the group as inactive/archived")
+//    public ResponseEntity<GroupDto> closeGroup(@PathVariable Long groupId) {
+//        GroupDto dto = groupService.closeGroup(groupId);
+//        return ResponseEntity.ok(dto);
+//    }
+//
+//    /* ==================== DTOs mínimos inline ==================== */
+//
+//    // Para endpoints que reciben un único ID
+//    public record IdRequest(Long userId) {}
+//
+//    // Para creación de invitaciones (opcionalmente limitar usos/expiración)
+//    public record InviteRequest(LocalDateTime expiresAt, Integer maxUses) {}
+//
+//    public record InviteCodeResponse(String code, LocalDateTime expiresAt, Integer maxUsesRemaining) {}
+
 }

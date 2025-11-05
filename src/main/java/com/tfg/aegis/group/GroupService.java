@@ -1,5 +1,8 @@
 package com.tfg.aegis.group;
 
+import com.tfg.aegis.common.exception.ConflictException;
+import com.tfg.aegis.common.exception.NotFoundException;
+import com.tfg.aegis.common.exception.UnauthorizedException;
 import com.tfg.aegis.group.model.Enums;
 import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.group.model.GroupDto;
@@ -119,9 +122,7 @@ public class GroupService {
             throw new IllegalArgumentException("Group type cannot be null");
         }
 
-        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        UserDto userDto = userService.getUserByClerkId(clerkId);
+        UserDto userDto = getCurrentUser();
 
         if (userDto.getId() == null) {
             throw new IllegalArgumentException("User ID cannot be null");
@@ -143,8 +144,7 @@ public class GroupService {
      * @return List of GroupDto
      */
     public List<GroupDto> getAllMyGroups() {
-        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserDto userDto = userService.getUserByClerkId(clerkId);
+        UserDto userDto = getCurrentUser();
         if (userDto.getId() == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
@@ -229,5 +229,167 @@ public class GroupService {
         invitationRepository.deleteByGroupId(groupId);
         log.info("Deleting group {}", group.getId());
         groupRepository.delete(group);
+    }
+
+    /**
+     * Method that adds a member to a group
+     *
+     * @param groupId Group id
+     * @param userId  User id
+     * @return GroupDto
+     */
+    public GroupDto addMember(Long groupId, Long userId) {
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new IllegalArgumentException("Group not found with id: " + groupId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        if (group.getMembers() == null) {
+            group.setMembers(new HashSet<>());
+        }
+
+        boolean alreadyMember = group.getMembers().stream().anyMatch(u -> u.getId().equals(userId));
+        if (alreadyMember) {
+            return mapper.toDto(group);
+        }
+
+        if (group.getState() == Enums.GroupState.CERRADO) {
+            throw new ConflictException("Group is closed; cannot add members");
+        }
+        group.getMembers().add(user);
+        log.info("User {} added to group {}", user.getId(), group.getId());
+        group.setLastModified(LocalDateTime.now());
+
+        Group saved = groupRepository.save(group);
+
+        // notificaciones firebase podrían ir aquí
+
+        return mapper.toDto(saved);
+    }
+
+    /**
+     * Method that removes a member from a group
+     *
+     * @param groupId Group id
+     * @param userId  User id
+     */
+    public void removeMember(Long groupId, Long userId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new NotFoundException("Group not found with id: " + groupId));
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
+
+        if (group.getMembers() == null) group.setMembers(new HashSet<>());
+        if (group.getAdmins() == null)  group.setAdmins(new HashSet<>());
+
+        if (!containsById(group.getMembers(), userId)) {
+            throw new ConflictException("User is not a member of the group");
+        }
+        if (group.getState() == Enums.GroupState.CERRADO) {
+            throw new ConflictException("Group is closed; cannot remove members");
+        }
+
+        Long currentUserId = getCurrentUser().getId();
+        boolean selfRemoval   = currentUserId != null && currentUserId.equals(userId);
+        boolean currentIsAdmin = containsById(group.getAdmins(), currentUserId);
+
+        if (!selfRemoval && !currentIsAdmin) {
+            throw new UnauthorizedException("Only admins can remove other members");
+        }
+
+        // Eliminar de admins (si lo era) y de miembros
+        removeById(group.getAdmins(), userId);
+        removeById(group.getMembers(), userId);
+
+        // Si no quedan miembros → cerrar o borrar
+        if (group.getMembers().isEmpty()) {
+            if (Enums.TypeGroup.TEMPORAL.equals(group.getType())) {
+                group.setState(Enums.GroupState.CERRADO);
+                group.setLastModified(LocalDateTime.now());
+                groupRepository.save(group);
+                log.info("Group {} closed (no members left)", groupId);
+            } else {
+                log.info("Group {} deleted (no members left)", groupId);
+                groupRepository.delete(group);
+            }
+            return; // importante: no continuar tras cerrar/borrar
+        }
+
+        // Aún hay miembros: asegurar que queda al menos 1 admin.
+        // Casos cubiertos:
+        //  - admin se elimina a sí mismo siendo el último admin
+        //  - admin echa a otro admin y deja el grupo sin admins
+        if (group.getAdmins().isEmpty()) {
+            // Elegimos el primer miembro restante como nuevo admin
+            User newAdmin = group.getMembers().iterator().next();
+            group.getAdmins().add(newAdmin);
+            log.info("Assigned user {} as new admin in group {} to preserve at least one admin",
+                    newAdmin.getId(), groupId);
+        }
+
+        group.setLastModified(LocalDateTime.now());
+        groupRepository.save(group);
+        log.info("User {} removed from group {}", userId, groupId);
+    }
+
+    /**
+     * Method that promotes a member to admin
+     *
+     * @param groupId Group id
+     * @param userId  User id
+     * @return GroupDto
+     */
+    public GroupDto promoteToAdmin(Long groupId, Long userId) {
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new IllegalArgumentException("Group not found with id: " + groupId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        if (group.getMembers() == null || !group.getMembers().contains(user)) {
+            throw new IllegalArgumentException("User is not a member of the group");
+        }
+
+        if (group.getAdmins() == null) {
+            group.setAdmins(new HashSet<>());
+        }
+        group.getAdmins().add(user);
+        log.info("User {} promoted to admin in group {}", user.getId(), group.getId());
+        return mapper.toDto(groupRepository.save(group));
+    }
+
+    /**
+     * Method that demotes an admin to member
+     *
+     * @param groupId Group id
+     * @param userId  User id
+     * @return GroupDto
+     */
+    public GroupDto demoteAdmin(Long groupId, Long userId) {
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new IllegalArgumentException("Group not found with id: " + groupId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        if (group.getAdmins() == null || !group.getAdmins().contains(user)) {
+            throw new IllegalArgumentException("User is not an admin of the group");
+        }
+
+        group.getAdmins().remove(user);
+        log.info("User {} demoted from admin in group {}", user.getId(), group.getId());
+        return mapper.toDto(groupRepository.save(group));
+    }
+
+    /* ===================== Helpers reutilizables ===================== */
+
+    private static boolean containsById(Set<User> users, Long userId) {
+        if (users == null || users.isEmpty()) return false;
+        for (User u : users) {
+            if (u != null && u.getId() != null && u.getId().equals(userId)) return true;
+        }
+        return false;
+    }
+
+    private static void removeById(Set<User> users, Long userId) {
+        if (users == null || users.isEmpty()) return;
+        users.removeIf(u -> u != null && u.getId() != null && u.getId().equals(userId));
+    }
+
+    private UserDto getCurrentUser() {
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userService.getUserByClerkId(clerkId);
     }
 }
