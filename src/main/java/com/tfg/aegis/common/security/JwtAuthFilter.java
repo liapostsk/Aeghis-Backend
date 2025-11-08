@@ -1,4 +1,3 @@
-// File: JwtAuthFilter.java
 package com.tfg.aegis.common.security;
 
 import com.nimbusds.jose.JWSAlgorithm;
