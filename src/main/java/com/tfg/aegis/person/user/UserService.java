@@ -6,6 +6,9 @@ import com.tfg.aegis.emergencycontact.EmergencyContactRepository;
 import com.tfg.aegis.emergencycontact.mapper.EmergencyContactMapper;
 import com.tfg.aegis.emergencycontact.model.EmergencyContact;
 import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
+import com.tfg.aegis.group.GroupRepository;
+import com.tfg.aegis.group.mapper.GroupMapper;
+import com.tfg.aegis.group.model.GroupDto;
 import com.tfg.aegis.person.externalcontact.ExternalContactRepository;
 import com.tfg.aegis.person.externalcontact.mapper.ExternalContactMapper;
 import com.tfg.aegis.person.externalcontact.model.ExternalContact;
@@ -33,10 +36,12 @@ public class UserService {
     private final UserRepository userRepository;
     private final EmergencyContactRepository emergencyContactRepository;
     private final ExternalContactRepository externalContactRepository;
+    private final GroupRepository groupRepository;
 
     private final UserMapper mapper;
     private final EmergencyContactMapper emergencyContactMapper;
     private final ExternalContactMapper externalContactMapper;
+    private final GroupMapper groupMapper;
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
@@ -58,6 +63,11 @@ public class UserService {
                 .map(externalContactMapper::toDto)
                 .collect(java.util.stream.Collectors.toSet());
 
+        Set<GroupDto> groups = groupRepository.findByMembers_Id(user.getId()).stream()
+                .map(groupMapper::toDto)
+                .collect(java.util.stream.Collectors.toSet());
+
+        dto.setGroups(groups);
         dto.setEmergencyContacts(contacts);
         dto.setExternalContacts(externalContacts);
 

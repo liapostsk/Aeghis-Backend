@@ -7,7 +7,6 @@ import com.tfg.aegis.journey.model.Enums;
 import com.tfg.aegis.journey.model.Journey;
 import com.tfg.aegis.journey.model.JourneyDto;
 import com.tfg.aegis.participation.ParticipationRepository;
-import com.tfg.aegis.participation.ParticipationService;
 import com.tfg.aegis.participation.mapper.ParticipationMapper;
 import com.tfg.aegis.participation.model.Participation;
 import jakarta.transaction.Transactional;

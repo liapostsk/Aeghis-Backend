@@ -1,6 +1,7 @@
 package com.tfg.aegis.person.user.model;
 
 import com.tfg.aegis.emergencycontact.model.EmergencyContactDto;
+import com.tfg.aegis.group.model.GroupDto;
 import com.tfg.aegis.person.externalcontact.model.ExternalContactDto;
 import com.tfg.aegis.person.model.PersonDto;
 import com.tfg.aegis.safelocation.model.SafeLocationDto;
@@ -21,6 +22,7 @@ public class UserDto extends PersonDto {
     private Set<EmergencyContactDto> emergencyContacts;
     private Set<ExternalContactDto> externalContacts;
     private Set<SafeLocationDto> safeLocations;
+    private Set<GroupDto> groups;
     private Boolean verify;
     private Enums.TypeRole role;
 }
