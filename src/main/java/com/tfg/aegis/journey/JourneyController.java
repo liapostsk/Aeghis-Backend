@@ -66,6 +66,15 @@ public class JourneyController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Add Participation to Journey", description = "Method that adds a Participation to a Journey")
+    @PostMapping(path = "/{journeyId}/addParticipation/{participationId}")
+    public ResponseEntity<Void> addParticipationToJourney(@PathVariable(name = "journeyId") Long journeyId,
+                                                          @PathVariable(name = "participationId") Long participationId) {
+        journeyService.addParticipationToJourney(journeyId, participationId);
+        log.info("Participation with id: {} added to Journey with id: {}", participationId, journeyId);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Delete Journey", description = "Method that deletes a Journey")
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteJourney(@PathVariable(name = "id") Long id) {

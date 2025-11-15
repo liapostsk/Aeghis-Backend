@@ -136,5 +136,20 @@ public class JourneyService {
         journeyRepository.delete(journey);
     }
 
+    /**
+     * Adds a participation to a journey.
+     *
+     * @param journeyId The ID of the journey.
+     * @param participationId The ID of the participation to be added.
+     */
+    public void addParticipationToJourney(Long journeyId, Long participationId) {
+        Journey journey = journeyRepository.findById(journeyId)
+            .orElseThrow(() -> new RuntimeException("Journey with id %s not found".formatted(journeyId)));
+        Participation participation = participationRepository.findById(participationId)
+            .orElseThrow(() -> new RuntimeException("Participation with id %s not found".formatted(participationId)));
+        journey.getParticipations().add(participation);
+        journeyRepository.save(journey);
+    }
+
     // Cuando en un trayecto todas sus participaciones estén a "FINALIZADA", el trayecto pasará a estar en estado "FINALIZADO".
 }
