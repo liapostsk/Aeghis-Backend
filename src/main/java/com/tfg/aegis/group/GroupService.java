@@ -210,6 +210,7 @@ public class GroupService {
         group.setName(groupDto.getName());
         group.setDescription(groupDto.getDescription());
         group.setLastModified(LocalDateTime.now());
+        group.setImageUrl(groupDto.getImageUrl());
         return mapper.toDto(groupRepository.save(group));
     }
 
