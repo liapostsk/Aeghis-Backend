@@ -185,4 +185,16 @@ public class UserService {
     public Long userExistsByPhone(String phone) {
         return userRepository.findByPhone(phone).map(User::getId).orElse(null);
     }
+
+    /**
+     * Method that adds a photo to a User
+     * @param id User id
+     * @param photo Photo in byte array
+     */
+    public void addPhotoToUser(Long id, String photo) {
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User", id));
+        // If it already has a photo, replace it
+        user.setImage(photo);
+        userRepository.save(user);
+    }
 }

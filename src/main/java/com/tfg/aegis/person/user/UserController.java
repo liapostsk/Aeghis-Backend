@@ -73,4 +73,11 @@ public class UserController {
         return ResponseEntity.ok(userId);
     }
 
+    @Operation(summary = "Add photo", description = "Method that adds a photo to a User")
+    @PostMapping(path = "/{id}/photo")
+    public ResponseEntity<Void> addPhotoToUser(@PathVariable(name = "id") Long id, @RequestBody String photo) {
+        userService.addPhotoToUser(id, photo);
+        return ResponseEntity.noContent().build();
+    }
+
 }

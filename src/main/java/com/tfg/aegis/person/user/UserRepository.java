@@ -11,7 +11,5 @@ public interface UserRepository extends CrudRepository<User, Long> {
     @EntityGraph(attributePaths = {"emergencyContacts", "safeLocations"})
     Optional<User> findByClerkId(String clerkId);
 
-    boolean existsByPhone(String phone);
-
     Optional<User> findByPhone(String phoneE164);
 }

@@ -26,7 +26,7 @@ public class Group {
     private String name;
 
     private String description;
-    private String imageUrl; // URL de la imagen del grupo
+    private String imageUrl;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

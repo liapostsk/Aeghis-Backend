@@ -373,6 +373,19 @@ public class GroupService {
         return mapper.toDto(groupRepository.save(group));
     }
 
+    /**
+     * Method that adds a photo to a group
+     *
+     * @param groupId Group id
+     * @param photo   Photo in Base64
+     */
+    public void addPhotoToGroup(Long groupId, String photo) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Group not found with id: " + groupId));
+        group.setImageUrl(photo);
+        groupRepository.save(group);
+    }
+
     /* ===================== Helpers reutilizables ===================== */
 
     private static boolean containsById(Set<User> users, Long userId) {

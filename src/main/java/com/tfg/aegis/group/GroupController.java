@@ -110,6 +110,13 @@ public class GroupController {
         return ResponseEntity.ok(dto);
     }
 
+    @Operation(summary = "Add image to group", description = "Adds an image to a group")
+    @PostMapping("/{groupId}/photo")
+    public ResponseEntity<Void> addPhotoToGroup(@PathVariable Long groupId, @RequestBody String photo) {
+        groupService.addPhotoToGroup(groupId, photo);
+        return ResponseEntity.noContent().build();
+    }
+
 //    /* ========== OWNERSHIP / ESTADO ========== */
 //
 //    @PostMapping("/{groupId}/transfer-ownership")
