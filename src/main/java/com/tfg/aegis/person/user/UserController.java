@@ -1,6 +1,7 @@
 package com.tfg.aegis.person.user;
 
 import lombok.AllArgsConstructor;
+import lombok.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.tfg.aegis.person.user.model.UserDto;
 import io.swagger.v3.oas.annotations.Operation;

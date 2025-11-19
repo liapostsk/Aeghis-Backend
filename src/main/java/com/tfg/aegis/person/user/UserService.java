@@ -18,19 +18,18 @@ import com.tfg.aegis.person.user.model.Enums;
 import com.tfg.aegis.person.user.model.User;
 import com.tfg.aegis.person.user.model.UserDto;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Transactional
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
@@ -42,6 +41,9 @@ public class UserService {
     private final EmergencyContactMapper emergencyContactMapper;
     private final ExternalContactMapper externalContactMapper;
     private final GroupMapper groupMapper;
+
+    @Value("${app.admin.emails:}")
+    private String adminEmailsStr;
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
@@ -103,6 +105,10 @@ public class UserService {
      */
     public Long createUser(UserDto userDto) {
         try {
+
+            // Necesito dos formas de crear el user, rol USER y rol ADMIN
+            // Por ahora solo USER
+            // Depende del correo electrónico y teléfono únicos eres ADMIN
             User user = mapper.toEntity(userDto);
 
             Set<EmergencyContact> contacts = new HashSet<>();
@@ -132,7 +138,26 @@ public class UserService {
                 }
             }
             user.setExternalContacts(externalContacts);
-            user.setRole(Enums.TypeRole.USER);
+            if (userDto.getPhone() != null) {
+                user.setPhone(userDto.getPhone());
+            }
+
+            log.info("Admin emails loaded: {}", adminEmailsStr);
+            boolean isAdmin = false;
+            if (adminEmailsStr != null && userDto.getEmail() != null) {
+                List<String> adminEmails = Arrays.stream(adminEmailsStr.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isBlank())
+                        .map(String::toLowerCase)
+                        .toList();
+
+                if (adminEmails.contains(userDto.getEmail().toLowerCase())) {
+
+                    isAdmin = true;
+                    log.info("User {} marcado como ADMIN por email", userDto.getEmail());
+                }
+            }
+            user.setRole(isAdmin ? Enums.TypeRole.ADMIN : Enums.TypeRole.USER);
             User saved = userRepository.save(user);
 
             return saved.getId();
