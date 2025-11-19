@@ -42,7 +42,7 @@ public class UserService {
     private final ExternalContactMapper externalContactMapper;
     private final GroupMapper groupMapper;
 
-    @Value("${app.admin.emails:}")
+    @Value("${app.admin.emails}")
     private String adminEmailsStr;
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
