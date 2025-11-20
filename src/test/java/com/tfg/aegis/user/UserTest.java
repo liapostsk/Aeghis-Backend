@@ -13,6 +13,7 @@ import com.tfg.aegis.person.externalcontact.model.ExternalContactDto;
 import com.tfg.aegis.person.user.UserRepository;
 import com.tfg.aegis.person.user.UserService;
 import com.tfg.aegis.person.user.mapper.UserMapper;
+import com.tfg.aegis.person.user.model.Enums;
 import com.tfg.aegis.person.user.model.User;
 import com.tfg.aegis.person.user.model.UserDto;
 import org.junit.jupiter.api.Test;
@@ -145,7 +146,7 @@ class UserServiceTest {
         dto.setName("Updated");
         dto.setEmail("upd@example.com");
         dto.setPhone("987654321");
-        dto.setVerify(true);
+        dto.setVerify(Enums.VerificationStatus.PENDING);
         dto.setDateOfBirth(new Date());
 
         when(userRepository.save(existing)).thenReturn(existing);
@@ -155,7 +156,7 @@ class UserServiceTest {
         assertEquals("Updated", existing.getName());
         assertEquals("upd@example.com", existing.getEmail());
         assertEquals("987654321", existing.getPhone());
-        assertEquals(true, existing.getVerify());
+        assertEquals(Enums.VerificationStatus.PENDING, existing.getVerify());
         verify(userRepository).save(existing);
     }
 
