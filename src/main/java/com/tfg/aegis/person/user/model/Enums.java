@@ -5,4 +5,10 @@ public class Enums {
         USER,
         ADMIN
     }
+
+    public enum VerificationStatus {
+        PENDING,
+        VERIFIED,
+        REJECTED
+    }
 }

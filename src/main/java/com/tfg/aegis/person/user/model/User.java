@@ -51,7 +51,7 @@ public class User extends Person {
     @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Participation> participations = new HashSet<>();
 
-    private Boolean verify;
+    private Enums.VerificationStatus verify;
 
     @ManyToMany(mappedBy = "members", fetch = FetchType.LAZY)
     private Set<Group> groups = new HashSet<>();

@@ -158,6 +158,7 @@ public class UserService {
                 }
             }
             user.setRole(isAdmin ? Enums.TypeRole.ADMIN : Enums.TypeRole.USER);
+            user.setVerify(Enums.VerificationStatus.PENDING);
             User saved = userRepository.save(user);
 
             return saved.getId();

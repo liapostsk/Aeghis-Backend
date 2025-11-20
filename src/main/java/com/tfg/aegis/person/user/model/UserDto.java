@@ -23,6 +23,6 @@ public class UserDto extends PersonDto {
     private Set<ExternalContactDto> externalContacts;
     private Set<SafeLocationDto> safeLocations;
     private Set<GroupDto> groups;
-    private Boolean verify;
+    private Enums.VerificationStatus verify;
     private Enums.TypeRole role;
 }

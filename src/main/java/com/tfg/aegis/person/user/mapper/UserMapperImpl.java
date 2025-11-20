@@ -30,6 +30,7 @@ public class UserMapperImpl implements UserMapper {
         user.setVerify(dto.getVerify());
         user.setImage(dto.getImage());
         user.setRole(dto.getRole());
+        user.setVerify(dto.getVerify());
 
         // List safeLocations con el mapper
         Set<SafeLocation> safeLocations = new HashSet<>();
@@ -59,6 +60,7 @@ public class UserMapperImpl implements UserMapper {
         dto.setVerify(user.getVerify());
         dto.setImage(user.getImage());
         dto.setRole(user.getRole());
+        dto.setVerify(user.getVerify());
 
         // List safeLocations con el mapper
         Set<SafeLocationDto> safeLocations = new HashSet<>();
