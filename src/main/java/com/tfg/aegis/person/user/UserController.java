@@ -1,5 +1,6 @@
 package com.tfg.aegis.person.user;
 
+import com.tfg.aegis.person.user.model.Enums;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import java.util.List;
 
 @Tag(name = "User", description = "API of Users")
 @RequestMapping(value = "/user")
@@ -78,6 +81,23 @@ public class UserController {
     @PostMapping(path = "/{id}/photo")
     public ResponseEntity<Void> addPhotoToUser(@PathVariable(name = "id") Long id, @RequestBody String photo) {
         userService.addPhotoToUser(id, photo);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get unverifyed users", description = "Method that gets the unverified users")
+    @GetMapping(path = "/unverified")
+    public ResponseEntity<List<UserDto>> getUnverifiedUsers() {
+        List<UserDto> unverifiedUsers = userService.getUnverifiedUsers();
+        return ResponseEntity.ok(unverifiedUsers);
+    }
+
+    @Operation(summary = "Verify user", description = "Method that verifies a user")
+    @PostMapping(path = "/{id}/verify")
+    public ResponseEntity<Void> verifyUser(@PathVariable(name = "id") Long id, @RequestParam(name = "verified") String status) {
+
+        Enums.VerificationStatus verificationStatus = Enums.VerificationStatus.valueOf(status.toUpperCase());
+
+        userService.verifyUser(id, verificationStatus);
         return ResponseEntity.noContent().build();
     }
 

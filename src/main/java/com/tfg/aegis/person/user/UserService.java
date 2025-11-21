@@ -223,4 +223,28 @@ public class UserService {
         user.setImage(photo);
         userRepository.save(user);
     }
+
+    /**
+     * Method that gets the unverified users
+     * @return List of UserDto
+     */
+    public List<UserDto> getUnverifiedUsers() {
+        List<User> users = userRepository.findByVerify(Enums.VerificationStatus.PENDING);
+        List<UserDto> dtos = new ArrayList<>();
+        for (User user : users) {
+            dtos.add(mapper.toDto(user));
+        }
+        return dtos;
+    }
+
+    /**
+     * Method that verifies a user
+     * @param id User id
+     * @param status Verification status
+     */
+    public void verifyUser(Long id, Enums.VerificationStatus status) {
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User", id));
+        user.setVerify(status);
+        userRepository.save(user);
+    }
 }
