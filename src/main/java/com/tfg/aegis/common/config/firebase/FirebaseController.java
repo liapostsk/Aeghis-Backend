@@ -29,7 +29,6 @@ public class FirebaseController {
             return ResponseEntity.ok(Map.of("customToken", customToken));
         }
         catch (FirebaseAuthException e) {
-            System.err.println("Error al crear el token personalizado de Firebase: " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

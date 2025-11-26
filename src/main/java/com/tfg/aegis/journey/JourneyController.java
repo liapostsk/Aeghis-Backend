@@ -83,4 +83,20 @@ public class JourneyController {
         log.info("Journey deleted with id: {}", id);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Check if user is participant", description = "Returns true if the user belongs to the Journey")
+    @GetMapping(path = "/{journeyId}/is-participant")
+    public ResponseEntity<Boolean> isUserParticipant(@PathVariable(name = "journeyId") Long journeyId) {
+        boolean isParticipant = journeyService.isUserParticipantInJourney(journeyId);
+        log.info("Current user of the journey with journeyId {} is participant: {}", journeyId, isParticipant);
+        return ResponseEntity.ok(isParticipant);
+    }
+
+    @Operation(summary = "Get all participants of a Journey", description = "Method that gets all Participants of a Journey")
+    @GetMapping(path = "/{journeyId}/participants")
+    public ResponseEntity<Set<Long>> getAllParticipantsOfJourney(@PathVariable(name = "journeyId") Long journeyId) {
+        Set<Long> participantIds = journeyService.getAllParticipantsOfJourney(journeyId);
+        log.info("Participants of journey with id {}: {}", journeyId, participantIds);
+        return ResponseEntity.ok(participantIds);
+    }
 }

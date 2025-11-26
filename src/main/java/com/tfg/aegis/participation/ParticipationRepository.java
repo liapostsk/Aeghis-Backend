@@ -7,4 +7,6 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface ParticipationRepository extends CrudRepository<Participation, Long> {
     boolean existsByJourneyAndParticipant(Journey journey, User user);
+
+    boolean existsByJourneyIdAndUserId(Long journeyId, Long userId);
 }

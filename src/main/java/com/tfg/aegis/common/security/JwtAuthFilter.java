@@ -26,7 +26,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
+import java.io.IOException;£
 import java.net.URL;
 import java.text.ParseException;
 import java.util.Collections;

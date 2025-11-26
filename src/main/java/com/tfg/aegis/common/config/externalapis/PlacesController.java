@@ -15,13 +15,12 @@ public class PlacesController {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    // Buscar lugares cercanos
     @GetMapping("/nearby")
     public ResponseEntity<String> searchNearbyPlaces(
             @RequestParam double lat,
             @RequestParam double lng,
             @RequestParam(required = false, defaultValue = "1500") int radius,
-            @RequestParam(required = false) String type // opcional
+            @RequestParam(required = false) String type
     ) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()
                 .scheme("https")
@@ -41,7 +40,6 @@ public class PlacesController {
         return ResponseEntity.ok(googleResponse);
     }
 
-    // Buscar lugares por texto
     @GetMapping("/textsearch")
     public ResponseEntity<String> searchPlacesByText(
             @RequestParam String query,
@@ -68,7 +66,6 @@ public class PlacesController {
         return ResponseEntity.ok(googleResponse);
     }
 
-    // Obtener detalles de un lugar
     @GetMapping("/details")
     public ResponseEntity<String> getPlaceDetails(@RequestParam String placeId) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.newInstance()

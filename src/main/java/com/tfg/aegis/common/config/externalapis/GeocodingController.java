@@ -33,7 +33,6 @@ public class GeocodingController {
             @RequestParam Double lng) {
 
         try {
-            // 🔥 Usar Locale.US para forzar punto decimal
             String url = String.format(Locale.US,
                     "https://maps.googleapis.com/maps/api/geocode/json?latlng=%.6f,%.6f&key=%s",
                     lat, lng, apiKey
@@ -51,7 +50,6 @@ public class GeocodingController {
 
         } catch (Exception e) {
             System.err.println("Error en geocoding: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(500).body("{\"error\": \"Geocoding failed: " + e.getMessage() + "\"}");
         }
     }

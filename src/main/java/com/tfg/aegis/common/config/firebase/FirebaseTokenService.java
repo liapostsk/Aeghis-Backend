@@ -11,3 +11,5 @@ public class FirebaseTokenService {
         return FirebaseAuth.getInstance().createCustomToken(uidClerk);
     }
 }
+
+

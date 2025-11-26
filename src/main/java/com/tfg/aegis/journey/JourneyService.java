@@ -1,5 +1,7 @@
 package com.tfg.aegis.journey;
 
+import com.tfg.aegis.common.exception.NotFoundException;
+import com.tfg.aegis.common.utils.Utils;
 import com.tfg.aegis.group.GroupRepository;
 import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.journey.mapper.JourneyMapper;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -152,4 +155,32 @@ public class JourneyService {
     }
 
     // Cuando en un trayecto todas sus participaciones estén a "FINALIZADA", el trayecto pasará a estar en estado "FINALIZADO".
+
+    /**
+     * Checks if a user is a participant in a journey.
+     *
+     * @param journeyId The ID of the journey.
+     * @return True if the user is a participant in the journey, false otherwise.
+     */
+    public boolean isUserParticipantInJourney(Long journeyId) {
+        journeyRepository.findById(journeyId).orElseThrow(() -> new RuntimeException("Journey with id %s not found".formatted(journeyId)));
+        return participationRepository.existsByJourneyIdAndUserId(journeyId, Utils.getCurrentUser().getId());
+    }
+
+    /**
+     * Retrieves all participants of a journey.
+     *
+     * @param journeyId The ID of the journey.
+     * @return A set of participant IDs in the journey.
+     */
+    public Set<Long> getAllParticipantsOfJourney(Long journeyId) {
+        Journey journey = journeyRepository.findById(journeyId)
+                .orElseThrow(() -> new NotFoundException("Journey not found with id: " + journeyId));
+        if (journey.getParticipations() == null) {
+            return Set.of();
+        }
+        return journey.getParticipations().stream()
+                .map(p -> p.getParticipant().getId())
+                .collect(Collectors.toSet());
+    }
 }
