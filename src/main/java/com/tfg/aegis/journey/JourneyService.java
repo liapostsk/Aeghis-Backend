@@ -164,7 +164,7 @@ public class JourneyService {
      */
     public boolean isUserParticipantInJourney(Long journeyId) {
         journeyRepository.findById(journeyId).orElseThrow(() -> new RuntimeException("Journey with id %s not found".formatted(journeyId)));
-        return participationRepository.existsByJourneyIdAndUserId(journeyId, Utils.getCurrentUser().getId());
+        return participationRepository.existsByJourney_IdAndParticipant_Id(journeyId, Utils.getCurrentUser().getId());
     }
 
     /**
