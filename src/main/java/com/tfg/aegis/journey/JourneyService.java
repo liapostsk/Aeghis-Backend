@@ -192,4 +192,23 @@ public class JourneyService {
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return userService.getUserByClerkId(clerkId);
     }
+
+    /**
+     * Changes the status of a journey.
+     *
+     * @param journeyId The ID of the journey.
+     * @param status The new status to be set.
+     */
+    public void changeJourneyStatus(Long journeyId, String status) {
+        Journey journey = journeyRepository.findById(journeyId).orElseThrow(() -> new NotFoundException("Journey not found with id: " + journeyId));
+        Enums.JourneyState newState;
+        try {
+            newState = Enums.JourneyState.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid journey state: %s".formatted(status));
+        }
+        journey.setState(newState);
+        journeyRepository.save(journey);
+    }
+
 }

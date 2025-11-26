@@ -99,4 +99,13 @@ public class JourneyController {
         log.info("Participants of journey with id {}: {}", journeyId, participantIds);
         return ResponseEntity.ok(participantIds);
     }
+
+    @Operation(summary= "Change status of Journey", description = "Method that changes the status of a Journey")
+    @PostMapping(path = "/{journeyId}/change-status/{status}")
+    public ResponseEntity<Void> changeJourneyStatus(@PathVariable(name = "journeyId") Long journeyId,
+                                                    @PathVariable(name = "status") String status) {
+        journeyService.changeJourneyStatus(journeyId, status);
+        log.info("Journey with id: {} changed status to: {}", journeyId, status);
+        return ResponseEntity.noContent().build();
+    }
 }
