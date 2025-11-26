@@ -11,8 +11,11 @@ import com.tfg.aegis.journey.model.JourneyDto;
 import com.tfg.aegis.participation.ParticipationRepository;
 import com.tfg.aegis.participation.mapper.ParticipationMapper;
 import com.tfg.aegis.participation.model.Participation;
+import com.tfg.aegis.person.user.UserService;
+import com.tfg.aegis.person.user.model.UserDto;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -28,6 +31,7 @@ public class JourneyService {
     private final ParticipationMapper participationMapper;
     private final ParticipationRepository participationRepository;
     private final GroupRepository groupRepository;
+    private final UserService userService;
 
     /**
      * Retrieves a journey entity by its ID.
@@ -164,7 +168,7 @@ public class JourneyService {
      */
     public boolean isUserParticipantInJourney(Long journeyId) {
         journeyRepository.findById(journeyId).orElseThrow(() -> new RuntimeException("Journey with id %s not found".formatted(journeyId)));
-        return participationRepository.existsByJourney_IdAndParticipant_Id(journeyId, Utils.getCurrentUser().getId());
+        return participationRepository.existsByJourney_IdAndParticipant_Id(journeyId, getCurrentUser().getId());
     }
 
     /**
@@ -182,5 +186,10 @@ public class JourneyService {
         return journey.getParticipations().stream()
                 .map(p -> p.getParticipant().getId())
                 .collect(Collectors.toSet());
+    }
+
+    private UserDto getCurrentUser() {
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userService.getUserByClerkId(clerkId);
     }
 }

@@ -3,7 +3,6 @@ package com.tfg.aegis.group;
 import com.tfg.aegis.common.exception.ConflictException;
 import com.tfg.aegis.common.exception.NotFoundException;
 import com.tfg.aegis.common.exception.UnauthorizedException;
-import com.tfg.aegis.common.utils.Utils;
 import com.tfg.aegis.group.model.Enums;
 import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.group.model.GroupDto;
@@ -18,7 +17,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +24,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.tfg.aegis.common.utils.Utils.getCurrentUser;
 
 @Service
 @Transactional
@@ -404,5 +400,10 @@ public class GroupService {
     private static void removeById(Set<User> users, Long userId) {
         if (users == null || users.isEmpty()) return;
         users.removeIf(u -> u != null && u.getId() != null && u.getId().equals(userId));
+    }
+
+    private UserDto getCurrentUser() {
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userService.getUserByClerkId(clerkId);
     }
 }
