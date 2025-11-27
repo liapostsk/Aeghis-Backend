@@ -52,7 +52,17 @@ public class JourneyService {
      * @return The current journey entity for the specified user.
      */
     public JourneyDto getCurrentJourneyForGroup(Long groupId) {
-        return journeyMapper.toDto(journeyRepository.findCurrentJourneyByGroupId(groupId));
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group with id %s not found".formatted(groupId)));
+
+        Journey journey = journeyRepository.findByGroupAndState(group, Enums.JourneyState.IN_PROGRESS);
+        if (journey == null) {
+            journey = journeyRepository.findByGroupAndState(group, Enums.JourneyState.PENDING);
+        }
+        if (journey == null) {
+            throw new RuntimeException("No current journey found for group with id %s".formatted(groupId));
+        }
+        return journeyMapper.toDto(journey);
     }
 
     /**
