@@ -81,22 +81,14 @@ public class JourneyService {
         // Map JourneyDto to Journey entity
         Journey journey = journeyMapper.toEntity(journeyDto);
 
-        //Map ParticipationDto to Participation entity
-        Set<Participation> participations = new HashSet<>();
-        for (Long participationId : journeyDto.getParticipantsIds()) {
-            Participation participation = participationRepository.findById(participationId)
-                .orElseThrow(() -> new RuntimeException("Participation with id %s not found".formatted(participationId)));
-            // en teoria si creas una participacion que ya exsite no deberia crear una nueva
-            participations.add(participation);
-        }
-        journey.setParticipations(participations);
+        journey.setParticipations(new HashSet<>());
 
         if (journey.getState() == null) {
             journey.setState(Enums.JourneyState.PENDING);
         }
 
         Group group = groupRepository.findById(journeyDto.getGroupId())
-            .orElseThrow(() -> new RuntimeException("Group with id %s not found".formatted(journeyDto.getGroupId())));
+                .orElseThrow(() -> new RuntimeException("Group with id %s not found".formatted(journeyDto.getGroupId())));
 
         journey.setGroup(group);
 

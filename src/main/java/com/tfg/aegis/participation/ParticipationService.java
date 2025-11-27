@@ -43,21 +43,20 @@ public class ParticipationService {
      * @return the ID of the created participation
      */
     public Long createParticipation(ParticipationDto participationDto) {
-        Participation participation = participationMapper.toEntity(participationDto);
-
         Location source = locationRepository.findById(participationDto.getSourceId()).orElseThrow(() -> new RuntimeException("Source location not found"));
         Location destination = locationRepository.findById(participationDto.getDestinationId()).orElseThrow(() -> new RuntimeException("Destination location not found"));
-
         Journey journey = journeyRepository.findById(participationDto.getJourneyId()).orElseThrow(() -> new RuntimeException("Journey not found"));
-
         User user = userRepository.findById(participationDto.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
 
+        Participation participation = participationMapper.toEntity(participationDto);
         participation.setJourney(journey);
         participation.setParticipant(user);
         participation.setSource(source);
         participation.setDestination(destination);
 
-        //participation.setLastLocation();
+        if (participation.getState() == null) {
+            participation.setState(Enums.ParticipationState.ACCEPTED);
+        }
 
         // si ya hay una participacion con ese journey y user, lanzar excepcion
         if (participationRepository.existsByJourneyAndParticipant(journey, user)) {
