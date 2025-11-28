@@ -10,7 +10,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequestMapping("/places")
 public class PlacesController {
 
-    @Value("${google.places.api.key}")
+    @Value("${google.maps.api.key}")
     private String apiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();

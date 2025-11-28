@@ -16,7 +16,7 @@ import java.util.Locale;
 @RestController
 @RequestMapping("/geocode")
 public class GeocodingController {
-    @Value("${google.places.api.key}")
+    @Value("${google.maps.api.key}")
     private String apiKey;
 
     private final RestTemplate restTemplate;
