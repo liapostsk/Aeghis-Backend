@@ -1,5 +1,6 @@
 package com.tfg.aegis.person.user.model;
 
+import com.tfg.aegis.companionrequest.model.CompanionRequest;
 import com.tfg.aegis.emergencycontact.model.EmergencyContact;
 import com.tfg.aegis.notification.model.NotificationToken;
 import com.tfg.aegis.person.externalcontact.model.ExternalContact;
@@ -58,4 +59,11 @@ public class User extends Person {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<NotificationToken> notificationTokens = new HashSet<>();
+
+    @OneToMany(mappedBy = "creador")
+    private Set<CompanionRequest> companionRequestsCreated;
+
+    @OneToMany(mappedBy = "acompaniante")
+    private Set<CompanionRequest> companionRequestsAccepted;
+
 }

@@ -12,13 +12,16 @@ public class GroupDto {
     private Long id;
     private String name;
     private String description;
-    private String imageUrl; // URL de la imagen del grupo
-    private TypeGroup type; // Tipo de grupo (e.g., "confianza", "temporal", "acompañamiento")
-    private GroupState state; // Estado del grupo (e.g., "activo", "inactivo")
-    private LocalDateTime createdAt; // Fecha de creación del grupo
-    private LocalDateTime expirationDate; // Fecha de expiración del grupo, si aplica
-    private LocalDateTime lastModified; // Fecha de la última modificación del grupo
-    private Long ownerId; // ID del propietario del grupo
-    private Set<Long> membersIds; // IDs de los miembros del grupo
-    private Set<Long> adminsIds; // IDs de los administradores del grupo
+    private String imageUrl;
+    private TypeGroup type;
+    private GroupState state;
+    private LocalDateTime createdAt;
+    private LocalDateTime expirationDate;
+    private LocalDateTime lastModified;
+    private Long ownerId;
+    private Set<Long> membersIds;
+    private Set<Long> adminsIds;
+    private Long companionRequestId;
+    // soporte de tracking de grupos
+    // private List<Long> trackingRequestsIds;
 }

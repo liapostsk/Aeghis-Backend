@@ -14,4 +14,5 @@ public class JourneyDto {
     private LocalDateTime endDate;
     private Long groupId;
     private Set<Long> participantsIds;
+    private Long companionRequestId;
 }

@@ -1,5 +1,6 @@
 package com.tfg.aegis.person.user.mapper;
 
+import com.tfg.aegis.companionrequest.model.CompanionRequest;
 import com.tfg.aegis.safelocation.mapper.SafeLocationMapperImpl;
 import com.tfg.aegis.safelocation.model.SafeLocation;
 import com.tfg.aegis.safelocation.model.SafeLocationDto;
@@ -10,11 +11,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
 public class UserMapperImpl implements UserMapper {
-
 
     private final SafeLocationMapperImpl mapper;
 
@@ -61,19 +62,19 @@ public class UserMapperImpl implements UserMapper {
         dto.setImage(user.getImage());
         dto.setRole(user.getRole());
         dto.setVerify(user.getVerify());
-
-        // List safeLocations con el mapper
-        Set<SafeLocationDto> safeLocations = new HashSet<>();
-        if (user.getSafeLocations() != null) {
-            for (SafeLocation safeLocation : user.getSafeLocations()) {
-                // Convertimos el SafeLocation a SafeLocationDto con el mapper
-                SafeLocationDto safeLocationDto = mapper.toDto(safeLocation, dto);
-
-                safeLocations.add(safeLocationDto);
-            }
-        }
-        dto.setSafeLocations(safeLocations);
-
+        dto.setCompanionRequestsCreatedIds(
+                user.getCompanionRequestsCreated()
+                        .stream().map(CompanionRequest::getId).collect(Collectors.toSet()));
+        dto.setCompanionRequestsAcceptedIds(
+                user.getCompanionRequestsAccepted()
+                        .stream()
+                        .map(CompanionRequest::getId)
+                        .collect(Collectors.toSet()));
+        dto.setSafeLocations(
+                user.getSafeLocations()
+                        .stream()
+                        .map(safeLocation -> mapper.toDto(safeLocation, dto))
+                        .collect(Collectors.toSet()));
         return dto;
     }
 }

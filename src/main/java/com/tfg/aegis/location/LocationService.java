@@ -3,11 +3,8 @@ package com.tfg.aegis.location;
 import com.tfg.aegis.location.mapper.LocationMapper;
 import com.tfg.aegis.location.model.Location;
 import com.tfg.aegis.location.model.LocationDto;
-import com.tfg.aegis.person.user.UserController;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service

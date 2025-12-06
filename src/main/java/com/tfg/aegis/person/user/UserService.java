@@ -159,6 +159,11 @@ public class UserService {
             }
             user.setRole(isAdmin ? Enums.TypeRole.ADMIN : Enums.TypeRole.USER);
             user.setVerify(Enums.VerificationStatus.PENDING);
+
+            // Añadimos los companion requests vacíos al crear el usuario
+            user.setCompanionRequestsAccepted(new HashSet<>());
+            user.setCompanionRequestsCreated(new HashSet<>());
+
             User saved = userRepository.save(user);
 
             return saved.getId();

@@ -1,5 +1,6 @@
 package com.tfg.aegis.group.model;
 
+import com.tfg.aegis.companionrequest.model.CompanionRequest;
 import com.tfg.aegis.journey.model.Journey;
 import com.tfg.aegis.person.user.model.User;
 import jakarta.persistence.*;
@@ -7,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -65,6 +67,9 @@ public class Group {
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Journey> journeys = new HashSet<>();
+
+    @OneToOne(mappedBy = "companionGroup")
+    private CompanionRequest companionRequest;
 
     @PrePersist
     private void prePersist() {

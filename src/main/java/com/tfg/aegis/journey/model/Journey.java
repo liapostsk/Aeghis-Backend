@@ -1,5 +1,6 @@
 package com.tfg.aegis.journey.model;
 
+import com.tfg.aegis.companionrequest.model.CompanionRequest;
 import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.participation.model.Participation;
 
@@ -30,12 +31,13 @@ public class Journey {
 
     private LocalDateTime endDate;
 
-    //grupo asociado
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "grupo_id", nullable = false)
     private Group group;
 
-    // 1..* Participaciones
     @OneToMany(mappedBy = "journey", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Participation> participations = new HashSet<>();
+
+    @OneToOne(mappedBy = "trayecto")
+    private CompanionRequest companionRequest;
 }

@@ -1,6 +1,5 @@
 package com.tfg.aegis.journey.mapper;
 
-import com.tfg.aegis.journey.model.Enums;
 import com.tfg.aegis.journey.model.Journey;
 import com.tfg.aegis.journey.model.JourneyDto;
 import com.tfg.aegis.participation.model.Participation;
@@ -46,6 +45,9 @@ public class JourneyMapperImpl implements JourneyMapper {
         journeyDto.setParticipantsIds(journey.getParticipations() != null
                 ? journey.getParticipations().stream().map(Participation::getId).collect(Collectors.toSet())
                 : new HashSet<>());
+        journeyDto.setCompanionRequestId(
+                journey.getCompanionRequest() != null ? journey.getCompanionRequest().getId() : null
+        );
         return journeyDto;
     }
 }

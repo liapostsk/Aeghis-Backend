@@ -4,7 +4,7 @@ public class Enums {
     public enum TypeGroup {
         CONFIANZA,
         TEMPORAL,
-        ACOMPANAMIENTO
+        COMPANION
     }
 
     public enum GroupState {

@@ -1,5 +1,6 @@
 package com.tfg.aegis.group.mapper;
 
+import com.tfg.aegis.companionrequest.model.CompanionRequest;
 import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.group.model.GroupDto;
 import com.tfg.aegis.person.user.model.User;
@@ -51,6 +52,11 @@ public class GroupMapperImpl implements GroupMapper {
                 .map(User::getId)
                 .collect(Collectors.toSet())
                 : java.util.Collections.emptySet());
+
+        dto.setCompanionRequestId(
+                group.getCompanionRequest() != null ? group.getCompanionRequest().getId() : null
+        );
+
         return dto;
     }
 }

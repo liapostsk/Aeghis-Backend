@@ -25,4 +25,6 @@ public class UserDto extends PersonDto {
     private Set<GroupDto> groups;
     private Enums.VerificationStatus verify;
     private Enums.TypeRole role;
+    private Set<Long> companionRequestsCreatedIds;
+    private Set<Long> companionRequestsAcceptedIds;
 }

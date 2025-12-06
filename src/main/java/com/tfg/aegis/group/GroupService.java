@@ -63,6 +63,8 @@ public class GroupService {
         group.setType(groupDto.getType());
         group.setState(Enums.GroupState.PENDIENTE);
         group.setLastModified(LocalDateTime.now());
+        // companionRequestId puede ser nulo al crear el grupo
+
         return groupRepository.save(group).getId();
     }
 

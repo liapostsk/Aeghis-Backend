@@ -65,6 +65,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
+        String uri = request.getRequestURI();
+
+        if (uri.startsWith("/swagger-ui") || uri.startsWith("/v3/api-docs")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (jwtProcessor == null) {
             logger.error("JWT processor not initialized, authentication disabled");
             filterChain.doFilter(request, response);
