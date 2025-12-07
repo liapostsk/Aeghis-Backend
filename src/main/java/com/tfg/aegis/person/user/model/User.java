@@ -60,10 +60,10 @@ public class User extends Person {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<NotificationToken> notificationTokens = new HashSet<>();
 
-    @OneToMany(mappedBy = "creador")
+    @OneToMany(mappedBy = "creator")
     private Set<CompanionRequest> companionRequestsCreated;
 
-    @OneToMany(mappedBy = "acompaniante")
+    @OneToMany(mappedBy = "companion")
     private Set<CompanionRequest> companionRequestsAccepted;
 
 }

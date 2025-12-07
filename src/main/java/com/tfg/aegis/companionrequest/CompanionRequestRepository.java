@@ -13,4 +13,6 @@ public interface CompanionRequestRepository extends CrudRepository<CompanionRequ
     List<CompanionRequest> findByDestinationAndAproxHourBetween(Location destination, LocalDateTime from, LocalDateTime to);
 
     List<CompanionRequest> findByCreatorIdOrCompanionId(Long userId, Long companionId);
+
+    List<CompanionRequest> findByAproxHourBetween(LocalDateTime from, LocalDateTime to);
 }

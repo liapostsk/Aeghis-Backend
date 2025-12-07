@@ -1,5 +1,6 @@
 package com.tfg.aegis.companionrequest;
 
+import com.tfg.aegis.common.exception.NotFoundException;
 import com.tfg.aegis.companionrequest.mapper.CompanionRequestMapper;
 import com.tfg.aegis.companionrequest.model.CompanionRequest;
 import com.tfg.aegis.companionrequest.model.CompanionRequestDto;
@@ -41,8 +42,12 @@ public class CompanionRequestService {
     private final GroupService groupService;
     private final JourneyService journeyService;
 
+    /**
+     * Endpoint for the creator
+     */
+
     public Long createCompanionRequest(CompanionRequestDto companionRequestDto) {
-        User currentUser = userRepository.findById(getCurrentUser().getId()).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User currentUser = userRepository.findById(getCurrentUser().getId()).orElseThrow(() -> new NotFoundException("createCompanionRequest", getCurrentUser().getId()));
 
         CompanionRequest companionRequest = companionRequestMapper.toEntity(companionRequestDto);
         companionRequest.setCreator(currentUser);
@@ -52,22 +57,99 @@ public class CompanionRequestService {
         return savedRequest.getId();
     }
 
-    public List<CompanionRequestDto> searchCompanionRequests(Long destinationId, LocalDateTime from, LocalDateTime to, boolean excludeMine) {
-        // TODO: Aplicar logica de que el destino puede ser proximo, no exacto
+    public CompanionRequestDto acceptCompanionRequest(Long requestId) {
+        CompanionRequest request = companionRequestRepository.findById(requestId)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + requestId));
 
-        Location destination = locationRepository.findById(destinationId)
-                .orElseThrow(() -> new EntityNotFoundException("Destino no encontrado: " + destinationId));
+        User currentUser = userRepository.findById(getCurrentUser().getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        List<CompanionRequest> requests = companionRequestRepository.findByDestinationAndAproxHourBetween(destination, from, to);
-
-        if (excludeMine) {
-            requests = requests.stream()
-                    .filter(s -> !s.getCreator().getId().equals(getCurrentUser().getId()))
-                    .toList();
+        // Solo el creador puede aceptar
+        if (!request.getCreator().getId().equals(currentUser.getId())) {
+            throw new IllegalStateException("Solo el creador puede aceptar la solicitud");
         }
 
-        return requests.stream().map(companionRequestMapper::toDto).toList();
+        // Debe haber un acompañante pendiente
+        if (request.getCompanion() == null) {
+            throw new IllegalStateException("No hay ningún acompañante pendiente de aceptar");
+        }
+
+        if (request.getState() != Enums.RequestStatus.PENDING) {
+            throw new IllegalStateException("La solicitud no está pendiente de aceptación");
+        }
+
+        request.setState(Enums.RequestStatus.MATCHED);
+
+        return companionRequestMapper.toDto(request);
     }
+
+    public void rejectCompanionRequest(Long id) {
+        CompanionRequest request = companionRequestRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
+
+        User currentUser = userRepository.findById(getCurrentUser().getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!request.getCreator().getId().equals(currentUser.getId())) {
+            throw new IllegalStateException("Solo el creador puede rechazar la solicitud");
+        }
+
+        if (request.getCompanion() == null || request.getState() != Enums.RequestStatus.PENDING) {
+            throw new IllegalStateException("La solicitud no está en un estado válido para ser rechazada");
+        }
+
+        request.setState(Enums.RequestStatus.CREATED);
+        request.setCompanion(null);
+    }
+
+
+    public CompanionRequestDto submitIndividualJourney(Long id, JourneyDto journeyDto) {
+        return null;
+    }
+
+    public CompanionRequestDto finishCompanionRequest(Long id) {
+        CompanionRequest request = companionRequestRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
+
+        Long currentId = getCurrentUser().getId();
+        boolean isCreator = request.getCreator().getId().equals(currentId);
+        boolean isCompanion = request.getCompanion() != null
+                && request.getCompanion().getId().equals(currentId);
+
+        if (!isCreator && !isCompanion) {
+            throw new IllegalStateException("Solo el creador o el acompañante pueden finalizar la solicitud");
+        }
+
+        if (request.getState() != Enums.RequestStatus.IN_PROGRESS
+                && request.getState() != Enums.RequestStatus.MATCHED) {
+            throw new IllegalStateException("La solicitud no está en marcha");
+        }
+
+        request.setState(Enums.RequestStatus.FINISHED);
+
+        return companionRequestMapper.toDto(request);
+    }
+
+    public void deleteCompanionRequest(Long id) {
+        CompanionRequest request = companionRequestRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
+
+        Long currentId = getCurrentUser().getId();
+        if (!request.getCreator().getId().equals(currentId)) {
+            throw new IllegalStateException("Solo el creador puede eliminar la solicitud");
+        }
+
+        if (request.getState() == Enums.RequestStatus.IN_PROGRESS
+                || request.getState() == Enums.RequestStatus.FINISHED) {
+            throw new IllegalStateException("No se puede eliminar una solicitud con trayecto en marcha o finalizado");
+        }
+
+        companionRequestRepository.delete(request);
+    }
+
+    /**
+     * Endpoint for the searchers
+     */
 
     public List<CompanionRequestDto> getMyCompanionRequests() {
         Long userId = getCurrentUser().getId();
@@ -75,96 +157,101 @@ public class CompanionRequestService {
         return requests.stream().map(companionRequestMapper::toDto).toList();
     }
 
-    public CompanionRequestDto acceptCompanionRequest(Long requestId, GroupDto groupDto) {
-        CompanionRequest request = companionRequestRepository.findById(requestId)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + requestId));
-
-        User companion = userRepository.findById(getCurrentUser().getId()).orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        if (request.getState() != Enums.RequestStatus.CREATED) {
-            throw new IllegalStateException("La solicitud no está disponible para ser aceptada");
-        }
-        if (request.getCreator().getId().equals(companion.getId())) {
-            throw new IllegalStateException("No puedes aceptar tu propia solicitud");
-        }
-        if (request.getCompanion() != null) {
-            throw new IllegalStateException("La solicitud ya tiene acompañante");
-        }
-
-        request.setCompanion(companion);
-        request.setState(Enums.RequestStatus.MATCHED);
-
-        // Crear grupo companion (chat entre creador y acompañante)
-        // Adapta esto a tu GroupService / enums reales
-        Long groupId = groupService.createGroup(groupDto);
-        Group companionGroup = groupRepository.findById(groupId)
-                .orElseThrow(() -> new EntityNotFoundException("Grupo no encontrado: " + groupId));
-        request.setCompanionGroup(companionGroup);
-
-        return companionRequestMapper.toDto(request);
+    public List<CompanionRequestDto> listActiveCompanionRequests() {
+        List<CompanionRequest> requests = companionRequestRepository.findByAproxHourBetween(LocalDateTime.now().minusHours(2), LocalDateTime.now().plusHours(3));
+        return requests.stream()
+                .filter(r -> r.getState() == Enums.RequestStatus.CREATED)
+                .map(companionRequestMapper::toDto)
+                .toList();
     }
 
-    public void cancelCompanionRequest(Long requestId) {
-        CompanionRequest request = companionRequestRepository.findById(requestId)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + requestId));
+    public List<CompanionRequestDto> searchCompanionRequests(Long destinationId, LocalDateTime from, LocalDateTime to, boolean excludeMine) {
+        List<CompanionRequest> requests;
 
-        if (!request.getCreator().getId().equals(getCurrentUser().getId())) {
-            throw new IllegalStateException("Solo el creador puede cancelar la solicitud");
+        if (destinationId != null) {
+            Location destination = locationRepository.findById(destinationId)
+                    .orElseThrow(() -> new EntityNotFoundException("Destino no encontrado: " + destinationId));
+
+            requests = companionRequestRepository.findByDestinationAndAproxHourBetween(destination, from, to);
+        } else {
+            if (from == null) {
+                from = LocalDateTime.now().minusHours(2);
+            }
+            if (to == null) {
+                to = LocalDateTime.now().plusHours(3);
+            }
+            requests = companionRequestRepository.findByAproxHourBetween(from, to);
         }
-        if (request.getState() == Enums.RequestStatus.IN_PROGRESS ||
-                request.getState() == Enums.RequestStatus.FINISHED) {
-            throw new IllegalStateException("No se puede cancelar una solicitud con trayecto en marcha o finalizado");
+
+        if (excludeMine) {
+            Long currentId = getCurrentUser().getId();
+            requests = requests.stream()
+                    .filter(r -> !r.getCreator().getId().equals(currentId))
+                    .toList();
         }
-        if (request.getState() == Enums.RequestStatus.CANCELLED) {
-            throw new IllegalStateException("La solicitud ya está cancelada");
-        }
-        request.setState(Enums.RequestStatus.CANCELLED);
+
+        return requests.stream()
+                .map(companionRequestMapper::toDto)
+                .toList();
     }
 
-    public void declineCompanionRequest(Long id) {
+    public void requestToJoinCompanionRequest(Long id) {
+        /*
+        Una vez el ambos usuarios (creador y acompañante) han acordado el viaje,
+         */
         CompanionRequest request = companionRequestRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
 
         User currentUser = userRepository.findById(getCurrentUser().getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        if (request.getCompanion() == null || !request.getCompanion().getId().equals(currentUser.getId())) {
-            throw new IllegalStateException("Solo el acompañante asignado puede rechazar la solicitud");
+        if (request.getCreator().getId().equals(currentUser.getId())) {
+            throw new IllegalStateException("No puedes unirte a tu propia solicitud");
         }
-        if (request.getState() != Enums.RequestStatus.MATCHED) {
-            throw new IllegalStateException("La solicitud no está en un estado válido para ser rechazada");
+        if (request.getState() != Enums.RequestStatus.CREATED) {
+            throw new IllegalStateException("La solicitud no está disponible para unirse");
+        }
+        if (request.getCompanion() != null) {
+            throw new IllegalStateException("La solicitud ya tiene un acompañante pendiente o asignado");
         }
 
-        request.setCompanion(null);
-        request.setState(Enums.RequestStatus.DECLINED);
+        // El acompañante se “postula” → queda pendiente de aceptación
+        request.setCompanion(currentUser);
+        request.setState(Enums.RequestStatus.PENDING);
     }
 
-    public CompanionRequestDto startJourney(Long requestId, JourneyDto journeyDto) {
+    public void cancelCompanionRequest(Long requestId) {
         CompanionRequest request = companionRequestRepository.findById(requestId)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + requestId));
 
         User currentUser = userRepository.findById(getCurrentUser().getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        if (!request.getCreator().getId().equals(currentUser.getId())) {
-            throw new IllegalStateException("Solo el creador puede iniciar el trayecto");
-        }
-        if (request.getState() != Enums.RequestStatus.MATCHED) {
-            throw new IllegalStateException("La solicitud no está en un estado válido para iniciar el trayecto");
+        if (request.getCompanion() == null
+                || !request.getCompanion().getId().equals(currentUser.getId())) {
+            throw new IllegalStateException("Solo el acompañante pendiente puede cancelar su solicitud de unión");
         }
 
-        // Aquí deberías crear el Journey basado en journeyDto y asignarlo a la solicitud
-        // Por simplicidad, este paso se omite
-        // TODO: Implement journey creation logic: donde origen y destino son los de la solicitud
-        Long journeyId = journeyService.createJourney(journeyDto);
-        // Asignar el trayecto creado a la solicitud
-        request.setTrayecto(journeyRepository.findById(journeyId)
-                .orElseThrow(() -> new EntityNotFoundException("Trayecto no encontrado: " + journeyId)));
+        if (request.getState() != Enums.RequestStatus.PENDING) {
+            throw new IllegalStateException("Solo puedes cancelar solicitudes pendientes de aceptación");
+        }
 
-        request.setState(Enums.RequestStatus.IN_PROGRESS);
+        // Volvemos al estado inicial
+        request.setCompanion(null);
+        request.setState(Enums.RequestStatus.CREATED);
+    }
+
+    /**
+     * Endpoint for both the creator and the searcher
+     */
+
+    public CompanionRequestDto getCompanionRequestById(Long id) {
+        CompanionRequest request = companionRequestRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
         return companionRequestMapper.toDto(request);
     }
 
+    // Utility method to get the current authenticated user
     private UserDto getCurrentUser() {
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return userService.getUserByClerkId(clerkId);
