@@ -1,6 +1,7 @@
 package com.tfg.aegis.companionrequest;
 
 import com.tfg.aegis.companionrequest.model.CompanionRequestDto;
+import com.tfg.aegis.companionrequest.model.CreateCompanionRequestDto;
 import com.tfg.aegis.journey.model.JourneyDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,7 +31,7 @@ public class CompanionRequestController {
 
     @Operation(summary = "Create Companion Request", description = "Method that creates a Companion Request")
     @PostMapping
-    public ResponseEntity<Long> createCompanionRequest(@RequestBody CompanionRequestDto dto) {
+    public ResponseEntity<Long> createCompanionRequest(@RequestBody CreateCompanionRequestDto dto) {
         Long requestDto = companionRequestService.createCompanionRequest(dto);
         log.info("New companion request created");
         return ResponseEntity.ok(requestDto);

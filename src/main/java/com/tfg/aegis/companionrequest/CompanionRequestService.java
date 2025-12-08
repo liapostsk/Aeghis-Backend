@@ -2,8 +2,10 @@ package com.tfg.aegis.companionrequest;
 
 import com.tfg.aegis.common.exception.NotFoundException;
 import com.tfg.aegis.companionrequest.mapper.CompanionRequestMapper;
+import com.tfg.aegis.companionrequest.mapper.CreateCompanionRequestMapper;
 import com.tfg.aegis.companionrequest.model.CompanionRequest;
 import com.tfg.aegis.companionrequest.model.CompanionRequestDto;
+import com.tfg.aegis.companionrequest.model.CreateCompanionRequestDto;
 import com.tfg.aegis.companionrequest.model.Enums;
 import com.tfg.aegis.group.GroupRepository;
 import com.tfg.aegis.group.GroupService;
@@ -39,6 +41,7 @@ public class CompanionRequestService {
     private final LocationRepository locationRepository;
     private final UserService userService;
     private final CompanionRequestMapper companionRequestMapper;
+    private final CreateCompanionRequestMapper createCompanionRequestMapper;
     private final GroupService groupService;
     private final JourneyService journeyService;
 
@@ -46,17 +49,19 @@ public class CompanionRequestService {
      * Endpoint for the creator
      */
 
-    public Long createCompanionRequest(CompanionRequestDto companionRequestDto) {
+    public Long createCompanionRequest(CreateCompanionRequestDto createCompanionRequestDto) {
         User currentUser = userRepository.findById(getCurrentUser().getId()).orElseThrow(() -> new NotFoundException("createCompanionRequest", getCurrentUser().getId()));
 
-        CompanionRequest companionRequest = companionRequestMapper.toEntity(companionRequestDto);
+        CompanionRequest companionRequest = createCompanionRequestMapper.toEntity(createCompanionRequestDto);
         companionRequest.setCreator(currentUser);
-        Location source = locationRepository.findById(companionRequestDto.getSourceId())
-                .orElseThrow(() -> new EntityNotFoundException("Ubicación de origen no encontrada: " + companionRequestDto.getSourceId()));
-        Location destination = locationRepository.findById(companionRequestDto.getDestinationId())
-                .orElseThrow(() -> new EntityNotFoundException("Ubicación de destino no encontrada: " + companionRequestDto.getDestinationId()));
+        Location source = locationRepository.findById(createCompanionRequestDto.getSourceId())
+                .orElseThrow(() -> new EntityNotFoundException("Ubicación de origen no encontrada: " + createCompanionRequestDto.getSourceId()));
+        Location destination = locationRepository.findById(createCompanionRequestDto.getDestinationId())
+                .orElseThrow(() -> new EntityNotFoundException("Ubicación de destino no encontrada: " + createCompanionRequestDto.getDestinationId()));
         companionRequest.setSource(source);
         companionRequest.setDestination(destination);
+        companionRequest.setState(Enums.RequestStatus.CREATED);
+        companionRequest.setCreationDate(LocalDateTime.now());
         CompanionRequest savedRequest = companionRequestRepository.save(companionRequest);
         return savedRequest.getId();
     }

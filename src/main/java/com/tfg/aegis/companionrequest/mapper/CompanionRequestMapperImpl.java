@@ -22,9 +22,8 @@ public class CompanionRequestMapperImpl implements CompanionRequestMapper {
         dto.setAproxHour(companionRequest.getAproxHour());
         dto.setDescription(companionRequest.getDescription());
         dto.setCreationDate(companionRequest.getCreationDate());
-        dto.setCreatorId(companionRequest.getCreator() != null ? companionRequest.getCreator().getId() : null);
         dto.setCompanionId(companionRequest.getCompanion() != null ? companionRequest.getCompanion().getId() : null);
-        // source, destination, creatorId and companionId are intentionally not set here
+        // source, destination, creator and companionId are intentionally not set here
 
         return dto;
     }
@@ -39,7 +38,7 @@ public class CompanionRequestMapperImpl implements CompanionRequestMapper {
         companionRequest.setAproxHour(companionRequestDto.getAproxHour());
         companionRequest.setDescription(companionRequestDto.getDescription());
         companionRequest.setCreationDate(companionRequestDto.getCreationDate());
-        // source, destination, creatorId and companionId are intentionally not set here
+        // source, destination, creator and companionId are intentionally not set here
         return companionRequest;
     }
 }
