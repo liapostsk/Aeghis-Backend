@@ -8,21 +8,21 @@ import com.tfg.aegis.companionrequest.model.CompanionRequestDto;
 import com.tfg.aegis.companionrequest.model.CreateCompanionRequestDto;
 import com.tfg.aegis.companionrequest.model.Enums;
 import com.tfg.aegis.group.GroupRepository;
-import com.tfg.aegis.group.GroupService;
-import com.tfg.aegis.group.model.Group;
-import com.tfg.aegis.group.model.GroupDto;
 import com.tfg.aegis.journey.JourneyRepository;
-import com.tfg.aegis.journey.JourneyService;
 import com.tfg.aegis.journey.model.JourneyDto;
 import com.tfg.aegis.location.LocationRepository;
+import com.tfg.aegis.location.mapper.LocationMapper;
 import com.tfg.aegis.location.model.Location;
 import com.tfg.aegis.person.user.UserRepository;
 import com.tfg.aegis.person.user.UserService;
+import com.tfg.aegis.person.user.mapper.UserMapper;
 import com.tfg.aegis.person.user.model.User;
 import com.tfg.aegis.person.user.model.UserDto;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -36,14 +36,15 @@ public class CompanionRequestService {
 
     private final CompanionRequestRepository companionRequestRepository;
     private final UserRepository userRepository;
-    private final GroupRepository groupRepository;
-    private final JourneyRepository journeyRepository;
     private final LocationRepository locationRepository;
     private final UserService userService;
     private final CompanionRequestMapper companionRequestMapper;
     private final CreateCompanionRequestMapper createCompanionRequestMapper;
-    private final GroupService groupService;
-    private final JourneyService journeyService;
+    private final UserMapper userMapper;
+    private final LocationMapper locationMapper;
+
+    private static final Logger log = LoggerFactory.getLogger(CompanionRequestService.class);
+
 
     /**
      * Endpoint for the creator
@@ -63,6 +64,7 @@ public class CompanionRequestService {
         companionRequest.setState(Enums.RequestStatus.CREATED);
         companionRequest.setCreationDate(LocalDateTime.now());
         CompanionRequest savedRequest = companionRequestRepository.save(companionRequest);
+        log.info("Companion request created with id: {}", savedRequest.getId());
         return savedRequest.getId();
     }
 
@@ -89,7 +91,9 @@ public class CompanionRequestService {
 
         request.setState(Enums.RequestStatus.MATCHED);
 
-        return companionRequestMapper.toDto(request);
+        log.info("Companion request with id: {} has been accepted", requestId);
+
+        return toDtoWithRelations(request);
     }
 
     public void rejectCompanionRequest(Long id) {
@@ -109,6 +113,7 @@ public class CompanionRequestService {
 
         request.setState(Enums.RequestStatus.CREATED);
         request.setCompanion(null);
+        log.info("Companion request with id: {} has been rejected", id);
     }
 
 
@@ -136,7 +141,9 @@ public class CompanionRequestService {
 
         request.setState(Enums.RequestStatus.FINISHED);
 
-        return companionRequestMapper.toDto(request);
+        log.info("Finishing companion request with id: {}", id);
+
+        return toDtoWithRelations(request);
     }
 
     public void deleteCompanionRequest(Long id) {
@@ -153,6 +160,8 @@ public class CompanionRequestService {
             throw new IllegalStateException("No se puede eliminar una solicitud con trayecto en marcha o finalizado");
         }
 
+        log.info("Deleting companion request with id: {}", id);
+
         companionRequestRepository.delete(request);
     }
 
@@ -163,14 +172,18 @@ public class CompanionRequestService {
     public List<CompanionRequestDto> getMyCompanionRequests() {
         Long userId = getCurrentUser().getId();
         List<CompanionRequest> requests = companionRequestRepository.findByCreatorIdOrCompanionId(userId, userId);
-        return requests.stream().map(companionRequestMapper::toDto).toList();
+        return requests.stream()
+                .map(this::toDtoWithRelations)
+                .toList();
     }
 
     public List<CompanionRequestDto> listActiveCompanionRequests() {
         List<CompanionRequest> requests = companionRequestRepository.findByAproxHourBetween(LocalDateTime.now().minusHours(2), LocalDateTime.now().plusHours(3));
+
+        log.info("Mapped source, destination, and creator for active companion requests");
         return requests.stream()
                 .filter(r -> r.getState() == Enums.RequestStatus.CREATED)
-                .map(companionRequestMapper::toDto)
+                .map(this::toDtoWithRelations)
                 .toList();
     }
 
@@ -200,7 +213,7 @@ public class CompanionRequestService {
         }
 
         return requests.stream()
-                .map(companionRequestMapper::toDto)
+                .map(this::toDtoWithRelations)
                 .toList();
     }
 
@@ -257,7 +270,7 @@ public class CompanionRequestService {
     public CompanionRequestDto getCompanionRequestById(Long id) {
         CompanionRequest request = companionRequestRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
-        return companionRequestMapper.toDto(request);
+        return toDtoWithRelations(request);
     }
 
     // Utility method to get the current authenticated user
@@ -265,4 +278,15 @@ public class CompanionRequestService {
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return userService.getUserByClerkId(clerkId);
     }
+
+    private CompanionRequestDto toDtoWithRelations(CompanionRequest entity) {
+        CompanionRequestDto dto = companionRequestMapper.toDto(entity);
+        dto.setSource(entity.getSource() != null ? locationMapper.toDto(entity.getSource()) : null);
+        dto.setDestination(entity.getDestination() != null ? locationMapper.toDto(entity.getDestination()) : null);
+        dto.setCreator(entity.getCreator() != null ? userMapper.toDto(entity.getCreator()) : null);
+        log.info("Mapped source {}, destination {}, and creator {} for companion request with id: {}",
+                dto.getSource(), dto.getDestination(), dto.getCreator(), dto.getId());
+        return dto;
+    }
+
 }
