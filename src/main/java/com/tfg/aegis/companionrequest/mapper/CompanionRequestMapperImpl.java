@@ -18,7 +18,7 @@ public class CompanionRequestMapperImpl implements CompanionRequestMapper {
 
         CompanionRequestDto dto = new CompanionRequestDto();
         dto.setId(companionRequest.getId());
-        dto.setState(companionRequest.getState().name());
+        dto.setState(companionRequest.getState() != null ? companionRequest.getState() : Enums.RequestStatus.CREATED);
         dto.setAproxHour(companionRequest.getAproxHour());
         dto.setDescription(companionRequest.getDescription());
         dto.setCreationDate(companionRequest.getCreationDate());
@@ -35,8 +35,7 @@ public class CompanionRequestMapperImpl implements CompanionRequestMapper {
             return null;
         }
         CompanionRequest companionRequest = new CompanionRequest();
-        companionRequest.setId(companionRequestDto.getId());
-        companionRequest.setState(Enums.RequestStatus.valueOf(companionRequestDto.getState()));
+        companionRequest.setState(companionRequestDto.getState());
         companionRequest.setAproxHour(companionRequestDto.getAproxHour());
         companionRequest.setDescription(companionRequestDto.getDescription());
         companionRequest.setCreationDate(companionRequestDto.getCreationDate());

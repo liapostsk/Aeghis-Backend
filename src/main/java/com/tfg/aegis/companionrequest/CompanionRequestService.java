@@ -51,8 +51,12 @@ public class CompanionRequestService {
 
         CompanionRequest companionRequest = companionRequestMapper.toEntity(companionRequestDto);
         companionRequest.setCreator(currentUser);
-        companionRequest.setCreationDate(LocalDateTime.now());
-        companionRequest.setState(Enums.RequestStatus.CREATED);
+        Location source = locationRepository.findById(companionRequestDto.getSourceId())
+                .orElseThrow(() -> new EntityNotFoundException("Ubicación de origen no encontrada: " + companionRequestDto.getSourceId()));
+        Location destination = locationRepository.findById(companionRequestDto.getDestinationId())
+                .orElseThrow(() -> new EntityNotFoundException("Ubicación de destino no encontrada: " + companionRequestDto.getDestinationId()));
+        companionRequest.setSource(source);
+        companionRequest.setDestination(destination);
         CompanionRequest savedRequest = companionRequestRepository.save(companionRequest);
         return savedRequest.getId();
     }

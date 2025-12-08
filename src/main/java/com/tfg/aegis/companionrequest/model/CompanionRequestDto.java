@@ -10,7 +10,7 @@ public class CompanionRequestDto {
     private Long destinationId;
     private LocalDateTime aproxHour;
     private String description;
-    private String state;
+    private Enums.RequestStatus state;
     private LocalDateTime creationDate;
     private Long creatorId;
     private Long companionId;
