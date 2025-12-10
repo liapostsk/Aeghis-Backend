@@ -20,6 +20,8 @@ public class Location {
     @Column(nullable = false)
     private Double longitude;
 
+    private String name;
+
     @Column(nullable = false)
     private LocalDateTime timestamp = LocalDateTime.now();
 }

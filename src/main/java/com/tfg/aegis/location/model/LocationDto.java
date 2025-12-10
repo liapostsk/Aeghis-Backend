@@ -10,4 +10,5 @@ public class LocationDto {
     private Double latitude;
     private Double longitude;
     private LocalDateTime timestamp;
+    private String name;
 }

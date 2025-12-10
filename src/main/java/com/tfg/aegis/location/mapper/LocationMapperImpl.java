@@ -20,6 +20,7 @@ public class LocationMapperImpl implements LocationMapper {
         location.setLatitude(dto.getLatitude());
         location.setLongitude(dto.getLongitude());
         location.setTimestamp(dto.getTimestamp());
+        location.setName(dto.getName());
 
         return location;
     }
@@ -34,6 +35,7 @@ public class LocationMapperImpl implements LocationMapper {
         dto.setLongitude(location.getLongitude());
         dto.setLatitude(location.getLatitude());
         dto.setTimestamp(location.getTimestamp());
+        dto.setName(location.getName());
         return dto;
     }
 

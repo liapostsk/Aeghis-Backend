@@ -8,7 +8,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class SafeLocationDto extends LocationDto {
     private Long id;
-    private String name;
     private String description;
     private String address; // opcional: para guardar la dirección del lugar
     private String type;

@@ -17,9 +17,6 @@ public class SafeLocation extends Location {
     @Column(unique = true)
     private String externalId;
 
-    @Column(nullable = false)
-    private String name;
-
     private String description;
 
     private String address; // opcional: para guardar la dirección del lugar
