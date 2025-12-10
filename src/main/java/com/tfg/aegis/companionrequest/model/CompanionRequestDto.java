@@ -16,6 +16,7 @@ public class CompanionRequestDto {
     private LocalDateTime creationDate;
     private UserDto creator;
     private Long companionId;
+    private String companionMessage;
     private Long companionGroupId;
     private Long trackingGroupId;
     private Long trayectoId;

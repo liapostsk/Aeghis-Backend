@@ -37,6 +37,9 @@ public class CompanionRequest {
 
     private LocalDateTime creationDate;
 
+    @Column(name = "companion_message", length = 500)
+    private String companionMessage;
+
     // --- Relaciones ---
     @ManyToOne(optional = false)
     @JoinColumn(name = "creador_id")

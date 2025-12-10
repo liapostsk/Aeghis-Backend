@@ -113,6 +113,7 @@ public class CompanionRequestService {
 
         request.setState(Enums.RequestStatus.CREATED);
         request.setCompanion(null);
+        request.setCompanionMessage(null);
         log.info("Companion request with id: {} has been rejected", id);
     }
 
@@ -217,7 +218,7 @@ public class CompanionRequestService {
                 .toList();
     }
 
-    public void requestToJoinCompanionRequest(Long id) {
+    public void requestToJoinCompanionRequest(Long id, String companionMessage) {
         /*
         Una vez el ambos usuarios (creador y acompañante) han acordado el viaje,
          */
@@ -238,6 +239,7 @@ public class CompanionRequestService {
         }
 
         // El acompañante se “postula” → queda pendiente de aceptación
+        request.setCompanionMessage(companionMessage);
         request.setCompanion(currentUser);
         request.setState(Enums.RequestStatus.PENDING);
     }
@@ -260,6 +262,7 @@ public class CompanionRequestService {
 
         // Volvemos al estado inicial
         request.setCompanion(null);
+        request.setCompanionMessage(null);
         request.setState(Enums.RequestStatus.CREATED);
     }
 

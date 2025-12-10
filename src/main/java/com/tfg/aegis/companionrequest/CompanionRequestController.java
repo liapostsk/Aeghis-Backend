@@ -116,8 +116,8 @@ public class CompanionRequestController {
     //searcher ask for joining to the companion request
     @Operation(summary = "Request to join Companion Request", description = "Method that requests to join a Companion Request")
     @PostMapping("/{id}/request-join")
-    public ResponseEntity<Void> requestToJoinCompanionRequest(@PathVariable Long id) {
-        companionRequestService.requestToJoinCompanionRequest(id);
+    public ResponseEntity<Void> requestToJoinCompanionRequest(@PathVariable Long id, @RequestParam(required = false) String message) {
+        companionRequestService.requestToJoinCompanionRequest(id, message);
         log.info("Requested to join a companion request");
         return ResponseEntity.noContent().build();
     }
