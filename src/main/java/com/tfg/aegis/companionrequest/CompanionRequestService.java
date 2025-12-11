@@ -223,26 +223,41 @@ public class CompanionRequestService {
         /*
         Una vez el ambos usuarios (creador y acompañante) han acordado el viaje,
          */
-        CompanionRequest request = companionRequestRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
+        try {
+            CompanionRequest request = companionRequestRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
 
-        User currentUser = userRepository.findById(getCurrentUser().getId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+            User currentUser = userRepository.findById(getCurrentUser().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        if (request.getCreator().getId().equals(currentUser.getId())) {
-            throw new IllegalStateException("No puedes unirte a tu propia solicitud");
-        }
-        if (request.getState() != Enums.RequestStatus.CREATED) {
-            throw new IllegalStateException("La solicitud no está disponible para unirse");
-        }
-        if (request.getCompanion() != null) {
-            throw new IllegalStateException("La solicitud ya tiene un acompañante pendiente o asignado");
-        }
+            if (request.getCreator().getId().equals(currentUser.getId())) {
+                throw new IllegalStateException("No puedes unirte a tu propia solicitud");
+            }
 
-        // El acompañante se “postula” → queda pendiente de aceptación
-        request.setCompanionMessage(companionMessage);
-        request.setCompanion(currentUser);
-        request.setState(Enums.RequestStatus.PENDING);
+            if (request.getState() != Enums.RequestStatus.CREATED) {
+                throw new IllegalStateException("La solicitud no está disponible para unirse");
+            }
+
+            if (request.getCompanion() != null) {
+                throw new IllegalStateException("La solicitud ya tiene un acompañante pendiente o asignado");
+            }
+
+            // Guardar mensaje del acompañante
+            request.setCompanionMessage(companionMessage);
+            request.setCompanion(currentUser);
+            request.setState(Enums.RequestStatus.PENDING);
+
+            log.info("User {} requested to join companion request {}", currentUser.getId(), id);
+        } catch (EntityNotFoundException | IllegalArgumentException e) {
+            log.error("Error al unirse a companion request {}: {}", id, e.getMessage());
+            throw e;
+        } catch (IllegalStateException e) {
+            log.warn("Estado inválido al intentar unirse a companion request {}: {}", id, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error inesperado al unirse a companion request {}: {}", id, e.getMessage(), e);
+            throw new RuntimeException("No se pudo procesar la solicitud de unión");
+        }
     }
 
     public void cancelCompanionRequest(Long requestId) {
