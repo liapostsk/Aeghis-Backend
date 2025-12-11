@@ -181,9 +181,10 @@ public class CompanionRequestService {
     public List<CompanionRequestDto> listActiveCompanionRequests() {
         List<CompanionRequest> requests = companionRequestRepository.findByAproxHourBetween(LocalDateTime.now().minusHours(2), LocalDateTime.now().plusHours(3));
 
-        log.info("Mapped source, destination, and creator for active companion requests");
+        log.info("Mapped source, destination, and creator for active or pending companion requests");
+
         return requests.stream()
-                .filter(r -> r.getState() == Enums.RequestStatus.CREATED)
+                .filter(r -> r.getState() == Enums.RequestStatus.CREATED || r.getState() == Enums.RequestStatus.PENDING)
                 .map(this::toDtoWithRelations)
                 .toList();
     }
@@ -287,8 +288,9 @@ public class CompanionRequestService {
         dto.setSource(entity.getSource() != null ? locationMapper.toDto(entity.getSource()) : null);
         dto.setDestination(entity.getDestination() != null ? locationMapper.toDto(entity.getDestination()) : null);
         dto.setCreator(entity.getCreator() != null ? userMapper.toDto(entity.getCreator()) : null);
-        log.info("Mapped source {}, destination {}, and creator {} for companion request with id: {}",
-                dto.getSource(), dto.getDestination(), dto.getCreator(), dto.getId());
+        dto.setCompanion(entity.getCompanion() != null ? userMapper.toDto(entity.getCompanion()) : null);
+        log.info("Mapped source {}, destination {}, and creator {}, and companion {} for companion request with id: {}",
+                dto.getSource(), dto.getDestination(), dto.getCreator(), dto.getCompanion() ,dto.getId());
         return dto;
     }
 

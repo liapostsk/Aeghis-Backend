@@ -22,9 +22,8 @@ public class CompanionRequestMapperImpl implements CompanionRequestMapper {
         dto.setAproxHour(companionRequest.getAproxHour());
         dto.setDescription(companionRequest.getDescription());
         dto.setCreationDate(companionRequest.getCreationDate());
-        dto.setCompanionId(companionRequest.getCompanion() != null ? companionRequest.getCompanion().getId() : null);
         dto.setCompanionMessage(companionRequest.getCompanionMessage());
-        // source, destination, creator and companionId are intentionally not set here
+        // source, destination, creator and companion are intentionally not set here
 
         return dto;
     }

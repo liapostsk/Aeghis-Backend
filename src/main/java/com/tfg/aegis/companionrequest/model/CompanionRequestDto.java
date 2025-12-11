@@ -15,7 +15,7 @@ public class CompanionRequestDto {
     private Enums.RequestStatus state;
     private LocalDateTime creationDate;
     private UserDto creator;
-    private Long companionId;
+    private UserDto companion;
     private String companionMessage;
     private Long companionGroupId;
     private Long trackingGroupId;
