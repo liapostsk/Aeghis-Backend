@@ -8,6 +8,6 @@ public class Enums {
         IN_PROGRESS, // The journey with the companion is currently ongoing
         FINISHED, // The journey with the companion has been completed
         CANCELLED,  // Creator has cancelled the request
-        DECLINED // Creator has declined a companion's request to join
+        EXPIRED    // The request has expired without being matched
     }
 }

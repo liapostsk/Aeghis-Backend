@@ -2,6 +2,7 @@ package com.tfg.aegis.companionrequest;
 
 
 import com.tfg.aegis.companionrequest.model.CompanionRequest;
+import com.tfg.aegis.companionrequest.model.Enums;
 import com.tfg.aegis.location.model.Location;
 import org.springframework.data.repository.CrudRepository;
 
@@ -15,4 +16,6 @@ public interface CompanionRequestRepository extends CrudRepository<CompanionRequ
     List<CompanionRequest> findByCreatorIdOrCompanionId(Long userId, Long companionId);
 
     List<CompanionRequest> findByAproxHourBetween(LocalDateTime from, LocalDateTime to);
+
+    boolean existsByCreatorIdAndState(Long userId, Enums.RequestStatus requestStatus);
 }

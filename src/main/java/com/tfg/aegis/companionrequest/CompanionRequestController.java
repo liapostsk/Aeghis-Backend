@@ -78,6 +78,14 @@ public class CompanionRequestController {
         return ResponseEntity.ok(dto);
     }
 
+    @Operation(summary = "Edit the information of a Companion Request", description = "Method that edits the information of a Companion Request")
+    @PutMapping("/{id}")
+    public ResponseEntity<CompanionRequestDto> editCompanionRequest(@PathVariable Long id, @RequestBody CreateCompanionRequestDto dto) {
+        CompanionRequestDto updatedDto = companionRequestService.editCompanionRequest(id, dto);
+        log.info("Edited companion request with id {}", id);
+        return ResponseEntity.ok(updatedDto);
+    }
+
     /**
      * Endpoint for the searchers
      */

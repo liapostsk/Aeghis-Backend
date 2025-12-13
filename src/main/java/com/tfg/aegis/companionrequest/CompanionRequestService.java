@@ -7,8 +7,6 @@ import com.tfg.aegis.companionrequest.model.CompanionRequest;
 import com.tfg.aegis.companionrequest.model.CompanionRequestDto;
 import com.tfg.aegis.companionrequest.model.CreateCompanionRequestDto;
 import com.tfg.aegis.companionrequest.model.Enums;
-import com.tfg.aegis.group.GroupRepository;
-import com.tfg.aegis.journey.JourneyRepository;
 import com.tfg.aegis.journey.model.JourneyDto;
 import com.tfg.aegis.location.LocationRepository;
 import com.tfg.aegis.location.mapper.LocationMapper;
@@ -50,9 +48,19 @@ public class CompanionRequestService {
      * Endpoint for the creator
      */
 
+    /**
+     * Create a companion request
+     * @param createCompanionRequestDto
+     * @return
+     */
     public Long createCompanionRequest(CreateCompanionRequestDto createCompanionRequestDto) {
         User currentUser = userRepository.findById(getCurrentUser().getId()).orElseThrow(() -> new NotFoundException("createCompanionRequest", getCurrentUser().getId()));
-
+        if (userHasActiveRequest(currentUser.getId())) {
+            throw new IllegalStateException(
+                    "Ya tienes una solicitud de acompañamiento en estado CREATED. " +
+                            "Cancélala o edítala antes de crear una nueva."
+            );
+        }
         CompanionRequest companionRequest = createCompanionRequestMapper.toEntity(createCompanionRequestDto);
         companionRequest.setCreator(currentUser);
         Location source = locationRepository.findById(createCompanionRequestDto.getSourceId())
@@ -68,6 +76,42 @@ public class CompanionRequestService {
         return savedRequest.getId();
     }
 
+    /**
+     * Edit a companion request
+     * @param id
+     * @param createCompanionRequestDto
+     * @return
+     */
+    public CompanionRequestDto editCompanionRequest(Long id, CreateCompanionRequestDto createCompanionRequestDto) {
+        CompanionRequest request = companionRequestRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
+
+        Long currentId = getCurrentUser().getId();
+        if (!request.getCreator().getId().equals(currentId)) {
+            throw new IllegalStateException("Solo el creador puede editar la solicitud");
+        }
+
+        if (request.getState() != Enums.RequestStatus.CREATED) {
+            throw new IllegalStateException("Solo se pueden editar solicitudes en estado CREADA");
+        }
+
+        Location source = locationRepository.findById(createCompanionRequestDto.getSourceId()).orElseThrow(() -> new EntityNotFoundException("Ubicación de origen no encontrada: " + createCompanionRequestDto.getSourceId()));
+        Location destination = locationRepository.findById(createCompanionRequestDto.getDestinationId()).orElseThrow(() -> new EntityNotFoundException("Ubicación de destino no encontrada: " + createCompanionRequestDto.getDestinationId()));
+
+        request.setSource(source);
+        request.setDestination(destination);
+        request.setAproxHour(createCompanionRequestDto.getAproxHour());
+        request.setDescription(createCompanionRequestDto.getDescription());
+
+        log.info("Companion request with id: {} has been edited", id);
+
+        return toDtoWithRelations(request);
+    }
+
+    /**
+     * Accept a companion request
+     * @param requestId
+     * @return
+     */
     public CompanionRequestDto acceptCompanionRequest(Long requestId) {
         CompanionRequest request = companionRequestRepository.findById(requestId)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + requestId));
@@ -173,20 +217,28 @@ public class CompanionRequestService {
     public List<CompanionRequestDto> getMyCompanionRequests() {
         Long userId = getCurrentUser().getId();
         List<CompanionRequest> requests = companionRequestRepository.findByCreatorIdOrCompanionId(userId, userId);
+
+        requests.forEach(this::updateExpiredStateIfNeeded);
+
         return requests.stream()
                 .map(this::toDtoWithRelations)
                 .toList();
     }
 
     public List<CompanionRequestDto> listActiveCompanionRequests() {
-        List<CompanionRequest> requests = companionRequestRepository.findByAproxHourBetween(LocalDateTime.now().minusHours(2), LocalDateTime.now().plusHours(3));
+        List<CompanionRequest> requests = companionRequestRepository
+                .findByAproxHourBetween(LocalDateTime.now().minusHours(2), LocalDateTime.now().plusHours(3));
 
-        log.info("Mapped source, destination, and creator for active or pending companion requests");
+        requests.forEach(this::updateExpiredStateIfNeeded);
 
-        return requests.stream()
+        List<CompanionRequestDto> result = requests.stream()
                 .filter(r -> r.getState() == Enums.RequestStatus.CREATED || r.getState() == Enums.RequestStatus.PENDING)
                 .map(this::toDtoWithRelations)
                 .toList();
+
+        log.info("Returning {} active companion requests (CREATED/PENDING)", result.size());
+
+        return result;
     }
 
     public List<CompanionRequestDto> searchCompanionRequests(Long destinationId, LocalDateTime from, LocalDateTime to, boolean excludeMine) {
@@ -213,6 +265,8 @@ public class CompanionRequestService {
                     .filter(r -> !r.getCreator().getId().equals(currentId))
                     .toList();
         }
+
+        requests.forEach(this::updateExpiredStateIfNeeded);
 
         return requests.stream()
                 .map(this::toDtoWithRelations)
@@ -289,6 +343,9 @@ public class CompanionRequestService {
     public CompanionRequestDto getCompanionRequestById(Long id) {
         CompanionRequest request = companionRequestRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
+
+        updateExpiredStateIfNeeded(request);
+
         return toDtoWithRelations(request);
     }
 
@@ -309,4 +366,25 @@ public class CompanionRequestService {
         return dto;
     }
 
+    private void updateExpiredStateIfNeeded(CompanionRequest request) {
+        if (request.getAproxHour() == null) return;
+
+        LocalDateTime now = LocalDateTime.now();
+
+        boolean isExpirable =
+                request.getState() == Enums.RequestStatus.CREATED; // Solo las solicitudes CREADAS pueden expirar
+
+        if (isExpirable && request.getAproxHour().isBefore(now)) {
+            request.setState(Enums.RequestStatus.EXPIRED);
+            log.info("Companion request {} marcada como EXPIRED (aproxHour={}, now={})",
+                    request.getId(), request.getAproxHour(), now);
+        }
+    }
+
+    private boolean userHasActiveRequest(Long userId) {
+        return companionRequestRepository.existsByCreatorIdAndState(
+                userId,
+                Enums.RequestStatus.CREATED
+        );
+    }
 }
