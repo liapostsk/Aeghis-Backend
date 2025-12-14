@@ -9,7 +9,6 @@ public class Enums {
 
     public enum GroupState {
         ACTIVO,
-        INACTIVO,
         CERRADO,
         PENDIENTE
     }

@@ -1,6 +1,5 @@
 package com.tfg.aegis.group.mapper;
 
-import com.tfg.aegis.companionrequest.model.CompanionRequest;
 import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.group.model.GroupDto;
 import com.tfg.aegis.person.user.model.User;
@@ -15,14 +14,13 @@ public class GroupMapperImpl implements GroupMapper {
     public Group toEntity(GroupDto dto) {
         if (dto == null) return null;
         Group group = new Group();
-        group.setId(dto.getId());
         group.setName(dto.getName());
         group.setDescription(dto.getDescription());
-        group.setImageUrl(dto.getImageUrl());
+        group.setImageUrl(dto.getImageUrl() != null ? dto.getImageUrl() : null);
         group.setType(dto.getType());
         group.setState(dto.getState());
         group.setCreatedAt(dto.getCreatedAt());
-        group.setExpirationDate(dto.getExpirationDate());
+        group.setExpirationDate(dto.getExpirationDate() != null ? dto.getExpirationDate() : null);
         group.setLastModified(dto.getLastModified());
         return group;
     }

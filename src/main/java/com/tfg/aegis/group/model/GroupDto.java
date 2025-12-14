@@ -22,6 +22,4 @@ public class GroupDto {
     private Set<Long> membersIds;
     private Set<Long> adminsIds;
     private Long companionRequestId;
-    // soporte de tracking de grupos
-    // private List<Long> trackingRequestsIds;
 }

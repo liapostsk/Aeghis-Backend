@@ -7,6 +7,8 @@ import com.tfg.aegis.companionrequest.model.CompanionRequest;
 import com.tfg.aegis.companionrequest.model.CompanionRequestDto;
 import com.tfg.aegis.companionrequest.model.CreateCompanionRequestDto;
 import com.tfg.aegis.companionrequest.model.Enums;
+import com.tfg.aegis.group.GroupRepository;
+import com.tfg.aegis.group.model.Group;
 import com.tfg.aegis.journey.model.JourneyDto;
 import com.tfg.aegis.location.LocationRepository;
 import com.tfg.aegis.location.mapper.LocationMapper;
@@ -35,6 +37,7 @@ public class CompanionRequestService {
     private final CompanionRequestRepository companionRequestRepository;
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
+    private final GroupRepository groupRepository;
     private final UserService userService;
     private final CompanionRequestMapper companionRequestMapper;
     private final CreateCompanionRequestMapper createCompanionRequestMapper;
@@ -103,6 +106,31 @@ public class CompanionRequestService {
         request.setDescription(createCompanionRequestDto.getDescription());
 
         log.info("Companion request with id: {} has been edited", id);
+
+        return toDtoWithRelations(request);
+    }
+
+    /**
+     * Link a group to a companion request
+     * @param id
+     * @param groupId
+     * @return
+     */
+    public CompanionRequestDto linkGroupToCompanionRequest(Long id, Long groupId) {
+        CompanionRequest request = companionRequestRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
+
+        Long currentId = getCurrentUser().getId();
+        if (!request.getCreator().getId().equals(currentId)) {
+            throw new IllegalStateException("Solo el creador puede vincular un grupo a la solicitud");
+        }
+
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Grupo no encontrado: " + groupId));
+
+        request.setCompanionGroup(group);
+
+        log.info("Linking group with id: {} to companion request with id: {}", groupId, id);
 
         return toDtoWithRelations(request);
     }

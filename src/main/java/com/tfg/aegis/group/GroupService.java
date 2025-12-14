@@ -40,7 +40,6 @@ public class GroupService {
 
     private static final Logger log = LoggerFactory.getLogger(GroupService.class);
 
-
     /**
      * Method that creates a Group
      *
@@ -48,19 +47,23 @@ public class GroupService {
      * @return Group id
      */
     public Long createGroup(GroupDto groupDto) {
-
         User owner = userRepository.findById(groupDto.getOwnerId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + groupDto.getOwnerId()));
-        Group group = new Group();
-        group.setName(groupDto.getName());
-        group.setDescription(groupDto.getDescription());
+        Group group = mapper.toEntity(groupDto);
+
         group.setOwner(owner);
-        group.setImageUrl(null);
         Set<User> members = new HashSet<>();
         members.add(owner);
+        if (groupDto.getMembersIds() != null) {
+            for (Long memberId : groupDto.getMembersIds()) {
+                if (!memberId.equals(owner.getId())) {
+                    User member = userRepository.findById(memberId)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found: " + memberId));
+                    members.add(member);
+                }
+            }
+        }
         group.setMembers(members);
-        // Cambiar el tipo del grupo a el TypeGroup que corresponda
-        group.setType(groupDto.getType());
         group.setState(Enums.GroupState.PENDIENTE);
         group.setLastModified(LocalDateTime.now());
         // companionRequestId puede ser nulo al crear el grupo

@@ -86,6 +86,14 @@ public class CompanionRequestController {
         return ResponseEntity.ok(updatedDto);
     }
 
+    @Operation(summary = "Link a Group to a Companion Request", description = "Method that links a Group to a Companion Request")
+    @PostMapping("/{id}/link-group/{groupId}")
+    public ResponseEntity<CompanionRequestDto> linkGroupToCompanionRequest(@PathVariable Long id, @PathVariable Long groupId) {
+        CompanionRequestDto updatedDto = companionRequestService.linkGroupToCompanionRequest(id, groupId);
+        log.info("Linked group {} to companion request {}", groupId, id);
+        return ResponseEntity.ok(updatedDto);
+    }
+
     /**
      * Endpoint for the searchers
      */
