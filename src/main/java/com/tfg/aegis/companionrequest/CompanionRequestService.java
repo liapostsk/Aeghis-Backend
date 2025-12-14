@@ -389,6 +389,9 @@ public class CompanionRequestService {
         dto.setDestination(entity.getDestination() != null ? locationMapper.toDto(entity.getDestination()) : null);
         dto.setCreator(entity.getCreator() != null ? userMapper.toDto(entity.getCreator()) : null);
         dto.setCompanion(entity.getCompanion() != null ? userMapper.toDto(entity.getCompanion()) : null);
+        dto.setCompanionGroupId(entity.getCompanionGroup() != null ? entity.getCompanionGroup().getId() : null);
+        dto.setTrackingGroupId(entity.getTrackingGroup() != null ? entity.getTrackingGroup().getId() : null);
+        dto.setTrayectoId(entity.getTrayecto() != null ? entity.getTrayecto().getId() : null);
         log.info("Mapped source {}, destination {}, and creator {}, and companion {} for companion request with id: {}",
                 dto.getSource(), dto.getDestination(), dto.getCreator(), dto.getCompanion() ,dto.getId());
         return dto;
