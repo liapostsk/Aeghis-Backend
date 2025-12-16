@@ -94,6 +94,25 @@ public class CompanionRequestController {
         return ResponseEntity.ok(updatedDto);
     }
 
+    @Operation(summary = "Link tracking group of creator or companion to Companion Request", description = "Method that links a tracking group to a Companion Request")
+    @PostMapping("/{id}/link-tracking-group/{groupId}")
+    public ResponseEntity<CompanionRequestDto> linkTrackingGroupToCompanionRequest(
+            @PathVariable Long id,
+            @PathVariable Long groupId,
+            @RequestParam boolean isCreatorTrackingGroup) {
+        CompanionRequestDto updatedDto = companionRequestService.linkTrackingGroupToCompanionRequest(id, groupId, isCreatorTrackingGroup);
+        log.info("Linked tracking group {} to companion request {}. Is creator tracking group: {}", groupId, id, isCreatorTrackingGroup);
+        return ResponseEntity.ok(updatedDto);
+    }
+
+    @Operation(summary = "Get the companion request by companion group ID", description = "Method that gets the companion request by companion group ID")
+    @GetMapping("/by-companion-group/{groupId}")
+    public ResponseEntity<CompanionRequestDto> getCompanionRequestByCompanionGroupId(@PathVariable Long groupId) {
+        CompanionRequestDto dto = companionRequestService.getCompanionRequestByCompanionGroupId(groupId);
+        log.info("Retrieved companion request by companion group ID {}", groupId);
+        return ResponseEntity.ok(dto);
+    }
+
     /**
      * Endpoint for the searchers
      */

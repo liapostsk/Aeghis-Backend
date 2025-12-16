@@ -54,8 +54,12 @@ public class CompanionRequest {
     private Group companionGroup;
 
     @ManyToOne
-    @JoinColumn(name = "tracking_group_id")
-    private Group trackingGroup;
+    @JoinColumn(name = "creator_tracking_group_id")
+    private Group creatorTrackingGroup;
+
+    @ManyToOne
+    @JoinColumn(name = "companion_tracking_group_id")
+    private Group companionTrackingGroup;
 
     @OneToOne
     @JoinColumn(name = "trayecto_id")

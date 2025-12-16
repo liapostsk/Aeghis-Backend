@@ -8,6 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface CompanionRequestRepository extends CrudRepository<CompanionRequest, Long> {
 
@@ -18,4 +19,6 @@ public interface CompanionRequestRepository extends CrudRepository<CompanionRequ
     List<CompanionRequest> findByAproxHourBetween(LocalDateTime from, LocalDateTime to);
 
     boolean existsByCreatorIdAndState(Long userId, Enums.RequestStatus requestStatus);
+
+    Optional<CompanionRequest> findByCompanionGroupId(Long groupId);
 }

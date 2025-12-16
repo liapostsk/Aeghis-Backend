@@ -319,10 +319,6 @@ public class GroupService {
             return; // importante: no continuar tras cerrar/borrar
         }
 
-        // Aún hay miembros: asegurar que queda al menos 1 admin.
-        // Casos cubiertos:
-        //  - admin se elimina a sí mismo siendo el último admin
-        //  - admin echa a otro admin y deja el grupo sin admins
         if (group.getAdmins().isEmpty()) {
             // Elegimos el primer miembro restante como nuevo admin
             User newAdmin = group.getMembers().iterator().next();

@@ -136,6 +136,35 @@ public class CompanionRequestService {
     }
 
     /**
+     * Link a tracking group to a companion request
+     * @param id
+     * @param groupId
+     * @return
+     */
+    public CompanionRequestDto linkTrackingGroupToCompanionRequest(Long id, Long groupId, Boolean isCreatorGroup) {
+        CompanionRequest request = companionRequestRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
+
+        Long currentId = getCurrentUser().getId();
+        if (!request.getCreator().getId().equals(currentId)) {
+            throw new IllegalStateException("Solo el creador puede vincular un grupo de seguimiento a la solicitud");
+        }
+
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Grupo no encontrado: " + groupId));
+
+        if (isCreatorGroup) {
+            request.setCreatorTrackingGroup(group);
+            log.info("Linking creator tracking group with id: {} to companion request with id: {}", groupId, id);
+        } else {
+            request.setCompanionTrackingGroup(group);
+            log.info("Linking companion tracking group with id: {} to companion request with id: {}", groupId, id);
+        }
+
+        return toDtoWithRelations(request);
+    }
+
+    /**
      * Accept a companion request
      * @param requestId
      * @return
@@ -390,7 +419,8 @@ public class CompanionRequestService {
         dto.setCreator(entity.getCreator() != null ? userMapper.toDto(entity.getCreator()) : null);
         dto.setCompanion(entity.getCompanion() != null ? userMapper.toDto(entity.getCompanion()) : null);
         dto.setCompanionGroupId(entity.getCompanionGroup() != null ? entity.getCompanionGroup().getId() : null);
-        dto.setTrackingGroupId(entity.getTrackingGroup() != null ? entity.getTrackingGroup().getId() : null);
+        dto.setCreatorTrackingGroup(entity.getCreatorTrackingGroup() != null ? entity.getCreatorTrackingGroup().getId() : null);
+        dto.setCompanionTrackingGroup(entity.getCompanionTrackingGroup() != null ? entity.getCompanionTrackingGroup().getId() : null);
         dto.setTrayectoId(entity.getTrayecto() != null ? entity.getTrayecto().getId() : null);
         log.info("Mapped source {}, destination {}, and creator {}, and companion {} for companion request with id: {}",
                 dto.getSource(), dto.getDestination(), dto.getCreator(), dto.getCompanion() ,dto.getId());
@@ -417,5 +447,14 @@ public class CompanionRequestService {
                 userId,
                 Enums.RequestStatus.CREATED
         );
+    }
+
+    public CompanionRequestDto getCompanionRequestByCompanionGroupId(Long groupId) {
+        CompanionRequest request = companionRequestRepository.findByCompanionGroupId(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada para el grupo de acompañantes: " + groupId));
+
+        updateExpiredStateIfNeeded(request);
+
+        return toDtoWithRelations(request);
     }
 }

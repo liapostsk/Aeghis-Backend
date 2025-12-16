@@ -18,6 +18,7 @@ public class CompanionRequestDto {
     private UserDto companion;
     private String companionMessage;
     private Long companionGroupId;
-    private Long trackingGroupId;
+    private Long creatorTrackingGroup;
+    private Long companionTrackingGroup;
     private Long trayectoId;
 }
