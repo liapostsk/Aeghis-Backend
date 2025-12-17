@@ -1,6 +1,6 @@
 package com.tfg.aegis.common.utils;
 
-import com.tfg.aegis.person.user.UserService;
+import com.tfg.aegis.service.UserService;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
