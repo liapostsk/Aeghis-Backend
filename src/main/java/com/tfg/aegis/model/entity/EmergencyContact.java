@@ -1,6 +1,6 @@
 package com.tfg.aegis.model.entity;
 
-import com.tfg.aegis.model.enums.emergencyContactEnum;
+import com.tfg.aegis.model.enums.EmergencyContactEnum;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -43,7 +43,7 @@ public class EmergencyContact {
   /** Estado del consentimiento / flujo */
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private emergencyContactEnum.Status status;
+  private EmergencyContactEnum.Status status;
 
   @PrePersist
   @PreUpdate

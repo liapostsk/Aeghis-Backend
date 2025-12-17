@@ -4,7 +4,7 @@ import com.tfg.aegis.common.exception.ApiException;
 import com.tfg.aegis.model.mapper.EmergencyContactMapper;
 import com.tfg.aegis.model.entity.EmergencyContact;
 import com.tfg.aegis.model.dto.EmergencyContactDto;
-import com.tfg.aegis.model.enums.emergencyContactEnum;
+import com.tfg.aegis.model.enums.EmergencyContactEnum;
 import com.tfg.aegis.repository.ExternalContactRepository;
 import com.tfg.aegis.model.entity.ExternalContact;
 import com.tfg.aegis.repository.UserRepository;
@@ -120,7 +120,7 @@ public class EmergencyContactService {
         emergencyContact.setOwner(owner);
         emergencyContact.setContact(contact);
         emergencyContact.setRelation(externalContact.getRelation());
-        emergencyContact.setStatus(emergencyContactEnum.Status.PENDING);
+        emergencyContact.setStatus(EmergencyContactEnum.Status.PENDING);
 
         EmergencyContact saved = emergencyContactRepository.save(emergencyContact);
 
@@ -133,8 +133,8 @@ public class EmergencyContactService {
     public void acceptEmergencyContact(Long emergencyContactId) {
         EmergencyContact contact = emergencyContactRepository.findById(emergencyContactId)
                 .orElseThrow(() -> new NotFoundException("EmergencyContact", emergencyContactId));
-        if (contact.getStatus() == emergencyContactEnum.Status.PENDING) {
-            contact.setStatus(emergencyContactEnum.Status.ACCEPTED);
+        if (contact.getStatus() == EmergencyContactEnum.Status.PENDING) {
+            contact.setStatus(EmergencyContactEnum.Status.ACCEPTED);
             emergencyContactRepository.save(contact);
         }
     }

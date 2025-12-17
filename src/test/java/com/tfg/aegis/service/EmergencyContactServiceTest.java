@@ -5,7 +5,7 @@ import com.tfg.aegis.common.exception.NotFoundException;
 import com.tfg.aegis.model.mapper.EmergencyContactMapper;
 import com.tfg.aegis.model.entity.EmergencyContact;
 import com.tfg.aegis.model.dto.EmergencyContactDto;
-import com.tfg.aegis.model.enums.emergencyContactEnum;
+import com.tfg.aegis.model.enums.EmergencyContactEnum;
 import com.tfg.aegis.repository.ExternalContactRepository;
 import com.tfg.aegis.model.entity.ExternalContact;
 import com.tfg.aegis.repository.UserRepository;
@@ -222,7 +222,7 @@ class EmergencyContactServiceTest {
         assertEquals(owner, saved.getOwner());
         assertEquals(contactUser, saved.getContact());
         assertEquals("family", saved.getRelation());
-        assertEquals(emergencyContactEnum.Status.PENDING, saved.getStatus());
+        assertEquals(EmergencyContactEnum.Status.PENDING, saved.getStatus());
         verify(externalContactRepository).delete(ext);
     }
 
@@ -255,13 +255,13 @@ class EmergencyContactServiceTest {
     void acceptEmergencyContact_whenPending_setsAcceptedAndSaves() {
         EmergencyContact ec = new EmergencyContact();
         ec.setId(77L);
-        ec.setStatus(emergencyContactEnum.Status.PENDING);
+        ec.setStatus(EmergencyContactEnum.Status.PENDING);
 
         when(emergencyContactRepository.findById(77L)).thenReturn(Optional.of(ec));
 
         service.acceptEmergencyContact(77L);
 
-        assertEquals(emergencyContactEnum.Status.ACCEPTED, ec.getStatus());
+        assertEquals(EmergencyContactEnum.Status.ACCEPTED, ec.getStatus());
         verify(emergencyContactRepository).save(ec);
     }
 

@@ -1,6 +1,6 @@
 package com.tfg.aegis.model.enums;
 
-public class emergencyContactEnum {
+public class EmergencyContactEnum {
     public enum Status {
         PENDING,
         ACCEPTED,
