@@ -1,5 +1,6 @@
 package com.tfg.aegis.service;
 
+import com.tfg.aegis.common.constants.Constants;
 import com.tfg.aegis.model.dto.EmergencyTriggerRequestDto;
 import com.tfg.aegis.model.entity.EmergencyContact;
 import com.tfg.aegis.model.entity.NotificationToken;
@@ -38,16 +39,16 @@ public class EmergencyAlertService {
                 req.getLongitude()
         );
 
-        String title = "EMERGENCIA";
+        String title = Constants.EMERGENCIA;
         String body = (req.getMessage() != null && !req.getMessage().isBlank())
                 ? req.getMessage()
-                : (ownerName + " ha activado una alerta de emergencia.");
+                : (ownerName + Constants.MESSAGE);
         if (address != null && !address.isBlank()) {
-            body += " 📍 " + address;
+            body += Constants.LOCATION_EMOJI + address;
         }
 
         Map<String, Object> data = new HashMap<>();
-        data.put("type", "emergency");
+        data.put("type", Constants.NOTIFICATION_TYPE_EMERGENCY);
         data.put("ownerId", ownerId);
         data.put("ownerName", ownerName);
         data.put("lat", req.getLatitude());
@@ -65,7 +66,7 @@ public class EmergencyAlertService {
                     .collect(Collectors.toList());
 
             if (!tokens.isEmpty()) {
-                expoPushService.send(tokens, title, body, data, "emergency");
+                expoPushService.send(tokens, title, body, data, Constants.NOTIFICATION_TYPE_EMERGENCY);
             }
         }
     }
