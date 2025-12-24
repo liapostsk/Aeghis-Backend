@@ -7,6 +7,7 @@ public class UserEnums {
     }
 
     public enum VerificationStatus {
+        NO_REQUEST,
         PENDING,
         VERIFIED,
         REJECTED
