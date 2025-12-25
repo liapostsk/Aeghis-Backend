@@ -1,17 +1,12 @@
 package com.tfg.aegis.service;
 
+import com.tfg.aegis.model.entity.*;
+import com.tfg.aegis.model.enums.GroupEnums;
 import com.tfg.aegis.model.enums.JourneyEnums;
-import com.tfg.aegis.repository.JourneyRepository;
-import com.tfg.aegis.model.entity.Journey;
-import com.tfg.aegis.repository.LocationRepository;
-import com.tfg.aegis.model.entity.Location;
+import com.tfg.aegis.repository.*;
 import com.tfg.aegis.model.mapper.ParticipationMapper;
 import com.tfg.aegis.model.enums.ParticipationEnums;
-import com.tfg.aegis.model.entity.Participation;
 import com.tfg.aegis.model.dto.ParticipationDto;
-import com.tfg.aegis.repository.UserRepository;
-import com.tfg.aegis.model.entity.User;
-import com.tfg.aegis.repository.ParticipationRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +23,7 @@ public class ParticipationService {
     private final LocationRepository locationRepository;
     private final JourneyRepository journeyRepository;
     private final UserRepository userRepository;
+    private final GroupRepository groupRepository;
 
     /**
      * Get a participation by its ID.
@@ -69,6 +65,10 @@ public class ParticipationService {
         }
         Participation savedParticipation = participationRepository.save(participation);
 
+        if (savedParticipation.getState() == ParticipationEnums.ParticipationState.ARRIVED) {
+            markArrived(journey.getId(), user.getId());
+        }
+
         return savedParticipation.getId();
     }
 
@@ -98,29 +98,24 @@ public class ParticipationService {
     }
 
     public void markArrived(Long journeyId, Long userId) {
-
-        // 1) Encontrar la participación (journey + user)
         Participation p = participationRepository
                 .findByJourney_IdAndParticipant_Id(journeyId, userId)
                 .orElseThrow(() -> new RuntimeException(
                         "Participation not found for journey " + journeyId + " and user " + userId
                 ));
 
-        // 2) Si ya estaba arrived, no hacemos nada (idempotente)
-        if (p.getState() == ParticipationEnums.ParticipationState.ARRIVED) {
-            return;
+        LocalDateTime now = LocalDateTime.now();
+
+        boolean wasArrived = (p.getState() == ParticipationEnums.ParticipationState.ARRIVED);
+        if (!wasArrived) {
+            p.setState(ParticipationEnums.ParticipationState.ARRIVED);
+            if (p.getArrivalTime() == null) p.setArrivalTime(now);
+            participationRepository.save(p);
         }
 
-        // 3) Marcar ARRIVED y arrivalTime
-        p.setState(ParticipationEnums.ParticipationState.ARRIVED);
-        p.setArrivalTime(LocalDateTime.now());
-        participationRepository.save(p);
-
-        // 4) Revisar si el trayecto puede completarse
         Journey journey = journeyRepository.findById(journeyId)
                 .orElseThrow(() -> new RuntimeException("Journey not found: " + journeyId));
 
-        // OJO: decide tu regla. Aquí: COMPLETED si todos están ARRIVED o CANCELLED
         boolean allDone = journey.getParticipations().stream().allMatch(part ->
                 part.getState() == ParticipationEnums.ParticipationState.ARRIVED
                         || part.getState() == ParticipationEnums.ParticipationState.CANCELLED
@@ -130,6 +125,14 @@ public class ParticipationService {
             journey.setState(JourneyEnums.JourneyState.COMPLETED);
             journey.setEndDate(LocalDateTime.now());
             journeyRepository.save(journey);
+
+            Group group = journey.getGroup();
+            if (group.getType() == GroupEnums.TypeGroup.TEMPORAL) {
+                group.setState(GroupEnums.GroupState.CERRADO);
+                group.setLastModified(LocalDateTime.now());
+                group.setExpirationDate(LocalDateTime.now().plusHours(24));
+                groupRepository.save(group);
+            }
         }
     }
 

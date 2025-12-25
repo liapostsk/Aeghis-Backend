@@ -8,7 +8,6 @@ import com.tfg.aegis.model.enums.JourneyEnums;
 import com.tfg.aegis.model.entity.Journey;
 import com.tfg.aegis.model.dto.JourneyDto;
 import com.tfg.aegis.repository.ParticipationRepository;
-import com.tfg.aegis.model.mapper.ParticipationMapper;
 import com.tfg.aegis.model.entity.Participation;
 import com.tfg.aegis.model.dto.UserDto;
 import com.tfg.aegis.repository.JourneyRepository;
@@ -27,7 +26,6 @@ import java.util.stream.Collectors;
 public class JourneyService {
     private final JourneyRepository journeyRepository;
     private final JourneyMapper journeyMapper;
-    private final ParticipationMapper participationMapper;
     private final ParticipationRepository participationRepository;
     private final GroupRepository groupRepository;
     private final UserService userService;
@@ -70,14 +68,10 @@ public class JourneyService {
      * @return A list of all active journey entities.
      */
     public Set<JourneyDto> getActiveJourneys() {
-        Set<Journey> journeys = (Set<Journey>)journeyRepository.findAll();
-        Set<JourneyDto> journeyDtos = new HashSet<>();
-        for (Journey journey : journeys) {
-            if (journey.getState().equals(JourneyEnums.JourneyState.IN_PROGRESS)) {
-                journeyDtos.add(journeyMapper.toDto(journey));
-            }
-        }
-        return journeyDtos;
+        return journeyRepository.findByState(JourneyEnums.JourneyState.IN_PROGRESS)
+                .stream()
+                .map(journeyMapper::toDto)
+                .collect(Collectors.toSet());
     }
 
     /**

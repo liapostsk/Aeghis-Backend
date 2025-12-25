@@ -132,7 +132,10 @@ public class GroupService {
             throw new IllegalArgumentException("User ID cannot be null");
         }
 
-        List<GroupDto> listGroups = groupRepository.findByTypeAndMembers_Id(type, userDto.getId())
+        LocalDateTime now = LocalDateTime.now();
+
+        List<GroupDto> listGroups = groupRepository
+                .findByTypeAndMemberNotExpired(type, userDto.getId(), now)
                 .stream()
                 .map(mapper::toDto)
                 .toList();
