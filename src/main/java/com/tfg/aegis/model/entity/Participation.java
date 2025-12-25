@@ -18,6 +18,14 @@ public class Participation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private Boolean sharedLocation;
+
+    private LocalDateTime arrivalTime;
+
+    @Enumerated(EnumType.STRING) @Column(nullable = false)
+    private ParticipationEnums.ParticipationState state;
+
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "journey_id", nullable = false)
     private Journey journey;
@@ -26,14 +34,6 @@ public class Participation {
     @JoinColumn(name = "user_id", nullable = false)
     private User participant;
 
-    @Column(nullable = false)
-    private Boolean sharedLocation;
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "participation_id")
-    @OrderBy("timestamp ASC")
-    private Set<Location> positions;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_id")
     private Location source;
@@ -41,14 +41,4 @@ public class Participation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "destination_id")
     private Location destination;
-
-    @Enumerated(EnumType.STRING) @Column(nullable = false)
-    private ParticipationEnums.ParticipationState state;
-
-    private LocalDateTime arrivalTime; // [0..1]
-
-    // 0..1 Valoración
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "valoracion_id", unique = true)
-    private Valoracion valoracion;
 }

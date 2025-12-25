@@ -37,7 +37,6 @@ public class CompanionRequest {
     @Column(name = "companion_message", length = 500)
     private String companionMessage;
 
-    // --- Relaciones ---
     @ManyToOne(optional = false)
     @JoinColumn(name = "creador_id")
     private User creator;
@@ -57,8 +56,4 @@ public class CompanionRequest {
     @ManyToOne
     @JoinColumn(name = "companion_tracking_group_id")
     private Group companionTrackingGroup;
-
-    @OneToOne
-    @JoinColumn(name = "trayecto_id")
-    private Journey trayecto;
 }

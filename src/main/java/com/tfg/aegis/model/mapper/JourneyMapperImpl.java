@@ -45,9 +45,6 @@ public class JourneyMapperImpl implements JourneyMapper {
         journeyDto.setParticipantsIds(journey.getParticipations() != null
                 ? journey.getParticipations().stream().map(Participation::getId).collect(Collectors.toSet())
                 : new HashSet<>());
-        journeyDto.setCompanionRequestId(
-                journey.getCompanionRequest() != null ? journey.getCompanionRequest().getId() : null
-        );
         return journeyDto;
     }
 }

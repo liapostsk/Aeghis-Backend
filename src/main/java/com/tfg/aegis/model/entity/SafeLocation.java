@@ -27,5 +27,4 @@ public class SafeLocation extends Location {
     @JoinColumn(name = "owner", nullable = false)
     private User owner;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -17,5 +17,4 @@ public class ParticipationDto {
     private Set<Long> lastLocationsIds;
     private ParticipationEnums.ParticipationState state;
     private LocalDateTime arrivalTime;
-    private Long valoracionId;
 }

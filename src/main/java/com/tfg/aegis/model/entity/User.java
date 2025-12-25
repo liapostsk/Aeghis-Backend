@@ -33,6 +33,8 @@ public class User extends Person {
     @Enumerated(EnumType.STRING)
     private UserEnums.TypeRole role;
 
+    private UserEnums.VerificationStatus verify;
+
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EmergencyContact> emergencyContacts = new HashSet<>();
 
@@ -44,8 +46,6 @@ public class User extends Person {
 
     @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Participation> participations = new HashSet<>();
-
-    private UserEnums.VerificationStatus verify;
 
     @ManyToMany(mappedBy = "members", fetch = FetchType.LAZY)
     private Set<Group> groups = new HashSet<>();

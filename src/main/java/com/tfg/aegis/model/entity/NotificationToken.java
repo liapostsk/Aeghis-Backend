@@ -23,7 +23,7 @@ public class NotificationToken {
     private User user;
 
     @Column(nullable = false, length = 200)
-    private String token; // ExponentPushToken[....]
+    private String token;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
@@ -31,7 +31,4 @@ public class NotificationToken {
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column
-    private LocalDateTime lastSeenAt = LocalDateTime.now();
 }

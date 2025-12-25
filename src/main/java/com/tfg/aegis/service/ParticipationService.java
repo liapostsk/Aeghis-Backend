@@ -1,5 +1,6 @@
 package com.tfg.aegis.service;
 
+import com.tfg.aegis.model.enums.JourneyEnums;
 import com.tfg.aegis.repository.JourneyRepository;
 import com.tfg.aegis.model.entity.Journey;
 import com.tfg.aegis.repository.LocationRepository;
@@ -55,7 +56,10 @@ public class ParticipationService {
         participation.setSource(source);
         participation.setDestination(destination);
 
-        if (participation.getState() == null) {
+        if (source.getId() != null && source.getId().equals(destination.getId())) {
+            participation.setState(ParticipationEnums.ParticipationState.ARRIVED);
+            participation.setArrivalTime(LocalDateTime.now());
+        } else if (participation.getState() == null) {
             participation.setState(ParticipationEnums.ParticipationState.ACCEPTED);
         }
 
@@ -74,15 +78,59 @@ public class ParticipationService {
      */
     public void updateParticipation(ParticipationDto participationDto) {
         Long id = participationDto.getId();
-        participationRepository.findById(id).orElseThrow(() -> new RuntimeException("Participation not found"));
+        Participation existing = participationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Participation not found: " + id));
 
-        Participation updatedParticipation = participationMapper.toEntity(participationDto);
+        if (participationDto.getState() != null) {
+            existing.setState(participationDto.getState());
 
-        // Update fields as necessary
-        if (participationDto.getState().equals(ParticipationEnums.ParticipationState.ARRIVED)) {
-            updatedParticipation.setArrivalTime(LocalDateTime.now());
+            if (participationDto.getState() == ParticipationEnums.ParticipationState.ARRIVED
+                    && existing.getArrivalTime() == null) {
+                existing.setArrivalTime(LocalDateTime.now());
+            }
         }
-        participationRepository.save(updatedParticipation);
+
+        Participation saved = participationRepository.save(existing);
+
+        if (participationDto.getState() == ParticipationEnums.ParticipationState.ARRIVED) {
+            markArrived(saved.getJourney().getId(), saved.getParticipant().getId());
+        }
+    }
+
+    public void markArrived(Long journeyId, Long userId) {
+
+        // 1) Encontrar la participación (journey + user)
+        Participation p = participationRepository
+                .findByJourney_IdAndParticipant_Id(journeyId, userId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Participation not found for journey " + journeyId + " and user " + userId
+                ));
+
+        // 2) Si ya estaba arrived, no hacemos nada (idempotente)
+        if (p.getState() == ParticipationEnums.ParticipationState.ARRIVED) {
+            return;
+        }
+
+        // 3) Marcar ARRIVED y arrivalTime
+        p.setState(ParticipationEnums.ParticipationState.ARRIVED);
+        p.setArrivalTime(LocalDateTime.now());
+        participationRepository.save(p);
+
+        // 4) Revisar si el trayecto puede completarse
+        Journey journey = journeyRepository.findById(journeyId)
+                .orElseThrow(() -> new RuntimeException("Journey not found: " + journeyId));
+
+        // OJO: decide tu regla. Aquí: COMPLETED si todos están ARRIVED o CANCELLED
+        boolean allDone = journey.getParticipations().stream().allMatch(part ->
+                part.getState() == ParticipationEnums.ParticipationState.ARRIVED
+                        || part.getState() == ParticipationEnums.ParticipationState.CANCELLED
+        );
+
+        if (allDone && journey.getState() != JourneyEnums.JourneyState.COMPLETED) {
+            journey.setState(JourneyEnums.JourneyState.COMPLETED);
+            journey.setEndDate(LocalDateTime.now());
+            journeyRepository.save(journey);
+        }
     }
 
 }

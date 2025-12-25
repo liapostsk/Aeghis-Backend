@@ -35,7 +35,4 @@ public class Journey {
 
     @OneToMany(mappedBy = "journey", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Participation> participations = new HashSet<>();
-
-    @OneToOne(mappedBy = "trayecto")
-    private CompanionRequest companionRequest;
 }

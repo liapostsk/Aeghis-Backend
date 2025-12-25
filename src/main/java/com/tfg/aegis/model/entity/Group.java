@@ -32,18 +32,16 @@ public class Group {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private GroupState state; // Estado del grupo (e.g., "activo", "inactivo")
+    private GroupState state;
 
     private LocalDateTime createdAt = LocalDateTime.now();
-    private LocalDateTime expirationDate; // Fecha de expiración del grupo, si aplica
-    private LocalDateTime lastModified; // Fecha de la última modificación del grupo
+    private LocalDateTime expirationDate;
+    private LocalDateTime lastModified;
 
-    // Propietario (transferible)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
-    // Miembros del grupo
     @ManyToMany
     @JoinTable(
             name = "group_user",
@@ -52,7 +50,6 @@ public class Group {
     )
     private Set<User> members = new HashSet<>();
 
-    // Administradores (subset de users)
     @ManyToMany
     @JoinTable(
             name = "group_admin",
@@ -70,7 +67,6 @@ public class Group {
     @PrePersist
     private void prePersist() {
         if (createdAt == null) createdAt = LocalDateTime.now();
-        // Asegura coherencia inicial
         if (owner != null) {
             members.add(owner);
             admins.add(owner);

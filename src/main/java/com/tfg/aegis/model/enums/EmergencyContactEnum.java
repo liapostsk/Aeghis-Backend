@@ -4,7 +4,6 @@ public class EmergencyContactEnum {
     public enum Status {
         PENDING,
         ACCEPTED,
-        REJECTED,
-        BLOCKED
+        REJECTED
     }
 }

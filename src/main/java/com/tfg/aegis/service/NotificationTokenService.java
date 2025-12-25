@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @Transactional
@@ -37,7 +36,6 @@ public class NotificationTokenService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
         tokenRepository.findByUser_IdAndToken(userId, token).ifPresentOrElse(existing -> {
-            existing.setLastSeenAt(LocalDateTime.now());
             if (platform != null) {
                 existing.setPlatform(platform);
             }
@@ -47,7 +45,6 @@ public class NotificationTokenService {
             nt.setToken(token);
             nt.setPlatform(platform != null ? platform : NotificationEnums.Platform.ANDROID); // fallback sensato
             nt.setCreatedAt(LocalDateTime.now());
-            nt.setLastSeenAt(LocalDateTime.now());
             tokenRepository.save(nt);
         });
     }
