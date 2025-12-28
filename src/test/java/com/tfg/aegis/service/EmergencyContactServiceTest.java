@@ -125,7 +125,6 @@ class EmergencyContactServiceTest {
         UserDto me = new UserDto(); me.setId(10L);
         when(userService.getUserByClerkId(CLERK_ID)).thenReturn(me);
 
-        // contacto existente y owned
         User owner = new User(); owner.setId(10L);
         EmergencyContact contact = new EmergencyContact();
         contact.setId(5L);
@@ -269,5 +268,91 @@ class EmergencyContactServiceTest {
     void acceptEmergencyContact_notFound_throwsNotFound() {
         when(emergencyContactRepository.findById(404L)).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> service.acceptEmergencyContact(404L));
+    }
+
+    @Test
+    void acceptEmergencyContact_whenAlreadyAccepted_doesNotSaveAgain() {
+        EmergencyContact ec = new EmergencyContact();
+        ec.setId(88L);
+        ec.setStatus(EmergencyContactEnum.Status.ACCEPTED);
+
+        when(emergencyContactRepository.findById(88L)).thenReturn(Optional.of(ec));
+
+        service.acceptEmergencyContact(88L);
+
+        assertEquals(EmergencyContactEnum.Status.ACCEPTED, ec.getStatus());
+        verify(emergencyContactRepository, never()).save(any());
+    }
+
+    @Test
+    void acceptEmergencyContact_whenRejected_doesNotChange() {
+        EmergencyContact ec = new EmergencyContact();
+        ec.setId(99L);
+        ec.setStatus(EmergencyContactEnum.Status.REJECTED);
+
+        when(emergencyContactRepository.findById(99L)).thenReturn(Optional.of(ec));
+
+        service.acceptEmergencyContact(99L);
+
+        assertEquals(EmergencyContactEnum.Status.REJECTED, ec.getStatus());
+        verify(emergencyContactRepository, never()).save(any());
+    }
+
+    @Test
+    void getOwnedContactOrThrow_ownerIdNull_throwsNullPointer() {
+        UserDto me = new UserDto(); me.setId(20L);
+        when(userService.getUserByClerkId(CLERK_ID)).thenReturn(me);
+
+        User ownerWithNullId = new User();
+        ownerWithNullId.setId(null);
+
+        EmergencyContact contact = new EmergencyContact();
+        contact.setId(100L);
+        contact.setOwner(ownerWithNullId);
+
+        when(emergencyContactRepository.findById(100L)).thenReturn(Optional.of(contact));
+
+        EmergencyContactDto dto = new EmergencyContactDto();
+        dto.setRelation("test");
+
+        assertThrows(NullPointerException.class, () -> service.editEmergencyContact(100L, dto));
+    }
+
+    @Test
+    void addEmergencyContact_verifyStatusSetToPending() {
+        User owner = new User();
+        owner.setId(1L);
+        owner.setClerkId(CLERK_ID);
+        owner.setPhone("+34111111111");
+        when(userRepository.findByClerkId(CLERK_ID)).thenReturn(Optional.of(owner));
+
+        User contact = new User();
+        contact.setId(22L);
+        contact.setPhone("+34999999999");
+
+        EmergencyContactDto input = new EmergencyContactDto();
+        input.setContactId(22L);
+        input.setRelation("friend");
+
+        when(userRepository.findById(22L)).thenReturn(Optional.of(contact));
+
+        EmergencyContact entity = new EmergencyContact();
+        entity.setStatus(null);
+
+        ArgumentCaptor<EmergencyContact> captor = ArgumentCaptor.forClass(EmergencyContact.class);
+
+        when(emergencyContactMapper.toEntity(input)).thenReturn(entity);
+        when(emergencyContactRepository.save(captor.capture())).thenAnswer(ans -> {
+            EmergencyContact ec = captor.getValue();
+            ec.setId(100L);
+            return ec;
+        });
+        when(emergencyContactMapper.toDto(any())).thenReturn(new EmergencyContactDto());
+
+        service.addEmergencyContactForCurrentUser(input);
+
+        EmergencyContact saved = captor.getValue();
+        assertEquals(owner, saved.getOwner());
+        assertEquals(contact, saved.getContact());
     }
 }

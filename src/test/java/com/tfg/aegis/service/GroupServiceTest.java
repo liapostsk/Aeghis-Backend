@@ -1,5 +1,8 @@
 package com.tfg.aegis.service;
 
+import com.tfg.aegis.common.exception.ConflictException;
+import com.tfg.aegis.common.exception.NotFoundException;
+import com.tfg.aegis.common.exception.UnauthorizedException;
 import com.tfg.aegis.model.mapper.GroupMapper;
 import com.tfg.aegis.model.enums.GroupEnums;
 import com.tfg.aegis.model.entity.Group;
@@ -21,6 +24,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(MockitoExtension.class)
 class GroupServiceTest {
@@ -54,7 +58,14 @@ class GroupServiceTest {
         User owner = new User();
         owner.setId(10L);
 
+        Group entityToMap = new Group();
+        entityToMap.setName("G");
+        entityToMap.setDescription("D");
+        entityToMap.setType(GroupEnums.TypeGroup.CONFIANZA);
+
         when(userRepository.findById(10L)).thenReturn(Optional.of(owner));
+        when(mapper.toEntity(dto)).thenReturn(entityToMap);
+
         Group saved = new Group();
         saved.setId(123L);
         when(groupRepository.save(any(Group.class))).thenReturn(saved);
@@ -82,6 +93,67 @@ class GroupServiceTest {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> service.createGroup(dto));
         assertTrue(ex.getMessage().contains("User not found"));
         verify(groupRepository, never()).save(any());
+    }
+
+    @Test
+    void createGroup_withAdditionalMembers_ok() {
+        GroupDto dto = new GroupDto();
+        dto.setOwnerId(10L);
+        dto.setName("G");
+        dto.setDescription("D");
+        dto.setType(GroupEnums.TypeGroup.CONFIANZA);
+        dto.setMembersIds(Set.of(10L, 20L, 30L)); // incluye owner y 2 miembros adicionales
+
+        User owner = new User();
+        owner.setId(10L);
+        User member1 = new User();
+        member1.setId(20L);
+        User member2 = new User();
+        member2.setId(30L);
+
+        Group entityToMap = new Group();
+        entityToMap.setName("G");
+        entityToMap.setDescription("D");
+        entityToMap.setType(GroupEnums.TypeGroup.CONFIANZA);
+
+        when(userRepository.findById(10L)).thenReturn(Optional.of(owner));
+        when(userRepository.findById(20L)).thenReturn(Optional.of(member1));
+        when(userRepository.findById(30L)).thenReturn(Optional.of(member2));
+        when(mapper.toEntity(dto)).thenReturn(entityToMap);
+
+        Group saved = new Group();
+        saved.setId(123L);
+        when(groupRepository.save(any(Group.class))).thenReturn(saved);
+
+        Long id = service.createGroup(dto);
+
+        assertEquals(123L, id);
+        ArgumentCaptor<Group> cap = ArgumentCaptor.forClass(Group.class);
+        verify(groupRepository).save(cap.capture());
+        Group g = cap.getValue();
+        assertEquals(3, g.getMembers().size());
+        assertTrue(g.getMembers().contains(owner));
+        assertTrue(g.getMembers().contains(member1));
+        assertTrue(g.getMembers().contains(member2));
+    }
+
+    @Test
+    void createGroup_memberNotFound_throws() {
+        GroupDto dto = new GroupDto();
+        dto.setOwnerId(10L);
+        dto.setMembersIds(Set.of(10L, 999L)); // 999 no existe
+
+        User owner = new User();
+        owner.setId(10L);
+
+        Group entityToMap = new Group();
+        when(mapper.toEntity(dto)).thenReturn(entityToMap);
+
+        when(userRepository.findById(10L)).thenReturn(Optional.of(owner));
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> service.createGroup(dto));
+        assertTrue(ex.getMessage().contains("User not found"));
     }
 
     /* =========================
@@ -197,7 +269,7 @@ class GroupServiceTest {
 
         Group g1 = new Group(); g1.setId(1L);
         Group g2 = new Group(); g2.setId(2L);
-        when(groupRepository.findByTypeAndMembers_Id(type, 77L)).thenReturn(List.of(g1, g2));
+        when(groupRepository.findByTypeAndMemberNotExpired(eq(type), eq(77L), any())).thenReturn(List.of(g1, g2));
 
         GroupDto d1 = new GroupDto(); d1.setId(1L);
         GroupDto d2 = new GroupDto(); d2.setId(2L);
@@ -403,5 +475,499 @@ class GroupServiceTest {
     void deleteGroup_notFound_throws() {
         when(groupRepository.findById(1L)).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class, () -> service.deleteGroup(1L));
+    }
+
+    /* =========================
+     * getAllMyGroups
+     * ========================= */
+    @Test
+    void getAllMyGroups_ok_returnsAllGroupsForCurrentUser() {
+        Authentication auth = mock(Authentication.class);
+        when(auth.getPrincipal()).thenReturn("clerk_abc");
+        SecurityContextHolder.setContext(new SecurityContextImpl(auth));
+
+        UserDto me = new UserDto();
+        me.setId(50L);
+        when(userService.getUserByClerkId("clerk_abc")).thenReturn(me);
+
+        Group g1 = new Group(); g1.setId(1L);
+        Group g2 = new Group(); g2.setId(2L);
+        when(groupRepository.findByMembers_Id(50L)).thenReturn(List.of(g1, g2));
+
+        GroupDto d1 = new GroupDto(); d1.setId(1L);
+        GroupDto d2 = new GroupDto(); d2.setId(2L);
+        when(mapper.toDto(g1)).thenReturn(d1);
+        when(mapper.toDto(g2)).thenReturn(d2);
+
+        List<GroupDto> result = service.getAllMyGroups();
+
+        assertEquals(2, result.size());
+        assertEquals(1L, result.get(0).getId());
+        assertEquals(2L, result.get(1).getId());
+    }
+
+    @Test
+    void getAllMyGroups_userWithoutId_throws() {
+        Authentication auth = mock(Authentication.class);
+        when(auth.getPrincipal()).thenReturn("clerk_x");
+        SecurityContextHolder.setContext(new SecurityContextImpl(auth));
+
+        UserDto me = new UserDto(); // id null
+        when(userService.getUserByClerkId("clerk_x")).thenReturn(me);
+
+        assertThrows(IllegalArgumentException.class, () -> service.getAllMyGroups());
+    }
+
+    /* =========================
+     * addMember
+     * ========================= */
+    @Test
+    void addMember_ok_addsUserToGroup() {
+        Long groupId = 1L, userId = 2L;
+        Group group = new Group();
+        group.setId(groupId);
+        group.setMembers(new HashSet<>());
+        group.setState(GroupEnums.GroupState.ACTIVO);
+
+        User user = new User();
+        user.setId(userId);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        Group saved = new Group();
+        saved.setId(groupId);
+        when(groupRepository.save(group)).thenReturn(saved);
+
+        GroupDto dto = new GroupDto();
+        dto.setId(groupId);
+        when(mapper.toDto(saved)).thenReturn(dto);
+
+        GroupDto result = service.addMember(groupId, userId);
+
+        assertTrue(group.getMembers().contains(user));
+        assertEquals(groupId, result.getId());
+        verify(groupRepository).save(group);
+    }
+
+    @Test
+    void addMember_alreadyMember_returnsGroupUnchanged() {
+        Long groupId = 1L, userId = 2L;
+        User user = new User();
+        user.setId(userId);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setMembers(new HashSet<>(Set.of(user)));
+        group.setState(GroupEnums.GroupState.ACTIVO);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        GroupDto dto = new GroupDto();
+        dto.setId(groupId);
+        when(mapper.toDto(group)).thenReturn(dto);
+
+        GroupDto result = service.addMember(groupId, userId);
+
+        assertEquals(groupId, result.getId());
+        verify(groupRepository, never()).save(any());
+    }
+
+    @Test
+    void addMember_groupClosed_throws() {
+        Long groupId = 1L, userId = 2L;
+        Group group = new Group();
+        group.setId(groupId);
+        group.setMembers(new HashSet<>());
+        group.setState(GroupEnums.GroupState.CERRADO);
+
+        User user = new User();
+        user.setId(userId);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertThrows(ConflictException.class, () -> service.addMember(groupId, userId));
+        verify(groupRepository, never()).save(any());
+    }
+
+    @Test
+    void addMember_groupNotFound_throws() {
+        when(groupRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> service.addMember(1L, 2L));
+    }
+
+    @Test
+    void addMember_userNotFound_throws() {
+        Group g = new Group();
+        g.setId(1L);
+        when(groupRepository.findById(1L)).thenReturn(Optional.of(g));
+        when(userRepository.findById(2L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> service.addMember(1L, 2L));
+    }
+
+    /* =========================
+     * removeMember
+     * ========================= */
+    @Test
+    void removeMember_ok_selfRemoval_removesUser() {
+        Long groupId = 1L, userId = 2L;
+        User user = new User(); user.setId(userId);
+        User other = new User(); other.setId(3L);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setMembers(new HashSet<>(Set.of(user, other)));
+        group.setAdmins(new HashSet<>(Set.of(other)));
+        group.setState(GroupEnums.GroupState.ACTIVO);
+
+        Authentication auth = mock(Authentication.class);
+        when(auth.getPrincipal()).thenReturn("clerk_self");
+        SecurityContextHolder.setContext(new SecurityContextImpl(auth));
+
+        UserDto me = new UserDto();
+        me.setId(userId);
+        when(userService.getUserByClerkId("clerk_self")).thenReturn(me);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        service.removeMember(groupId, userId);
+
+        assertFalse(group.getMembers().contains(user));
+        verify(groupRepository).save(group);
+    }
+
+    @Test
+    void removeMember_ok_adminRemovesOther() {
+        Long groupId = 1L, adminId = 10L, victimId = 20L;
+        User admin = new User(); admin.setId(adminId);
+        User victim = new User(); victim.setId(victimId);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setMembers(new HashSet<>(Set.of(admin, victim)));
+        group.setAdmins(new HashSet<>(Set.of(admin)));
+        group.setState(GroupEnums.GroupState.ACTIVO);
+
+        Authentication auth = mock(Authentication.class);
+        when(auth.getPrincipal()).thenReturn("clerk_admin");
+        SecurityContextHolder.setContext(new SecurityContextImpl(auth));
+
+        UserDto me = new UserDto();
+        me.setId(adminId);
+        when(userService.getUserByClerkId("clerk_admin")).thenReturn(me);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(victimId)).thenReturn(Optional.of(victim));
+
+        service.removeMember(groupId, victimId);
+
+        assertFalse(group.getMembers().contains(victim));
+        verify(groupRepository).save(group);
+    }
+
+    @Test
+    void removeMember_nonAdminTriesToRemoveOther_throws() {
+        Long groupId = 1L, currentUserId = 5L, victimId = 6L;
+        User current = new User(); current.setId(currentUserId);
+        User victim = new User(); victim.setId(victimId);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setMembers(new HashSet<>(Set.of(current, victim)));
+        group.setAdmins(new HashSet<>());
+        group.setState(GroupEnums.GroupState.ACTIVO);
+
+        Authentication auth = mock(Authentication.class);
+        when(auth.getPrincipal()).thenReturn("clerk_current");
+        SecurityContextHolder.setContext(new SecurityContextImpl(auth));
+
+        UserDto me = new UserDto();
+        me.setId(currentUserId);
+        when(userService.getUserByClerkId("clerk_current")).thenReturn(me);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(victimId)).thenReturn(Optional.of(victim));
+
+        assertThrows(UnauthorizedException.class, () -> service.removeMember(groupId, victimId));
+        verify(groupRepository, never()).save(any());
+    }
+
+    @Test
+    void removeMember_userNotMember_throws() {
+        Long groupId = 1L, userId = 9L;
+        User user = new User(); user.setId(userId);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setMembers(new HashSet<>());
+        group.setAdmins(new HashSet<>());
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertThrows(ConflictException.class, () -> service.removeMember(groupId, userId));
+    }
+
+    @Test
+    void removeMember_groupClosed_throws() {
+        Long groupId = 1L, userId = 2L;
+        User user = new User(); user.setId(userId);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setMembers(new HashSet<>(Set.of(user)));
+        group.setAdmins(new HashSet<>());
+        group.setState(GroupEnums.GroupState.CERRADO);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertThrows(ConflictException.class, () -> service.removeMember(groupId, userId));
+    }
+
+    @Test
+    void removeMember_lastMember_temporalGroup_closesGroup() {
+        Long groupId = 1L, userId = 2L;
+        User user = new User(); user.setId(userId);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setType(GroupEnums.TypeGroup.TEMPORAL);
+        group.setMembers(new HashSet<>(Set.of(user)));
+        group.setAdmins(new HashSet<>(Set.of(user)));
+        group.setState(GroupEnums.GroupState.ACTIVO);
+
+        Authentication auth = mock(Authentication.class);
+        when(auth.getPrincipal()).thenReturn("clerk_user");
+        SecurityContextHolder.setContext(new SecurityContextImpl(auth));
+        UserDto me = new UserDto(); me.setId(userId);
+        when(userService.getUserByClerkId("clerk_user")).thenReturn(me);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        service.removeMember(groupId, userId);
+
+        assertEquals(GroupEnums.GroupState.CERRADO, group.getState());
+        verify(groupRepository).save(group);
+        verify(groupRepository, never()).delete(any());
+    }
+
+    @Test
+    void removeMember_lastMember_nonTemporalGroup_deletesGroup() {
+        Long groupId = 1L, userId = 2L;
+        User user = new User(); user.setId(userId);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setType(GroupEnums.TypeGroup.CONFIANZA);
+        group.setMembers(new HashSet<>(Set.of(user)));
+        group.setAdmins(new HashSet<>(Set.of(user)));
+        group.setState(GroupEnums.GroupState.ACTIVO);
+
+        Authentication auth = mock(Authentication.class);
+        when(auth.getPrincipal()).thenReturn("clerk_user");
+        SecurityContextHolder.setContext(new SecurityContextImpl(auth));
+        UserDto me = new UserDto(); me.setId(userId);
+        when(userService.getUserByClerkId("clerk_user")).thenReturn(me);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        service.removeMember(groupId, userId);
+
+        verify(groupRepository).delete(group);
+        verify(groupRepository, never()).save(any());
+    }
+
+    @Test
+    void removeMember_noAdminsLeft_assignsNewAdmin() {
+        Long groupId = 1L, adminId = 10L, otherId = 20L;
+        User admin = new User(); admin.setId(adminId);
+        User other = new User(); other.setId(otherId);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setMembers(new HashSet<>(Set.of(admin, other)));
+        group.setAdmins(new HashSet<>(Set.of(admin)));
+        group.setState(GroupEnums.GroupState.ACTIVO);
+
+        Authentication auth = mock(Authentication.class);
+        when(auth.getPrincipal()).thenReturn("clerk_admin");
+        SecurityContextHolder.setContext(new SecurityContextImpl(auth));
+        UserDto me = new UserDto(); me.setId(adminId);
+        when(userService.getUserByClerkId("clerk_admin")).thenReturn(me);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
+
+        service.removeMember(groupId, adminId);
+
+        assertFalse(group.getMembers().contains(admin));
+        assertTrue(group.getAdmins().contains(other));
+        verify(groupRepository).save(group);
+    }
+
+    @Test
+    void removeMember_groupNotFound_throws() {
+        when(groupRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> service.removeMember(1L, 2L));
+    }
+
+    @Test
+    void removeMember_userNotFound_throws() {
+        Group g = new Group(); g.setId(1L);
+        when(groupRepository.findById(1L)).thenReturn(Optional.of(g));
+        when(userRepository.findById(2L)).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> service.removeMember(1L, 2L));
+    }
+
+    /* =========================
+     * promoteToAdmin
+     * ========================= */
+    @Test
+    void promoteToAdmin_ok_promotesUser() {
+        Long groupId = 1L, userId = 2L;
+        User user = new User(); user.setId(userId);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setMembers(new HashSet<>(Set.of(user)));
+        group.setAdmins(new HashSet<>());
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        Group saved = new Group();
+        saved.setId(groupId);
+        when(groupRepository.save(group)).thenReturn(saved);
+
+        GroupDto dto = new GroupDto();
+        dto.setId(groupId);
+        when(mapper.toDto(saved)).thenReturn(dto);
+
+        GroupDto result = service.promoteToAdmin(groupId, userId);
+
+        assertTrue(group.getAdmins().contains(user));
+        assertEquals(groupId, result.getId());
+        verify(groupRepository).save(group);
+    }
+
+    @Test
+    void promoteToAdmin_userNotMember_throws() {
+        Long groupId = 1L, userId = 9L;
+        User user = new User(); user.setId(userId);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setMembers(new HashSet<>());
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertThrows(IllegalArgumentException.class, () -> service.promoteToAdmin(groupId, userId));
+        verify(groupRepository, never()).save(any());
+    }
+
+    @Test
+    void promoteToAdmin_groupNotFound_throws() {
+        when(groupRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> service.promoteToAdmin(1L, 2L));
+    }
+
+    @Test
+    void promoteToAdmin_userNotFound_throws() {
+        Group g = new Group(); g.setId(1L);
+        when(groupRepository.findById(1L)).thenReturn(Optional.of(g));
+        when(userRepository.findById(2L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> service.promoteToAdmin(1L, 2L));
+    }
+
+    /* =========================
+     * demoteAdmin
+     * ========================= */
+    @Test
+    void demoteAdmin_ok_demotesUser() {
+        Long groupId = 1L, userId = 2L;
+        User user = new User(); user.setId(userId);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setAdmins(new HashSet<>(Set.of(user)));
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        Group saved = new Group();
+        saved.setId(groupId);
+        when(groupRepository.save(group)).thenReturn(saved);
+
+        GroupDto dto = new GroupDto();
+        dto.setId(groupId);
+        when(mapper.toDto(saved)).thenReturn(dto);
+
+        GroupDto result = service.demoteAdmin(groupId, userId);
+
+        assertFalse(group.getAdmins().contains(user));
+        assertEquals(groupId, result.getId());
+        verify(groupRepository).save(group);
+    }
+
+    @Test
+    void demoteAdmin_userNotAdmin_throws() {
+        Long groupId = 1L, userId = 9L;
+        User user = new User(); user.setId(userId);
+
+        Group group = new Group();
+        group.setId(groupId);
+        group.setAdmins(new HashSet<>());
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertThrows(IllegalArgumentException.class, () -> service.demoteAdmin(groupId, userId));
+        verify(groupRepository, never()).save(any());
+    }
+
+    @Test
+    void demoteAdmin_groupNotFound_throws() {
+        when(groupRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> service.demoteAdmin(1L, 2L));
+    }
+
+    @Test
+    void demoteAdmin_userNotFound_throws() {
+        Group g = new Group(); g.setId(1L);
+        when(groupRepository.findById(1L)).thenReturn(Optional.of(g));
+        when(userRepository.findById(2L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> service.demoteAdmin(1L, 2L));
+    }
+
+    /* =========================
+     * addPhotoToGroup
+     * ========================= */
+    @Test
+    void addPhotoToGroup_ok_updatesImageUrl() {
+        Long groupId = 1L;
+        String photo = "base64photo";
+
+        Group group = new Group();
+        group.setId(groupId);
+
+        when(groupRepository.findById(groupId)).thenReturn(Optional.of(group));
+
+        service.addPhotoToGroup(groupId, photo);
+
+        assertEquals(photo, group.getImageUrl());
+        verify(groupRepository).save(group);
+    }
+
+    @Test
+    void addPhotoToGroup_groupNotFound_throws() {
+        when(groupRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> service.addPhotoToGroup(1L, "photo"));
     }
 }

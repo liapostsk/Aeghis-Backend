@@ -51,9 +51,6 @@ class ExternalContactServiceTest {
         SecurityContextHolder.clearContext();
     }
 
-    /* =========================
-     * createExternalContactForCurrentUser
-     * ========================= */
     @Test
     void createExternalContact_ok_setsOwner_andSaves_andReturnsId() {
         ExternalContactDto dto = new ExternalContactDto();
@@ -65,7 +62,7 @@ class ExternalContactServiceTest {
         owner.setPhone("+34111111111");
         owner.setEmail("owner@test.local");
         owner.setAcceptedPrivacyPolicy(true);
-        owner.setExternalContacts(new HashSet<>()); // importante para add()
+        owner.setExternalContacts(new HashSet<>());
 
         ExternalContact entity = new ExternalContact();
 
@@ -93,9 +90,6 @@ class ExternalContactServiceTest {
         verify(externalContactRepository, never()).save(any());
     }
 
-    /* =========================
-     * editExternalContact
-     * ========================= */
     @Test
     void editExternalContact_ok_updatesNameTrim_andPhoneNormalized_andRelation() {
         Long id = 5L;
@@ -109,20 +103,20 @@ class ExternalContactServiceTest {
         current.setId(id);
         current.setOwner(owner);
         current.setName("Old");
-        current.setPhone("+34600111222"); // ya normalizado
+        current.setPhone("+34600111222");
         current.setRelation("friend");
 
         when(externalContactRepository.findById(id)).thenReturn(Optional.of(current));
 
         ExternalContactDto incoming = new ExternalContactDto();
-        incoming.setName("  New Name  ");              // trim
-        incoming.setPhone(" +34 600 111 222 ");        // normalización (quita espacios)
+        incoming.setName("  New Name  ");
+        incoming.setPhone(" +34 600 111 222 ");
         incoming.setRelation("family");
 
         service.editExternalContact(id, incoming);
 
         assertEquals("New Name", current.getName());
-        assertEquals("+34600111222", current.getPhone()); // mismo número tras normalizar
+        assertEquals("+34600111222", current.getPhone());
         assertEquals("family", current.getRelation());
     }
 
@@ -146,7 +140,7 @@ class ExternalContactServiceTest {
 
         ExternalContactDto incoming = new ExternalContactDto();
         incoming.setName("Name");
-        incoming.setPhone(" +34 600 333 444 ");  // → "+34600333444"
+        incoming.setPhone(" +34 600 333 444 ");
         incoming.setRelation("colleague");
 
         when(externalContactRepository.findFirstByOwnerIdAndPhone(77L, "+34600333444"))
@@ -176,7 +170,7 @@ class ExternalContactServiceTest {
 
         ExternalContactDto incoming = new ExternalContactDto();
         incoming.setName("X");
-        incoming.setPhone(" +34 600 111 333 "); // → "+34600111333"
+        incoming.setPhone(" +34 600 111 333 ");
 
         ExternalContact existingOther = new ExternalContact();
         existingOther.setId(100L);
@@ -207,7 +201,7 @@ class ExternalContactServiceTest {
 
         ExternalContactDto incoming = new ExternalContactDto();
         incoming.setName("Name");
-        incoming.setPhone(" +34 600 000 000 "); // "+34600000000"
+        incoming.setPhone(" +34 600 000 000 ");
 
         service.editExternalContact(id, incoming);
 
@@ -215,9 +209,6 @@ class ExternalContactServiceTest {
         assertEquals("Name", current.getName());
     }
 
-    /* =========================
-     * deleteExternalContact
-     * ========================= */
     @Test
     void deleteExternalContact_ok_whenOwned() {
         Long id = 9L;
@@ -257,9 +248,6 @@ class ExternalContactServiceTest {
         verify(externalContactRepository, never()).delete(any());
     }
 
-    /* =========================
-     * getExternalContactOrThrow (indirecto) - NotFound
-     * ========================= */
     @Test
     void getExternalContactOrThrow_notFound_throwsNotFound() {
         Long id = 404L;
@@ -270,5 +258,178 @@ class ExternalContactServiceTest {
         when(externalContactRepository.findById(id)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.deleteExternalContact(id));
+    }
+
+    @Test
+    void editExternalContact_contactNotFound_throwsNotFound() {
+        Long id = 999L;
+
+        UserDto me = new UserDto(); me.setId(10L);
+        when(userService.getUserByClerkId(CLERK_ID)).thenReturn(me);
+
+        when(externalContactRepository.findById(id)).thenReturn(Optional.empty());
+
+        ExternalContactDto dto = new ExternalContactDto();
+        dto.setName("Test");
+        dto.setPhone("+34600111222");
+
+        assertThrows(NotFoundException.class, () -> service.editExternalContact(id, dto));
+    }
+
+    @Test
+    void editExternalContact_userNotOwner_throwsAccessDenied() {
+        Long id = 15L;
+
+        UserDto me = new UserDto(); me.setId(5L);
+        when(userService.getUserByClerkId(CLERK_ID)).thenReturn(me);
+
+        User owner = new User(); owner.setId(99L);
+
+        ExternalContact contact = new ExternalContact();
+        contact.setId(id);
+        contact.setOwner(owner);
+
+        when(externalContactRepository.findById(id)).thenReturn(Optional.of(contact));
+
+        ExternalContactDto dto = new ExternalContactDto();
+        dto.setName("Test");
+        dto.setPhone("+34600111222");
+
+        assertThrows(AccessDeniedException.class, () -> service.editExternalContact(id, dto));
+    }
+
+    @Test
+    void editExternalContact_phoneSameAfterNormalization_skipsPhoneUpdate() {
+        Long id = 20L;
+
+        UserDto me = new UserDto(); me.setId(30L);
+        when(userService.getUserByClerkId(CLERK_ID)).thenReturn(me);
+
+        User owner = new User(); owner.setId(30L);
+
+        ExternalContact current = new ExternalContact();
+        current.setId(id);
+        current.setOwner(owner);
+        current.setName("Old Name");
+        current.setPhone("+34600111222");
+        current.setRelation("friend");
+
+        when(externalContactRepository.findById(id)).thenReturn(Optional.of(current));
+
+        ExternalContactDto incoming = new ExternalContactDto();
+        incoming.setName("  New Name  ");
+        incoming.setPhone(" +34 600 111 222 ");
+        incoming.setRelation("family");
+
+        service.editExternalContact(id, incoming);
+
+        assertEquals("New Name", current.getName());
+        assertEquals("+34600111222", current.getPhone());
+        assertEquals("family", current.getRelation());
+
+        verify(externalContactRepository, never()).findFirstByOwnerIdAndPhone(anyLong(), anyString());
+    }
+
+    @Test
+    void normalizeToE164_removesSpaces() {
+        Long id = 25L;
+
+        UserDto me = new UserDto(); me.setId(40L);
+        when(userService.getUserByClerkId(CLERK_ID)).thenReturn(me);
+
+        User owner = new User(); owner.setId(40L);
+
+        ExternalContact current = new ExternalContact();
+        current.setId(id);
+        current.setOwner(owner);
+        current.setName("Name");
+        current.setPhone("+34600000000");
+
+        when(externalContactRepository.findById(id)).thenReturn(Optional.of(current));
+
+        ExternalContactDto incoming = new ExternalContactDto();
+        incoming.setName("Name");
+        incoming.setPhone("  +34  600  111  222  ");
+        incoming.setRelation("friend");
+
+        when(externalContactRepository.findFirstByOwnerIdAndPhone(40L, "+34600111222"))
+                .thenReturn(Optional.empty());
+
+        service.editExternalContact(id, incoming);
+
+        assertEquals("+34600111222", current.getPhone());
+    }
+
+    @Test
+    void editExternalContact_phoneChangeToSameId_allowsUpdate() {
+        Long id = 30L;
+
+        UserDto me = new UserDto(); me.setId(50L);
+        when(userService.getUserByClerkId(CLERK_ID)).thenReturn(me);
+
+        User owner = new User(); owner.setId(50L);
+
+        ExternalContact current = new ExternalContact();
+        current.setId(id);
+        current.setOwner(owner);
+        current.setPhone("+34600111111");
+
+        when(externalContactRepository.findById(id)).thenReturn(Optional.of(current));
+
+        ExternalContactDto incoming = new ExternalContactDto();
+        incoming.setName("Name");
+        incoming.setPhone("+34600222222");
+
+        when(externalContactRepository.findFirstByOwnerIdAndPhone(50L, "+34600222222"))
+                .thenReturn(Optional.of(current));
+
+        service.editExternalContact(id, incoming);
+
+        assertEquals("+34600222222", current.getPhone());
+    }
+
+    @Test
+    void getExternalContactOrThrow_ownerIdNull_throwsNullPointer() {
+        Long id = 35L;
+
+        UserDto me = new UserDto(); me.setId(60L);
+        when(userService.getUserByClerkId(CLERK_ID)).thenReturn(me);
+
+        User owner = new User();
+        owner.setId(null);
+
+        ExternalContact contact = new ExternalContact();
+        contact.setId(id);
+        contact.setOwner(owner);
+
+        when(externalContactRepository.findById(id)).thenReturn(Optional.of(contact));
+
+        ExternalContactDto dto = new ExternalContactDto();
+        dto.setName("Test");
+        dto.setPhone("+34600111222");
+
+        assertThrows(NullPointerException.class, () -> service.editExternalContact(id, dto));
+    }
+
+    @Test
+    void createExternalContact_ownerExternalContactsNull_initializesSet() {
+        ExternalContactDto dto = new ExternalContactDto();
+
+        User owner = new User();
+        owner.setId(70L);
+        owner.setClerkId(CLERK_ID);
+        owner.setName("Owner");
+        owner.setPhone("+34111111111");
+        owner.setEmail("owner@test.local");
+        owner.setAcceptedPrivacyPolicy(true);
+        owner.setExternalContacts(null);
+
+        ExternalContact entity = new ExternalContact();
+
+        when(userRepository.findByClerkId(CLERK_ID)).thenReturn(Optional.of(owner));
+        when(externalContactMapper.toEntity(dto)).thenReturn(entity);
+
+        assertThrows(NullPointerException.class,
+            () -> service.createExternalContactForCurrentUser(dto));
     }
 }
