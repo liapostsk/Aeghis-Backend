@@ -15,7 +15,6 @@ public class LocationService {
     private final LocationRepository locationRepository;
     private final LocationMapper locationMapper;
 
-    // get location by id
     /**
      * Retrieves a location entity by its ID.
      *
