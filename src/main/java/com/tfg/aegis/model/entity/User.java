@@ -33,6 +33,7 @@ public class User extends Person {
     @Enumerated(EnumType.STRING)
     private UserEnums.TypeRole role;
 
+    @Enumerated(EnumType.STRING)
     private UserEnums.VerificationStatus verify;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)

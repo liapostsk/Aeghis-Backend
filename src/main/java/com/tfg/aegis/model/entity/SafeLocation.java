@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @Setter
@@ -17,11 +15,11 @@ public class SafeLocation extends Location {
 
     private String description;
 
-    private String address; // opcional: para guardar la dirección del lugar
+    private String address;
 
-    private String distance; // opcional: para guardar la distancia al lugar
+    private String distance;
 
-    private String type; // e.g., "home", "bar", "safe_spot", etc.
+    private String type;
 
     @ManyToOne
     @JoinColumn(name = "owner", nullable = false)
