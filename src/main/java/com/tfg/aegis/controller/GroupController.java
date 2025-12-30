@@ -78,9 +78,6 @@ public class GroupController {
         return ResponseEntity.noContent().build();
     }
 
-
-    /* ========== MEMBRESÍA (NO ROLES) ========== */
-
     @PostMapping("/{groupId}/add-member/{userId}")
     @Operation(summary = "Add member", description = "Adds a user as member of the group (idempotent)")
     public ResponseEntity<GroupDto> addMember(@PathVariable Long groupId, @PathVariable Long userId) {
@@ -94,8 +91,6 @@ public class GroupController {
         groupService.removeMember(groupId, userId);
         return ResponseEntity.noContent().build();
     }
-
-    /* ========== ROLES (ADMINS) ========== */
 
     @PostMapping("/{groupId}/promote-admin/{userId}")
     @Operation(summary = "Promote to admin", description = "Promotes a member to admin (idempotent)")
@@ -117,31 +112,5 @@ public class GroupController {
         groupService.addPhotoToGroup(groupId, photo);
         return ResponseEntity.noContent().build();
     }
-
-//    /* ========== OWNERSHIP / ESTADO ========== */
-//
-//    @PostMapping("/{groupId}/transfer-ownership")
-//    @Operation(summary = "Transfer ownership", description = "Transfers group ownership to an admin")
-//    public ResponseEntity<GroupDto> transferOwnership(@PathVariable Long groupId, @RequestBody IdRequest body) {
-//        GroupDto dto = groupService.transferOwnership(groupId, body.userId());
-//        return ResponseEntity.ok(dto);
-//    }
-//
-//    @PostMapping("/{groupId}/close")
-//    @Operation(summary = "Close/Archive group", description = "Marks the group as inactive/archived")
-//    public ResponseEntity<GroupDto> closeGroup(@PathVariable Long groupId) {
-//        GroupDto dto = groupService.closeGroup(groupId);
-//        return ResponseEntity.ok(dto);
-//    }
-//
-//    /* ==================== DTOs mínimos inline ==================== */
-//
-//    // Para endpoints que reciben un único ID
-//    public record IdRequest(Long userId) {}
-//
-//    // Para creación de invitaciones (opcionalmente limitar usos/expiración)
-//    public record InviteRequest(LocalDateTime expiresAt, Integer maxUses) {}
-//
-//    public record InviteCodeResponse(String code, LocalDateTime expiresAt, Integer maxUsesRemaining) {}
 
 }

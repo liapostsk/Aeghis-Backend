@@ -106,15 +106,10 @@ public class UserService {
      */
     public Long createUser(UserDto userDto) {
         try {
-
-            // Necesito dos formas de crear el user, rol USER y rol ADMIN
-            // Por ahora solo USER
-            // Depende del correo electrónico y teléfono únicos eres ADMIN
             User user = mapper.toEntity(userDto);
 
             Set<EmergencyContact> contacts = new HashSet<>();
             if (userDto.getEmergencyContacts() != null) {
-                // Por cada contacto de emergencia, coger el numero de teléfono y buscar el usuario asociado
                 for (EmergencyContactDto contactDto : userDto.getEmergencyContacts()) {
                     Optional<User> contactUser = userRepository.findById(contactDto.getContactId());
                     log.info("Contact user: {}", contactUser);
@@ -159,9 +154,8 @@ public class UserService {
                 }
             }
             user.setRole(isAdmin ? UserEnums.TypeRole.ADMIN : UserEnums.TypeRole.USER);
-            user.setVerify(UserEnums.VerificationStatus.PENDING);
+            user.setVerify(UserEnums.VerificationStatus.NO_REQUEST);
 
-            // Añadimos los companion requests vacíos al crear el usuario
             user.setCompanionRequestsAccepted(new HashSet<>());
             user.setCompanionRequestsCreated(new HashSet<>());
 
@@ -225,7 +219,6 @@ public class UserService {
      */
     public void addPhotoToUser(Long id, String photo) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User", id));
-        // If it already has a photo, replace it
         user.setImage(photo);
         userRepository.save(user);
     }

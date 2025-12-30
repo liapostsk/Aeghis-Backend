@@ -54,7 +54,6 @@ public class ExternalContactService {
         externalContact.setName(externalContactDto.getName().trim());
         String e164 = normalizeToE164(externalContactDto.getPhone());
         if (!e164.equals(externalContact.getPhone())) {
-            // evitar duplicado de teléfono dentro del mismo owner si así lo definiste
             externalContactRepository.findFirstByOwnerIdAndPhone(externalContact.getOwner().getId(), e164).ifPresent(existing -> {
                 if (!existing.getId().equals(id)) {
                     throw new DataIntegrityViolationException("EXTERNAL_DUPLICATE_PHONE");
