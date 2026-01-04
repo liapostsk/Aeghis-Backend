@@ -96,6 +96,12 @@ public class UserService {
                 .collect(java.util.stream.Collectors.toSet());
         dto.setExternalContacts(externalContacts);
 
+        Set<GroupDto> groups = groupRepository.findByMembers_Id(user.getId()).stream()
+                .map(groupMapper::toDto)
+                .collect(java.util.stream.Collectors.toSet());
+
+        dto.setGroups(groups);
+
         return dto;
     }
 
