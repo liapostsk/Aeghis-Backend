@@ -83,7 +83,6 @@ public class UserService {
      * @return UserDto
      */
     public UserDto getUser(Long id) {
-        // Usamos orElseThrow para lanzar la excepción automáticamente cuando no se encuentra el usuario.
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User", id));
         UserDto dto = mapper.toDto(user);
@@ -96,6 +95,10 @@ public class UserService {
                 .map(externalContactMapper::toDto)
                 .collect(java.util.stream.Collectors.toSet());
         dto.setExternalContacts(externalContacts);
+        Set<GroupDto> groups = groupRepository.findByMembers_Id(user.getId()).stream()
+                .map(groupMapper::toDto)
+                .collect(java.util.stream.Collectors.toSet());
+        dto.setGroups(groups);
 
         return dto;
     }

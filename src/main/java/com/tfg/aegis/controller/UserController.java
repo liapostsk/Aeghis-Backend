@@ -36,10 +36,18 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
-    @Operation(summary = "Get", description = "Method that gets a User")
+    @Operation(summary = "Get a user by its id ", description = "Method that gets a User")
     @GetMapping(path = "/{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable(name = "id") Long id) {
         UserDto userDto = userService.getUser(id);
+        log.info("Current user: {}", userDto);
+        return ResponseEntity.ok(userDto);
+    }
+
+    @Operation(summary = "Get a user by its clerkId ", description = "Method that gets a User by its clerkId")
+    @GetMapping(path = "/{clerkId}")
+    public ResponseEntity<UserDto> getUserByClerkId(@PathVariable(name = "clerkId") String clerkId) {
+        UserDto userDto = userService.getUserByClerkId(clerkId);
         log.info("Current user: {}", userDto);
         return ResponseEntity.ok(userDto);
     }
@@ -84,7 +92,7 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Get unverifyed users", description = "Method that gets the unverified users")
+    @Operation(summary = "Get unverified users", description = "Method that gets the unverified users")
     @GetMapping(path = "/unverified")
     public ResponseEntity<List<UserDto>> getUnverifiedUsers() {
         List<UserDto> unverifiedUsers = userService.getUnverifiedUsers();
