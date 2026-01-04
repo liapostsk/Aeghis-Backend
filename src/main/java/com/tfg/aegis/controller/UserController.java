@@ -45,7 +45,7 @@ public class UserController {
     }
 
     @Operation(summary = "Get a user by its clerkId ", description = "Method that gets a User by its clerkId")
-    @GetMapping(path = "/{clerkId}")
+    @GetMapping(path = "/clerk/{clerkId}")
     public ResponseEntity<UserDto> getUserByClerkId(@PathVariable(name = "clerkId") String clerkId) {
         UserDto userDto = userService.getUserByClerkId(clerkId);
         log.info("Current user: {}", userDto);
