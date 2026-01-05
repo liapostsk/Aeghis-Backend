@@ -2,6 +2,7 @@ package com.tfg.aegis.controller;
 
 import com.tfg.aegis.service.UserService;
 import com.tfg.aegis.model.enums.UserEnums;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.tfg.aegis.model.dto.UserDto;
@@ -16,7 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 
 @Tag(name = "User", description = "API of Users")
-@RequestMapping(value = "/user")
+@RequestMapping(value = "/users")
 @RestController
 @AllArgsConstructor
 public class UserController {
@@ -25,18 +26,7 @@ public class UserController {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
-    @Operation(summary = "Get current user", description = "Returns the currently authenticated user based on JWT")
-    @GetMapping("/me")
-    public ResponseEntity<UserDto> getCurrentUser() {
-        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        UserDto userDto = userService.getUserByClerkId(clerkId);
-
-        log.info("Current user: {}", userDto);
-        return ResponseEntity.ok(userDto);
-    }
-
-    @Operation(summary = "Get a user by its id ", description = "Method that gets a User")
+    @Operation(summary = "Get user by ID ", description = "Method that gets a User")
     @GetMapping(path = "/{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable(name = "id") Long id) {
         UserDto userDto = userService.getUser(id);
@@ -44,15 +34,7 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
-    @Operation(summary = "Get a user by its clerkId ", description = "Method that gets a User by its clerkId")
-    @GetMapping(path = "/clerk/{clerkId}")
-    public ResponseEntity<UserDto> getUserByClerkId(@PathVariable(name = "clerkId") String clerkId) {
-        UserDto userDto = userService.getUserByClerkId(clerkId);
-        log.info("Current user: {}", userDto);
-        return ResponseEntity.ok(userDto);
-    }
-
-    @Operation(summary = "Create", description = "Method that creates a User")
+    @Operation(summary = "Create user", description = "Method that creates a User")
     @PostMapping
     public ResponseEntity<Long> createUser(@RequestBody UserDto userDto) {
         log.info("UserDto: {}", userDto);
@@ -63,21 +45,21 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
 
-    @Operation(summary = "Update", description = "Method that update the info of a User")
+    @Operation(summary = "Update user information", description = "Updates the user profile fields")
     @PutMapping(path = "/{id}")
-    public ResponseEntity<Void> updateUser(@PathVariable(name = "id", required = false) Long id,  @RequestBody UserDto userDto) {
+    public ResponseEntity<Void> updateUser(@PathVariable(name = "id") Long id,  @RequestBody UserDto userDto) {
         userService.updateUser(id, userDto);
-        return ResponseEntity.noContent().build(); // HTTP 204 No Content
+        return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Delete", description = "Method that deletes a User")
+    @Operation(summary = "Delete user", description = "Method that deletes a User")
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable(name = "id", required = false) Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable(name = "id") Long id) {
         userService.deleteUser(id);
-        return ResponseEntity.noContent().build(); // HTTP 204 No Content
+        return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Check Existence", description = "Method that checks if a User exists by phone number")
+    @Operation(summary = "Check if user exists by phone", description = "Method that checks if a User exists by phone number")
     @GetMapping(path = "/exists/{phone}")
     public ResponseEntity<Long> userExistsByPhone(@PathVariable(name = "phone") String phone) {
         Long userId = userService.userExistsByPhone(phone);
@@ -85,7 +67,7 @@ public class UserController {
         return ResponseEntity.ok(userId);
     }
 
-    @Operation(summary = "Add photo", description = "Method that adds a photo to a User")
+    @Operation(summary = "Add photo to user", description = "Method that adds a photo to a User")
     @PostMapping(path = "/{id}/photo")
     public ResponseEntity<Void> addPhotoToUser(@PathVariable(name = "id") Long id, @RequestBody String photo) {
         userService.addPhotoToUser(id, photo);
@@ -107,6 +89,25 @@ public class UserController {
 
         userService.verifyUser(id, verificationStatus);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get current user", description = "Returns the currently authenticated user based on JWT")
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> getCurrentUser() {
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        UserDto userDto = userService.getUserByClerkId(clerkId);
+
+        log.info("Current user: {}", userDto);
+        return ResponseEntity.ok(userDto);
+    }
+
+    @Operation(summary = "Get user by Clerk ID", description = "Returns a user by its clerkId")
+    @GetMapping(path = "/clerk/{clerkId}")
+    public ResponseEntity<UserDto> getUserByClerkId(@PathVariable(name = "clerkId") String clerkId) {
+        UserDto userDto = userService.getUserByClerkId(clerkId);
+        log.info("Current user: {}", userDto);
+        return ResponseEntity.ok(userDto);
     }
 
 }

@@ -1,29 +1,30 @@
 package com.tfg.aegis.common.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
-import org.springframework.beans.factory.annotation.Value;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
-import org.springframework.util.StreamUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
-import io.swagger.v3.parser.OpenAPIV3Parser;
 
 @Configuration
 public class OpenApiConfig {
-
-    @Value("classpath:swagger/swagger-api-contract.yml")
-    private Resource openApiResource;
-
     @Bean
-    public OpenAPI customOpenAPI() throws IOException {
-        try (InputStream is = openApiResource.getInputStream()) {
-            String openApiContent = StreamUtils.copyToString(is, StandardCharsets.UTF_8);
-            return new OpenAPIV3Parser().readContents(openApiContent).getOpenAPI();
-        }
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+            .info(new Info()
+                .title("API AEGHIS")
+                .description("API para gestión de usuarios y recursos del sistema AEGHIS")
+                .version("1.0.0")
+            )
+            .addSecurityItem(new SecurityRequirement().addList("JWT"))
+            .components(new Components().addSecuritySchemes("JWT",
+                new SecurityScheme()
+                    .type(SecurityScheme.Type.HTTP)
+                    .scheme("bearer")
+                    .bearerFormat("JWT")
+                    .description("Introduce el token JWT para autenticación")
+        ));
     }
 }
