@@ -41,7 +41,6 @@ public class CompanionRequestController {
     @Operation(summary = "Accept Companion Request", description = "Method that accepts a Companion Request")
     @PostMapping("/{id}/accept")
     public ResponseEntity<CompanionRequestDto> accept(@PathVariable Long id) {
-        // TODO: Si el grupo tracking se escoge cuando se comparte el trayecto no hace falta pasarlo aqui, eliminar el parametro groupDto
         CompanionRequestDto dto = companionRequestService.acceptCompanionRequest(id);
         log.info("Accepted a companion request");
         return ResponseEntity.ok(dto);
