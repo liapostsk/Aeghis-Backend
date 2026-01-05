@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Location", description = "API of locations")
 @RestController
 @AllArgsConstructor
-@RequestMapping("/location")
+@RequestMapping("/locations")
 public class LocationController {
 
     private final LocationService locationService;
@@ -36,10 +36,10 @@ public class LocationController {
         return ResponseEntity.ok(id);
     }
 
-    @Operation(summary = "Delete", description = "Method that deletes a Location")
-    @DeleteMapping
-    public ResponseEntity<Void> deleteLocation(@RequestBody LocationDto locationDto) {
-        locationService.deleteLocation(locationDto);
+    @Operation(summary = "Delete location", description = "Deletes a Location by its ID")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteLocation(@PathVariable Long id) {
+        locationService.deleteLocation(id);
         return ResponseEntity.noContent().build();
     }
 }

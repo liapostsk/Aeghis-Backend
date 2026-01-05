@@ -240,13 +240,13 @@ class LocationControllerTest {
 
     @Test
     void deleteLocation_success() {
-        doNothing().when(locationService).deleteLocation(locationDto);
+        doNothing().when(locationService).deleteLocation(locationDto.getId());
 
-        ResponseEntity<Void> response = locationController.deleteLocation(locationDto);
+        ResponseEntity<Void> response = locationController.deleteLocation(locationDto.getId());
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         assertNull(response.getBody());
-        verify(locationService).deleteLocation(locationDto);
+        verify(locationService).deleteLocation(locationDto.getId());
     }
 
     @Test
@@ -254,24 +254,24 @@ class LocationControllerTest {
         LocationDto differentLocation = new LocationDto();
         differentLocation.setId(555L);
         differentLocation.setName("To Delete");
-        doNothing().when(locationService).deleteLocation(differentLocation);
+        doNothing().when(locationService).deleteLocation(differentLocation.getId());
 
-        ResponseEntity<Void> response = locationController.deleteLocation(differentLocation);
+        ResponseEntity<Void> response = locationController.deleteLocation(differentLocation.getId());
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(locationService).deleteLocation(differentLocation);
+        verify(locationService).deleteLocation(differentLocation.getId());
     }
 
     @Test
     void deleteLocation_withMinimalData_success() {
         LocationDto minimalLocation = new LocationDto();
         minimalLocation.setId(1L);
-        doNothing().when(locationService).deleteLocation(minimalLocation);
+        doNothing().when(locationService).deleteLocation(minimalLocation.getId());
 
-        ResponseEntity<Void> response = locationController.deleteLocation(minimalLocation);
+        ResponseEntity<Void> response = locationController.deleteLocation(minimalLocation.getId());
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(locationService).deleteLocation(minimalLocation);
+        verify(locationService).deleteLocation(minimalLocation.getId());
     }
 
     @Test
@@ -282,12 +282,12 @@ class LocationControllerTest {
         completeLocation.setLongitude(LONGITUDE);
         completeLocation.setName("Complete Location");
         completeLocation.setTimestamp(LocalDateTime.now());
-        doNothing().when(locationService).deleteLocation(completeLocation);
+        doNothing().when(locationService).deleteLocation(completeLocation.getId());
 
-        ResponseEntity<Void> response = locationController.deleteLocation(completeLocation);
+        ResponseEntity<Void> response = locationController.deleteLocation(completeLocation.getId());
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(locationService).deleteLocation(completeLocation);
+        verify(locationService).deleteLocation(completeLocation.getId());
     }
 
     @Test
@@ -299,18 +299,18 @@ class LocationControllerTest {
         LocationDto loc3 = new LocationDto();
         loc3.setId(30L);
 
-        doNothing().when(locationService).deleteLocation(any(LocationDto.class));
+        doNothing().when(locationService).deleteLocation(any(Long.class));
 
-        ResponseEntity<Void> response1 = locationController.deleteLocation(loc1);
-        ResponseEntity<Void> response2 = locationController.deleteLocation(loc2);
-        ResponseEntity<Void> response3 = locationController.deleteLocation(loc3);
+        ResponseEntity<Void> response1 = locationController.deleteLocation(loc1.getId());
+        ResponseEntity<Void> response2 = locationController.deleteLocation(loc2.getId());
+        ResponseEntity<Void> response3 = locationController.deleteLocation(loc3.getId());
 
         assertEquals(HttpStatus.NO_CONTENT, response1.getStatusCode());
         assertEquals(HttpStatus.NO_CONTENT, response2.getStatusCode());
         assertEquals(HttpStatus.NO_CONTENT, response3.getStatusCode());
-        verify(locationService).deleteLocation(loc1);
-        verify(locationService).deleteLocation(loc2);
-        verify(locationService).deleteLocation(loc3);
+        verify(locationService).deleteLocation(loc1.getId());
+        verify(locationService).deleteLocation(loc2.getId());
+        verify(locationService).deleteLocation(loc3.getId());
     }
     
     @Test
@@ -328,7 +328,7 @@ class LocationControllerTest {
 
         when(locationService.createLocation(createDto)).thenReturn(999L);
         when(locationService.getLocation(999L)).thenReturn(createdDto);
-        doNothing().when(locationService).deleteLocation(createdDto);
+        doNothing().when(locationService).deleteLocation(createdDto.getId());
 
         ResponseEntity<Long> createResponse = locationController.createLocation(createDto);
 
@@ -341,12 +341,12 @@ class LocationControllerTest {
         assertEquals(999L, getResponse.getBody().getId());
         assertEquals("Workflow Location", getResponse.getBody().getName());
 
-        ResponseEntity<Void> deleteResponse = locationController.deleteLocation(createdDto);
+        ResponseEntity<Void> deleteResponse = locationController.deleteLocation(createdDto.getId());
 
         assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
 
         verify(locationService).createLocation(createDto);
         verify(locationService).getLocation(999L);
-        verify(locationService).deleteLocation(createdDto);
+        verify(locationService).deleteLocation(createdDto.getId());
     }
 }

@@ -52,7 +52,7 @@ public class InvitationService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // 1) Reusar invitaciones activas
+        // Reusar invitaciones activas
         List<Invitation> actives = invitationRepository.findByGroupAndExpiresAtAfterAndRevokedAtIsNullOrderByCreatedAtDesc(group, now);
         if (!actives.isEmpty()) {
             Invitation existing = actives.get(0);
@@ -62,7 +62,6 @@ public class InvitationService {
             return mapper.toDto(existing, code);
         }
 
-        // 2) Crear una nueva
         String code = generateCode();
         String codeHash = passwordEncoder.encode(code);
 
