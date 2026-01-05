@@ -1,6 +1,7 @@
 package com.tfg.aegis.controller;
 
 import com.tfg.aegis.service.GeocodingService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Geocoding", description = "API of geocoding services")
 @RestController
 @RequestMapping("/geocode")
 @AllArgsConstructor

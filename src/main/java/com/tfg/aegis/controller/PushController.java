@@ -4,6 +4,7 @@ import com.tfg.aegis.service.ExpoPushService;
 import com.tfg.aegis.service.NotificationTokenService;
 import com.tfg.aegis.model.entity.NotificationToken;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
+@Tag(name = "PushNotifications", description = "API of Expo push notifications")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/push")

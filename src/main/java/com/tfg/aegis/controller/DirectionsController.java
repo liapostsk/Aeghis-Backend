@@ -1,11 +1,13 @@
 package com.tfg.aegis.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+@Tag(name = "Directions", description = "API of Google Maps Directions services")
 @RestController
 @RequestMapping("/directions")
 public class DirectionsController {

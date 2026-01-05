@@ -3,10 +3,12 @@ package com.tfg.aegis.controller;
 import com.tfg.aegis.model.dto.ExternalContactDto;
 import com.tfg.aegis.service.ExternalContactService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "ExternalContact", description = "API of external contacts")
 @RestController
 @AllArgsConstructor
 @RequestMapping("/me/external-contact")

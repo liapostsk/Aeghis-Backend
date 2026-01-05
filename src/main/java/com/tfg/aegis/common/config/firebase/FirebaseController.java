@@ -1,6 +1,7 @@
 package com.tfg.aegis.common.config.firebase;
 
 import com.google.firebase.auth.FirebaseAuthException;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Tag(name = "Firebase")
 @AllArgsConstructor
 @RestController
 @RequestMapping("/firebase")
