@@ -13,7 +13,7 @@ import java.util.List;
 
 @Tag(name = "Group", description = "API of groups")
 @RestController
-@RequestMapping("/group")
+@RequestMapping("/groups")
 public class GroupController {
 
     private final GroupService groupService;
@@ -37,23 +37,21 @@ public class GroupController {
     }
 
     @PostMapping("/join")
-    @Operation(summary = "Join a group", description = "Allows a user to join an existing group by its ID")
+    @Operation(summary = "Join a group", description = "Allows a user to join an existing group by code")
     public ResponseEntity<Long> joinGroup(@RequestParam Long userId, @RequestParam String code) {
         Long groupId = groupService.joinGroup(userId, code);
         return ResponseEntity.ok(groupId);
     }
 
-    @GetMapping("/{type}/my-groups")
-    @Operation(summary = "Get all groups of the specific type", description = "Retrieves all groups of a specific type")
-    public ResponseEntity<List<GroupDto>> getAllMyGroupsByType(@PathVariable(name = "type") GroupEnums.TypeGroup type) {
-        List<GroupDto> groups = groupService.getAllMyGroupsByType(type);
-        return ResponseEntity.ok(groups);
-    }
+    @GetMapping
+    @Operation(summary = "Get my groups", description = "Retrieves all groups of the authenticated user. Optionally filters by group type.")
+    public ResponseEntity<List<GroupDto>> getMyGroups(
+            @RequestParam(name = "type", required = false) GroupEnums.TypeGroup type
+    ) {
+        List<GroupDto> groups = (type == null)
+                ? groupService.getAllMyGroups()
+                : groupService.getAllMyGroupsByType(type);
 
-    @GetMapping("/my-groups")
-    @Operation(summary = "Get all groups of the user", description = "Retrieves all groups")
-    public ResponseEntity<List<GroupDto>> getAllMyGroups() {
-        List<GroupDto> groups = groupService.getAllMyGroups();
         return ResponseEntity.ok(groups);
     }
 
@@ -78,14 +76,14 @@ public class GroupController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{groupId}/add-member/{userId}")
+    @PostMapping("/{groupId}/members/{userId}")
     @Operation(summary = "Add member", description = "Adds a user as member of the group (idempotent)")
     public ResponseEntity<GroupDto> addMember(@PathVariable Long groupId, @PathVariable Long userId) {
         GroupDto dto = groupService.addMember(groupId, userId);
         return ResponseEntity.ok(dto);
     }
 
-    @DeleteMapping("/{groupId}/remove-member/{userId}")
+    @DeleteMapping("/{groupId}/members/{userId}")
     @Operation(summary = "Remove member", description = "Removes a user from the group")
     public ResponseEntity<Void> removeMember(@PathVariable Long groupId, @PathVariable Long userId) {
         groupService.removeMember(groupId, userId);
@@ -107,9 +105,9 @@ public class GroupController {
     }
 
     @Operation(summary = "Add image to group", description = "Adds an image to a group")
-    @PostMapping("/{groupId}/photo")
-    public ResponseEntity<Void> addPhotoToGroup(@PathVariable Long groupId, @RequestBody String photo) {
-        groupService.addPhotoToGroup(groupId, photo);
+    @PutMapping("/{groupId}/image")
+    public ResponseEntity<Void> addPhotoToGroup(@PathVariable Long groupId, @RequestBody String image) {
+        groupService.addPhotoToGroup(groupId, image);
         return ResponseEntity.noContent().build();
     }
 

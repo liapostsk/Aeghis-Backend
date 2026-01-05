@@ -45,9 +45,10 @@ public class LocationService {
     /**
      * Deletes a location entity from the database.
      *
-     * @param locationDto The location entity to be deleted.
+     * @param id The location entity to be deleted.
      */
-    public void deleteLocation(LocationDto locationDto) {
+    public void deleteLocation(Long id) {
+        LocationDto locationDto = getLocation(id);
         Location location = locationMapper.toEntity(locationDto);
         locationRepository.delete(location);
     }

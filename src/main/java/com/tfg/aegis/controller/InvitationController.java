@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Invitation", description = "API of invitations")
 @RestController
-@RequestMapping("/invitation")
+@RequestMapping("/invitations")
 @AllArgsConstructor
 public class InvitationController {
     private final InvitationService invitationService;
@@ -20,7 +20,7 @@ public class InvitationController {
     @PostMapping("/{groupId}/invite")
     @Operation(summary= "create an invitation", description = "Creates an invitation for a group")
     public ResponseEntity<InvitationDto> createInvitation(@PathVariable Long groupId, @RequestParam(required = false) Long expiry) {
-        InvitationDto invitationDto = invitationService.createInvitation(groupId, null);
+        InvitationDto invitationDto = invitationService.createInvitation(groupId, expiry);
         return ResponseEntity.status(HttpStatus.CREATED).body(invitationDto);
     }
     

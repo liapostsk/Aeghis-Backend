@@ -170,7 +170,7 @@ class LocationServiceTest {
 
         when(locationMapper.toEntity(dto)).thenReturn(entity);
 
-        service.deleteLocation(dto);
+        service.deleteLocation(dto.getId());
 
         verify(locationMapper).toEntity(dto);
         verify(locationRepository).delete(entity);
@@ -194,7 +194,7 @@ class LocationServiceTest {
 
         when(locationMapper.toEntity(dto)).thenReturn(entity);
 
-        service.deleteLocation(dto);
+        service.deleteLocation(dto.getId());
 
         verify(locationRepository).delete(captor.capture());
         Location deleted = captor.getValue();
@@ -214,17 +214,13 @@ class LocationServiceTest {
 
         when(locationMapper.toEntity(dto)).thenReturn(entity);
 
-        service.deleteLocation(dto);
+        service.deleteLocation(dto.getId());
 
-        // Verifica el orden de las llamadas
         verify(locationMapper).toEntity(dto);
         verify(locationRepository).delete(entity);
         verifyNoMoreInteractions(locationMapper, locationRepository);
     }
 
-    /* =========================
-     * Integration scenarios
-     * ========================= */
     @Test
     void createAndGetLocation_integration() {
         // Crear
