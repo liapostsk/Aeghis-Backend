@@ -41,6 +41,148 @@ class SafeLocationControllerTest {
         safeLocationDto.setLongitude(LONGITUDE);
     }
 
+    /* =========================
+     * getSafeLocationForCurrentUser
+     * ========================= */
+    @Test
+    void getSafeLocationForCurrentUser_success() {
+        when(safeLocationService.getSafeLocationForCurrentUser(LOCATION_ID)).thenReturn(safeLocationDto);
+
+        ResponseEntity<SafeLocationDto> response = safeLocationController.getSafeLocationForCurrentUser(LOCATION_ID);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(LOCATION_ID, response.getBody().getId());
+        assertEquals(LOCATION_NAME, response.getBody().getName());
+        assertEquals(LOCATION_ADDRESS, response.getBody().getAddress());
+        assertEquals(LATITUDE, response.getBody().getLatitude());
+        assertEquals(LONGITUDE, response.getBody().getLongitude());
+        verify(safeLocationService).getSafeLocationForCurrentUser(LOCATION_ID);
+    }
+
+    @Test
+    void getSafeLocationForCurrentUser_withDifferentId_success() {
+        Long differentId = 999L;
+        SafeLocationDto differentLocation = new SafeLocationDto();
+        differentLocation.setId(differentId);
+        differentLocation.setName("Different Location");
+        differentLocation.setAddress("Different Address");
+        differentLocation.setLatitude(40.4168);
+        differentLocation.setLongitude(-3.7038);
+
+        when(safeLocationService.getSafeLocationForCurrentUser(differentId)).thenReturn(differentLocation);
+
+        ResponseEntity<SafeLocationDto> response = safeLocationController.getSafeLocationForCurrentUser(differentId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(differentId, response.getBody().getId());
+        assertEquals("Different Location", response.getBody().getName());
+        verify(safeLocationService).getSafeLocationForCurrentUser(differentId);
+    }
+
+    @Test
+    void getSafeLocationForCurrentUser_withMinimalData_success() {
+        Long locationId = 456L;
+        SafeLocationDto minimalLocation = new SafeLocationDto();
+        minimalLocation.setId(locationId);
+        minimalLocation.setLatitude(41.0);
+        minimalLocation.setLongitude(2.0);
+
+        when(safeLocationService.getSafeLocationForCurrentUser(locationId)).thenReturn(minimalLocation);
+
+        ResponseEntity<SafeLocationDto> response = safeLocationController.getSafeLocationForCurrentUser(locationId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(locationId, response.getBody().getId());
+        verify(safeLocationService).getSafeLocationForCurrentUser(locationId);
+    }
+
+    @Test
+    void getSafeLocationForCurrentUser_withCompleteData_success() {
+        SafeLocationDto completeLocation = new SafeLocationDto();
+        completeLocation.setId(LOCATION_ID);
+        completeLocation.setName("Complete Location");
+        completeLocation.setAddress("Complete Address");
+        completeLocation.setDescription("Complete Description");
+        completeLocation.setLatitude(LATITUDE);
+        completeLocation.setLongitude(LONGITUDE);
+        completeLocation.setType("Work");
+
+        when(safeLocationService.getSafeLocationForCurrentUser(LOCATION_ID)).thenReturn(completeLocation);
+
+        ResponseEntity<SafeLocationDto> response = safeLocationController.getSafeLocationForCurrentUser(LOCATION_ID);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        SafeLocationDto body = response.getBody();
+        assertNotNull(body);
+        assertEquals(LOCATION_ID, body.getId());
+        assertEquals("Complete Location", body.getName());
+        assertEquals("Complete Address", body.getAddress());
+        assertEquals("Complete Description", body.getDescription());
+        assertEquals("Work", body.getType());
+        verify(safeLocationService).getSafeLocationForCurrentUser(LOCATION_ID);
+    }
+
+    @Test
+    void getSafeLocationForCurrentUser_multipleRequests_success() {
+        Long id1 = 100L, id2 = 200L;
+        SafeLocationDto location1 = new SafeLocationDto();
+        location1.setId(id1);
+        location1.setName("Location 1");
+        SafeLocationDto location2 = new SafeLocationDto();
+        location2.setId(id2);
+        location2.setName("Location 2");
+
+        when(safeLocationService.getSafeLocationForCurrentUser(id1)).thenReturn(location1);
+        when(safeLocationService.getSafeLocationForCurrentUser(id2)).thenReturn(location2);
+
+        ResponseEntity<SafeLocationDto> response1 = safeLocationController.getSafeLocationForCurrentUser(id1);
+        ResponseEntity<SafeLocationDto> response2 = safeLocationController.getSafeLocationForCurrentUser(id2);
+
+        assertEquals(HttpStatus.OK, response1.getStatusCode());
+        assertEquals(HttpStatus.OK, response2.getStatusCode());
+        assertEquals(id1, response1.getBody().getId());
+        assertEquals(id2, response2.getBody().getId());
+        verify(safeLocationService).getSafeLocationForCurrentUser(id1);
+        verify(safeLocationService).getSafeLocationForCurrentUser(id2);
+    }
+
+    @Test
+    void getSafeLocationForCurrentUser_withZeroId_success() {
+        Long zeroId = 0L;
+        SafeLocationDto location = new SafeLocationDto();
+        location.setId(zeroId);
+
+        when(safeLocationService.getSafeLocationForCurrentUser(zeroId)).thenReturn(location);
+
+        ResponseEntity<SafeLocationDto> response = safeLocationController.getSafeLocationForCurrentUser(zeroId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(zeroId, response.getBody().getId());
+        verify(safeLocationService).getSafeLocationForCurrentUser(zeroId);
+    }
+
+    @Test
+    void getSafeLocationForCurrentUser_withMaxLongId_success() {
+        Long maxId = Long.MAX_VALUE;
+        SafeLocationDto location = new SafeLocationDto();
+        location.setId(maxId);
+
+        when(safeLocationService.getSafeLocationForCurrentUser(maxId)).thenReturn(location);
+
+        ResponseEntity<SafeLocationDto> response = safeLocationController.getSafeLocationForCurrentUser(maxId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(maxId, response.getBody().getId());
+        verify(safeLocationService).getSafeLocationForCurrentUser(maxId);
+    }
+
+    /* =========================
+     * addSafeLocationForCurrentUser
+     * ========================= */
+
     @Test
     void addSafeLocationForCurrentUser_success() {
         SafeLocationDto newLocation = new SafeLocationDto();
@@ -53,7 +195,7 @@ class SafeLocationControllerTest {
 
         ResponseEntity<Long> response = safeLocationController.addSafeLocationForCurrentUser(newLocation);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(LOCATION_ID, response.getBody());
         verify(safeLocationService).addSafeLocationForCurrentUser(newLocation);
@@ -72,7 +214,7 @@ class SafeLocationControllerTest {
 
         ResponseEntity<Long> response = safeLocationController.addSafeLocationForCurrentUser(location);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(newId, response.getBody());
         verify(safeLocationService).addSafeLocationForCurrentUser(location);
     }
@@ -88,7 +230,7 @@ class SafeLocationControllerTest {
 
         ResponseEntity<Long> response = safeLocationController.addSafeLocationForCurrentUser(minimalLocation);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(newId, response.getBody());
         verify(safeLocationService).addSafeLocationForCurrentUser(minimalLocation);
     }
@@ -108,7 +250,7 @@ class SafeLocationControllerTest {
 
         ResponseEntity<Long> response = safeLocationController.addSafeLocationForCurrentUser(completeLocation);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(newId, response.getBody());
         verify(safeLocationService).addSafeLocationForCurrentUser(completeLocation);
     }
@@ -292,7 +434,7 @@ class SafeLocationControllerTest {
 
         ResponseEntity<Long> addResponse = safeLocationController.addSafeLocationForCurrentUser(addDto);
 
-        assertEquals(HttpStatus.OK, addResponse.getStatusCode());
+        assertEquals(HttpStatus.CREATED, addResponse.getStatusCode());
         assertEquals(999L, addResponse.getBody());
 
         ResponseEntity<Void> editResponse = safeLocationController.editSafeLocationForCurrentUser(999L, editDto);
@@ -306,5 +448,191 @@ class SafeLocationControllerTest {
         verify(safeLocationService).addSafeLocationForCurrentUser(addDto);
         verify(safeLocationService).editSafeLocationForCurrentUser(999L, editDto);
         verify(safeLocationService).deleteSafeLocationForCurrentUser(999L);
+    }
+
+    /* =========================
+     * Additional Edge Cases
+     * ========================= */
+    @Test
+    void addSafeLocationForCurrentUser_withNegativeCoordinates_success() {
+        SafeLocationDto location = new SafeLocationDto();
+        location.setName("Sydney");
+        location.setLatitude(-33.8688);
+        location.setLongitude(151.2093);
+        Long newId = 777L;
+
+        when(safeLocationService.addSafeLocationForCurrentUser(location)).thenReturn(newId);
+
+        ResponseEntity<Long> response = safeLocationController.addSafeLocationForCurrentUser(location);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(newId, response.getBody());
+        verify(safeLocationService).addSafeLocationForCurrentUser(location);
+    }
+
+    @Test
+    void addSafeLocationForCurrentUser_withExtremeCoordinates_success() {
+        SafeLocationDto location = new SafeLocationDto();
+        location.setName("North Pole");
+        location.setLatitude(90.0);
+        location.setLongitude(180.0);
+        Long newId = 888L;
+
+        when(safeLocationService.addSafeLocationForCurrentUser(location)).thenReturn(newId);
+
+        ResponseEntity<Long> response = safeLocationController.addSafeLocationForCurrentUser(location);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(newId, response.getBody());
+        verify(safeLocationService).addSafeLocationForCurrentUser(location);
+    }
+
+    @Test
+    void addSafeLocationForCurrentUser_withZeroCoordinates_success() {
+        SafeLocationDto location = new SafeLocationDto();
+        location.setName("Null Island");
+        location.setLatitude(0.0);
+        location.setLongitude(0.0);
+        Long newId = 1L;
+
+        when(safeLocationService.addSafeLocationForCurrentUser(location)).thenReturn(newId);
+
+        ResponseEntity<Long> response = safeLocationController.addSafeLocationForCurrentUser(location);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(newId, response.getBody());
+        verify(safeLocationService).addSafeLocationForCurrentUser(location);
+    }
+
+    @Test
+    void addSafeLocationForCurrentUser_withNullName_success() {
+        SafeLocationDto location = new SafeLocationDto();
+        location.setName(null);
+        location.setLatitude(LATITUDE);
+        location.setLongitude(LONGITUDE);
+        Long newId = 2L;
+
+        when(safeLocationService.addSafeLocationForCurrentUser(location)).thenReturn(newId);
+
+        ResponseEntity<Long> response = safeLocationController.addSafeLocationForCurrentUser(location);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(newId, response.getBody());
+        verify(safeLocationService).addSafeLocationForCurrentUser(location);
+    }
+
+    @Test
+    void addSafeLocationForCurrentUser_withEmptyStrings_success() {
+        SafeLocationDto location = new SafeLocationDto();
+        location.setName("");
+        location.setAddress("");
+        location.setDescription("");
+        location.setLatitude(LATITUDE);
+        location.setLongitude(LONGITUDE);
+        Long newId = 3L;
+
+        when(safeLocationService.addSafeLocationForCurrentUser(location)).thenReturn(newId);
+
+        ResponseEntity<Long> response = safeLocationController.addSafeLocationForCurrentUser(location);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(newId, response.getBody());
+        verify(safeLocationService).addSafeLocationForCurrentUser(location);
+    }
+
+    @Test
+    void editSafeLocationForCurrentUser_withNullValues_success() {
+        SafeLocationDto editDto = new SafeLocationDto();
+        editDto.setName(null);
+        editDto.setAddress(null);
+        doNothing().when(safeLocationService).editSafeLocationForCurrentUser(LOCATION_ID, editDto);
+
+        ResponseEntity<Void> response = safeLocationController.editSafeLocationForCurrentUser(LOCATION_ID, editDto);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(safeLocationService).editSafeLocationForCurrentUser(LOCATION_ID, editDto);
+    }
+
+    @Test
+    void editSafeLocationForCurrentUser_withZeroId_success() {
+        Long zeroId = 0L;
+        SafeLocationDto editDto = new SafeLocationDto();
+        editDto.setName("Edited");
+        doNothing().when(safeLocationService).editSafeLocationForCurrentUser(zeroId, editDto);
+
+        ResponseEntity<Void> response = safeLocationController.editSafeLocationForCurrentUser(zeroId, editDto);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(safeLocationService).editSafeLocationForCurrentUser(zeroId, editDto);
+    }
+
+    @Test
+    void editSafeLocationForCurrentUser_withMaxLongId_success() {
+        Long maxId = Long.MAX_VALUE;
+        SafeLocationDto editDto = new SafeLocationDto();
+        editDto.setName("Edited");
+        doNothing().when(safeLocationService).editSafeLocationForCurrentUser(maxId, editDto);
+
+        ResponseEntity<Void> response = safeLocationController.editSafeLocationForCurrentUser(maxId, editDto);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(safeLocationService).editSafeLocationForCurrentUser(maxId, editDto);
+    }
+
+    @Test
+    void getSafeLocationForCurrentUser_thenEdit_workflow() {
+        // Get location
+        when(safeLocationService.getSafeLocationForCurrentUser(LOCATION_ID)).thenReturn(safeLocationDto);
+
+        ResponseEntity<SafeLocationDto> getResponse = safeLocationController.getSafeLocationForCurrentUser(LOCATION_ID);
+
+        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+
+        // Edit location
+        SafeLocationDto editDto = new SafeLocationDto();
+        editDto.setName("Edited Name");
+        doNothing().when(safeLocationService).editSafeLocationForCurrentUser(LOCATION_ID, editDto);
+
+        ResponseEntity<Void> editResponse = safeLocationController.editSafeLocationForCurrentUser(LOCATION_ID, editDto);
+
+        assertEquals(HttpStatus.NO_CONTENT, editResponse.getStatusCode());
+
+        verify(safeLocationService).getSafeLocationForCurrentUser(LOCATION_ID);
+        verify(safeLocationService).editSafeLocationForCurrentUser(LOCATION_ID, editDto);
+    }
+
+    @Test
+    void addSafeLocationForCurrentUser_returnsCorrectId() {
+        SafeLocationDto location = new SafeLocationDto();
+        location.setName("Test");
+        location.setLatitude(LATITUDE);
+        location.setLongitude(LONGITUDE);
+        Long expectedId = 12345L;
+
+        when(safeLocationService.addSafeLocationForCurrentUser(location)).thenReturn(expectedId);
+
+        ResponseEntity<Long> response = safeLocationController.addSafeLocationForCurrentUser(location);
+
+        assertNotNull(response.getBody());
+        assertEquals(expectedId, response.getBody());
+        verify(safeLocationService).addSafeLocationForCurrentUser(location);
+    }
+
+    @Test
+    void addSafeLocationForCurrentUser_withLongAddress_success() {
+        SafeLocationDto location = new SafeLocationDto();
+        location.setName("Location with very long address");
+        location.setAddress("This is a very long address with multiple lines and lots of details about the exact location including street number, building name, floor, apartment number, postal code, city, province, country and additional landmark information");
+        location.setLatitude(LATITUDE);
+        location.setLongitude(LONGITUDE);
+        Long newId = 4L;
+
+        when(safeLocationService.addSafeLocationForCurrentUser(location)).thenReturn(newId);
+
+        ResponseEntity<Long> response = safeLocationController.addSafeLocationForCurrentUser(location);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(newId, response.getBody());
+        verify(safeLocationService).addSafeLocationForCurrentUser(location);
     }
 }

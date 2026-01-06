@@ -3,6 +3,7 @@ package com.tfg.aegis.controller;
 import com.tfg.aegis.model.dto.CompanionRequestDto;
 import com.tfg.aegis.model.dto.CreateCompanionRequestDto;
 import com.tfg.aegis.model.dto.JourneyDto;
+import com.tfg.aegis.model.enums.CompanionRequestEnums;
 import com.tfg.aegis.service.CompanionRequestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -79,55 +80,6 @@ class CompanionRequestControllerTest {
         verify(companionRequestService).createCompanionRequest(dto);
     }
 
-    // Accept Companion Request Tests
-    @Test
-    void accept_success() {
-        when(companionRequestService.acceptCompanionRequest(REQUEST_ID)).thenReturn(companionRequestDto);
-
-        ResponseEntity<CompanionRequestDto> response = companionRequestController.accept(REQUEST_ID);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(companionRequestDto, response.getBody());
-        verify(companionRequestService).acceptCompanionRequest(REQUEST_ID);
-    }
-
-    @Test
-    void accept_withDifferentId_success() {
-        Long differentId = 777L;
-        CompanionRequestDto dto = new CompanionRequestDto();
-        dto.setId(differentId);
-        when(companionRequestService.acceptCompanionRequest(differentId)).thenReturn(dto);
-
-        ResponseEntity<CompanionRequestDto> response = companionRequestController.accept(differentId);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(differentId, response.getBody().getId());
-        verify(companionRequestService).acceptCompanionRequest(differentId);
-    }
-
-    @Test
-    void rejectCompanionRequest_success() {
-        doNothing().when(companionRequestService).rejectCompanionRequest(REQUEST_ID);
-
-        ResponseEntity<Void> response = companionRequestController.rejectCompanionRequest(REQUEST_ID);
-
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(companionRequestService).rejectCompanionRequest(REQUEST_ID);
-    }
-
-    @Test
-    void rejectCompanionRequest_withDifferentId_success() {
-        Long differentId = 888L;
-        doNothing().when(companionRequestService).rejectCompanionRequest(differentId);
-
-        ResponseEntity<Void> response = companionRequestController.rejectCompanionRequest(differentId);
-
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(companionRequestService).rejectCompanionRequest(differentId);
-    }
-
     @Test
     void deleteCompanionRequest_success() {
         doNothing().when(companionRequestService).deleteCompanionRequest(REQUEST_ID);
@@ -148,30 +100,6 @@ class CompanionRequestControllerTest {
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(companionRequestService).deleteCompanionRequest(differentId);
-    }
-
-    @Test
-    void finishCompanionRequest_success() {
-        when(companionRequestService.finishCompanionRequest(REQUEST_ID)).thenReturn(companionRequestDto);
-
-        ResponseEntity<CompanionRequestDto> response = companionRequestController.finishCompanionRequest(REQUEST_ID);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(companionRequestDto, response.getBody());
-        verify(companionRequestService).finishCompanionRequest(REQUEST_ID);
-    }
-
-    @Test
-    void finishCompanionRequest_withDifferentId_success() {
-        Long differentId = 333L;
-        CompanionRequestDto dto = new CompanionRequestDto();
-        when(companionRequestService.finishCompanionRequest(differentId)).thenReturn(dto);
-
-        ResponseEntity<CompanionRequestDto> response = companionRequestController.finishCompanionRequest(differentId);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(companionRequestService).finishCompanionRequest(differentId);
     }
 
     @Test
@@ -445,5 +373,121 @@ class CompanionRequestControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(requestId, response.getBody().getId());
         verify(companionRequestService).getCompanionRequestById(requestId);
+    }
+
+    @Test
+    void changeStatus_toMatched_success() {
+        CompanionRequestDto updatedDto = new CompanionRequestDto();
+        updatedDto.setId(REQUEST_ID);
+        when(companionRequestService.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.MATCHED))
+                .thenReturn(updatedDto);
+
+        ResponseEntity<CompanionRequestDto> response =
+                companionRequestController.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.MATCHED);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(REQUEST_ID, response.getBody().getId());
+        verify(companionRequestService).changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.MATCHED);
+    }
+
+    @Test
+    void changeStatus_toCreated_success() {
+        CompanionRequestDto updatedDto = new CompanionRequestDto();
+        when(companionRequestService.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.CREATED))
+                .thenReturn(updatedDto);
+
+        ResponseEntity<CompanionRequestDto> response =
+                companionRequestController.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.CREATED);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        verify(companionRequestService).changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.CREATED);
+    }
+
+    @Test
+    void changeStatus_toFinished_success() {
+        CompanionRequestDto updatedDto = new CompanionRequestDto();
+        when(companionRequestService.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.FINISHED))
+                .thenReturn(updatedDto);
+
+        ResponseEntity<CompanionRequestDto> response =
+                companionRequestController.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.FINISHED);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        verify(companionRequestService).changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.FINISHED);
+    }
+
+    @Test
+    void changeStatus_toPending_success() {
+        CompanionRequestDto updatedDto = new CompanionRequestDto();
+        when(companionRequestService.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.PENDING))
+                .thenReturn(updatedDto);
+
+        ResponseEntity<CompanionRequestDto> response =
+                companionRequestController.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.PENDING);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        verify(companionRequestService).changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.PENDING);
+    }
+
+    @Test
+    void changeStatus_toInProgress_success() {
+        CompanionRequestDto updatedDto = new CompanionRequestDto();
+        when(companionRequestService.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.IN_PROGRESS))
+                .thenReturn(updatedDto);
+
+        ResponseEntity<CompanionRequestDto> response =
+                companionRequestController.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.IN_PROGRESS);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        verify(companionRequestService).changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.IN_PROGRESS);
+    }
+
+    @Test
+    void changeStatus_toCancelled_success() {
+        CompanionRequestDto updatedDto = new CompanionRequestDto();
+        when(companionRequestService.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.CANCELLED))
+                .thenReturn(updatedDto);
+
+        ResponseEntity<CompanionRequestDto> response =
+                companionRequestController.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.CANCELLED);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        verify(companionRequestService).changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.CANCELLED);
+    }
+
+    @Test
+    void changeStatus_toExpired_success() {
+        CompanionRequestDto updatedDto = new CompanionRequestDto();
+        when(companionRequestService.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.EXPIRED))
+                .thenReturn(updatedDto);
+
+        ResponseEntity<CompanionRequestDto> response =
+                companionRequestController.changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.EXPIRED);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        verify(companionRequestService).changeStatus(REQUEST_ID, CompanionRequestEnums.RequestStatus.EXPIRED);
+    }
+
+    @Test
+    void changeStatus_withDifferentId_success() {
+        Long differentId = 999L;
+        CompanionRequestDto updatedDto = new CompanionRequestDto();
+        updatedDto.setId(differentId);
+        when(companionRequestService.changeStatus(differentId, CompanionRequestEnums.RequestStatus.MATCHED))
+                .thenReturn(updatedDto);
+
+        ResponseEntity<CompanionRequestDto> response =
+                companionRequestController.changeStatus(differentId, CompanionRequestEnums.RequestStatus.MATCHED);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(differentId, response.getBody().getId());
+        verify(companionRequestService).changeStatus(differentId, CompanionRequestEnums.RequestStatus.MATCHED);
     }
 }

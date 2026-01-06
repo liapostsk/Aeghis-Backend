@@ -38,6 +38,133 @@ class ExternalContactControllerTest {
     }
 
     @Test
+    void getExternalContactForCurrentUser_success() {
+        when(externalContactService.getExternalContactForCurrentUser(CONTACT_ID)).thenReturn(externalContactDto);
+
+        ResponseEntity<ExternalContactDto> response = externalContactController.getExternalContactForCurrentUser(CONTACT_ID);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(CONTACT_ID, response.getBody().getId());
+        assertEquals(PHONE, response.getBody().getPhone());
+        assertEquals(NAME, response.getBody().getName());
+        assertEquals(RELATION, response.getBody().getRelation());
+        verify(externalContactService).getExternalContactForCurrentUser(CONTACT_ID);
+    }
+
+    @Test
+    void getExternalContactForCurrentUser_withDifferentId_success() {
+        Long differentId = 999L;
+        ExternalContactDto differentContact = new ExternalContactDto();
+        differentContact.setId(differentId);
+        differentContact.setPhone("+9876543210");
+        differentContact.setName("Jane Smith");
+        differentContact.setRelation("Sister");
+        when(externalContactService.getExternalContactForCurrentUser(differentId)).thenReturn(differentContact);
+
+        ResponseEntity<ExternalContactDto> response = externalContactController.getExternalContactForCurrentUser(differentId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(differentId, response.getBody().getId());
+        assertEquals("+9876543210", response.getBody().getPhone());
+        assertEquals("Jane Smith", response.getBody().getName());
+        assertEquals("Sister", response.getBody().getRelation());
+        verify(externalContactService).getExternalContactForCurrentUser(differentId);
+    }
+
+    @Test
+    void getExternalContactForCurrentUser_withMinimalData_success() {
+        Long contactId = 456L;
+        ExternalContactDto minimalContact = new ExternalContactDto();
+        minimalContact.setId(contactId);
+        minimalContact.setPhone("+1111111111");
+        when(externalContactService.getExternalContactForCurrentUser(contactId)).thenReturn(minimalContact);
+
+        ResponseEntity<ExternalContactDto> response = externalContactController.getExternalContactForCurrentUser(contactId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(contactId, response.getBody().getId());
+        assertEquals("+1111111111", response.getBody().getPhone());
+        verify(externalContactService).getExternalContactForCurrentUser(contactId);
+    }
+
+    @Test
+    void getExternalContactForCurrentUser_multipleRequests_success() {
+        Long id1 = 100L, id2 = 200L;
+        ExternalContactDto contact1 = new ExternalContactDto();
+        contact1.setId(id1);
+        contact1.setName("Contact 1");
+        ExternalContactDto contact2 = new ExternalContactDto();
+        contact2.setId(id2);
+        contact2.setName("Contact 2");
+
+        when(externalContactService.getExternalContactForCurrentUser(id1)).thenReturn(contact1);
+        when(externalContactService.getExternalContactForCurrentUser(id2)).thenReturn(contact2);
+
+        ResponseEntity<ExternalContactDto> response1 = externalContactController.getExternalContactForCurrentUser(id1);
+        ResponseEntity<ExternalContactDto> response2 = externalContactController.getExternalContactForCurrentUser(id2);
+
+        assertEquals(HttpStatus.OK, response1.getStatusCode());
+        assertEquals(HttpStatus.OK, response2.getStatusCode());
+        assertEquals(id1, response1.getBody().getId());
+        assertEquals(id2, response2.getBody().getId());
+        verify(externalContactService).getExternalContactForCurrentUser(id1);
+        verify(externalContactService).getExternalContactForCurrentUser(id2);
+    }
+
+    @Test
+    void getExternalContactForCurrentUser_withCompleteData_success() {
+        ExternalContactDto completeContact = new ExternalContactDto();
+        completeContact.setId(CONTACT_ID);
+        completeContact.setPhone("+34600123456");
+        completeContact.setName("Complete Contact");
+        completeContact.setRelation("Family");
+        when(externalContactService.getExternalContactForCurrentUser(CONTACT_ID)).thenReturn(completeContact);
+
+        ResponseEntity<ExternalContactDto> response = externalContactController.getExternalContactForCurrentUser(CONTACT_ID);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        ExternalContactDto body = response.getBody();
+        assertNotNull(body);
+        assertEquals(CONTACT_ID, body.getId());
+        assertEquals("+34600123456", body.getPhone());
+        assertEquals("Complete Contact", body.getName());
+        assertEquals("Family", body.getRelation());
+        verify(externalContactService).getExternalContactForCurrentUser(CONTACT_ID);
+    }
+
+    @Test
+    void getExternalContactForCurrentUser_withZeroId_success() {
+        Long zeroId = 0L;
+        ExternalContactDto contact = new ExternalContactDto();
+        contact.setId(zeroId);
+        when(externalContactService.getExternalContactForCurrentUser(zeroId)).thenReturn(contact);
+
+        ResponseEntity<ExternalContactDto> response = externalContactController.getExternalContactForCurrentUser(zeroId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(zeroId, response.getBody().getId());
+        verify(externalContactService).getExternalContactForCurrentUser(zeroId);
+    }
+
+    @Test
+    void getExternalContactForCurrentUser_withMaxLongId_success() {
+        Long maxId = Long.MAX_VALUE;
+        ExternalContactDto contact = new ExternalContactDto();
+        contact.setId(maxId);
+        when(externalContactService.getExternalContactForCurrentUser(maxId)).thenReturn(contact);
+
+        ResponseEntity<ExternalContactDto> response = externalContactController.getExternalContactForCurrentUser(maxId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(maxId, response.getBody().getId());
+        verify(externalContactService).getExternalContactForCurrentUser(maxId);
+    }
+
+
+    @Test
     void createExternalContactForCurrentUser_shouldReturnOkWithId() {
         when(externalContactService.createExternalContactForCurrentUser(externalContactDto)).thenReturn(CONTACT_ID);
 

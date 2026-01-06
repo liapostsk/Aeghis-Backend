@@ -75,6 +75,143 @@ class EmergencyContactControllerTest {
     }
 
     @Test
+    void getEmergencyContactForCurrentUser_success() {
+        when(emergencyContactService.getEmergencyContactForCurrentUser(CONTACT_ID)).thenReturn(emergencyContactDto);
+
+        ResponseEntity<EmergencyContactDto> response = emergencyContactController.getEmergencyContactForCurrentUser(CONTACT_ID);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(CONTACT_ID, response.getBody().getId());
+        assertEquals(2L, response.getBody().getContactId());
+        assertEquals("Sister", response.getBody().getRelation());
+        assertEquals(EmergencyContactEnum.Status.PENDING, response.getBody().getStatus());
+        verify(emergencyContactService).getEmergencyContactForCurrentUser(CONTACT_ID);
+    }
+
+    @Test
+    void getEmergencyContactForCurrentUser_withDifferentId_success() {
+        Long differentId = 999L;
+        EmergencyContactDto differentContact = new EmergencyContactDto();
+        differentContact.setId(differentId);
+        differentContact.setContactId(5L);
+        differentContact.setRelation("Brother");
+        differentContact.setStatus(EmergencyContactEnum.Status.ACCEPTED);
+        when(emergencyContactService.getEmergencyContactForCurrentUser(differentId)).thenReturn(differentContact);
+
+        ResponseEntity<EmergencyContactDto> response = emergencyContactController.getEmergencyContactForCurrentUser(differentId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(differentId, response.getBody().getId());
+        assertEquals(5L, response.getBody().getContactId());
+        assertEquals("Brother", response.getBody().getRelation());
+        assertEquals(EmergencyContactEnum.Status.ACCEPTED, response.getBody().getStatus());
+        verify(emergencyContactService).getEmergencyContactForCurrentUser(differentId);
+    }
+
+    @Test
+    void getEmergencyContactForCurrentUser_withAcceptedStatus_success() {
+        EmergencyContactDto acceptedContact = new EmergencyContactDto();
+        acceptedContact.setId(CONTACT_ID);
+        acceptedContact.setStatus(EmergencyContactEnum.Status.ACCEPTED);
+        when(emergencyContactService.getEmergencyContactForCurrentUser(CONTACT_ID)).thenReturn(acceptedContact);
+
+        ResponseEntity<EmergencyContactDto> response = emergencyContactController.getEmergencyContactForCurrentUser(CONTACT_ID);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(EmergencyContactEnum.Status.ACCEPTED, response.getBody().getStatus());
+        verify(emergencyContactService).getEmergencyContactForCurrentUser(CONTACT_ID);
+    }
+
+    @Test
+    void getEmergencyContactForCurrentUser_withRejectedStatus_success() {
+        EmergencyContactDto rejectedContact = new EmergencyContactDto();
+        rejectedContact.setId(CONTACT_ID);
+        rejectedContact.setStatus(EmergencyContactEnum.Status.REJECTED);
+        when(emergencyContactService.getEmergencyContactForCurrentUser(CONTACT_ID)).thenReturn(rejectedContact);
+
+        ResponseEntity<EmergencyContactDto> response = emergencyContactController.getEmergencyContactForCurrentUser(CONTACT_ID);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(EmergencyContactEnum.Status.REJECTED, response.getBody().getStatus());
+        verify(emergencyContactService).getEmergencyContactForCurrentUser(CONTACT_ID);
+    }
+
+    @Test
+    void getEmergencyContactForCurrentUser_multipleRequests_success() {
+        Long id1 = 100L, id2 = 200L;
+        EmergencyContactDto contact1 = new EmergencyContactDto();
+        contact1.setId(id1);
+        contact1.setRelation("Mother");
+        EmergencyContactDto contact2 = new EmergencyContactDto();
+        contact2.setId(id2);
+        contact2.setRelation("Father");
+
+        when(emergencyContactService.getEmergencyContactForCurrentUser(id1)).thenReturn(contact1);
+        when(emergencyContactService.getEmergencyContactForCurrentUser(id2)).thenReturn(contact2);
+
+        ResponseEntity<EmergencyContactDto> response1 = emergencyContactController.getEmergencyContactForCurrentUser(id1);
+        ResponseEntity<EmergencyContactDto> response2 = emergencyContactController.getEmergencyContactForCurrentUser(id2);
+
+        assertEquals(HttpStatus.OK, response1.getStatusCode());
+        assertEquals(HttpStatus.OK, response2.getStatusCode());
+        assertEquals(id1, response1.getBody().getId());
+        assertEquals(id2, response2.getBody().getId());
+        verify(emergencyContactService).getEmergencyContactForCurrentUser(id1);
+        verify(emergencyContactService).getEmergencyContactForCurrentUser(id2);
+    }
+
+    @Test
+    void getEmergencyContactForCurrentUser_withCompleteData_success() {
+        EmergencyContactDto completeContact = new EmergencyContactDto();
+        completeContact.setId(CONTACT_ID);
+        completeContact.setContactId(10L);
+        completeContact.setRelation("Best Friend");
+        completeContact.setStatus(EmergencyContactEnum.Status.ACCEPTED);
+        when(emergencyContactService.getEmergencyContactForCurrentUser(CONTACT_ID)).thenReturn(completeContact);
+
+        ResponseEntity<EmergencyContactDto> response = emergencyContactController.getEmergencyContactForCurrentUser(CONTACT_ID);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        EmergencyContactDto body = response.getBody();
+        assertNotNull(body);
+        assertEquals(CONTACT_ID, body.getId());
+        assertEquals(10L, body.getContactId());
+        assertEquals("Best Friend", body.getRelation());
+        assertEquals(EmergencyContactEnum.Status.ACCEPTED, body.getStatus());
+        verify(emergencyContactService).getEmergencyContactForCurrentUser(CONTACT_ID);
+    }
+
+    @Test
+    void getEmergencyContactForCurrentUser_withZeroId_success() {
+        Long zeroId = 0L;
+        EmergencyContactDto contact = new EmergencyContactDto();
+        contact.setId(zeroId);
+        when(emergencyContactService.getEmergencyContactForCurrentUser(zeroId)).thenReturn(contact);
+
+        ResponseEntity<EmergencyContactDto> response = emergencyContactController.getEmergencyContactForCurrentUser(zeroId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(zeroId, response.getBody().getId());
+        verify(emergencyContactService).getEmergencyContactForCurrentUser(zeroId);
+    }
+
+    @Test
+    void getEmergencyContactForCurrentUser_withMaxLongId_success() {
+        Long maxId = Long.MAX_VALUE;
+        EmergencyContactDto contact = new EmergencyContactDto();
+        contact.setId(maxId);
+        when(emergencyContactService.getEmergencyContactForCurrentUser(maxId)).thenReturn(contact);
+
+        ResponseEntity<EmergencyContactDto> response = emergencyContactController.getEmergencyContactForCurrentUser(maxId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(maxId, response.getBody().getId());
+        verify(emergencyContactService).getEmergencyContactForCurrentUser(maxId);
+    }
+
+    @Test
     void addEmergencyContactForCurrentUser_shouldReturnOkWithDto() {
         EmergencyContactDto inputDto = new EmergencyContactDto();
         inputDto.setContactId(5L);
@@ -87,7 +224,7 @@ class EmergencyContactControllerTest {
         ResponseEntity<EmergencyContactDto> response =
                 emergencyContactController.addEmergencyContactForCurrentUser(inputDto);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(expectedDto, response.getBody());
         assertEquals(999L, response.getBody().getId());
         verify(emergencyContactService, times(1)).addEmergencyContactForCurrentUser(inputDto);
@@ -105,7 +242,7 @@ class EmergencyContactControllerTest {
         ResponseEntity<EmergencyContactDto> response =
                 emergencyContactController.addEmergencyContactForCurrentUser(inputDto);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("Friend", response.getBody().getRelation());
         verify(emergencyContactService).addEmergencyContactForCurrentUser(inputDto);
     }
@@ -130,8 +267,8 @@ class EmergencyContactControllerTest {
         ResponseEntity<EmergencyContactDto> response2 =
                 emergencyContactController.addEmergencyContactForCurrentUser(contact2);
 
-        assertEquals(HttpStatus.OK, response1.getStatusCode());
-        assertEquals(HttpStatus.OK, response2.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response1.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response2.getStatusCode());
         assertEquals(100L, response1.getBody().getId());
         assertEquals(200L, response2.getBody().getId());
         verify(emergencyContactService, times(2)).addEmergencyContactForCurrentUser(any(EmergencyContactDto.class));
@@ -350,7 +487,7 @@ class EmergencyContactControllerTest {
                 emergencyContactController.addEmergencyContactForCurrentUser(addDto);
 
         // Then - Add
-        assertEquals(HttpStatus.OK, addResponse.getStatusCode());
+        assertEquals(HttpStatus.CREATED, addResponse.getStatusCode());
         assertEquals(100L, addResponse.getBody().getId());
 
         // When - Edit

@@ -40,18 +40,18 @@ class InvitationControllerTest {
     }
 
     @Test
-    void createInvitation_shouldReturn201WithBody_andPassNullExpiry() {
-        Long expiryIgnoredByController = 999L; // el controller lo ignora y pasa null
-        when(invitationService.createInvitation(GROUP_ID, null)).thenReturn(invitationDto);
+    void createInvitation_withExpiryParam_shouldPassExpiry() {
+        Long expiry = 3600L; // 1 hour
+        when(invitationService.createInvitation(GROUP_ID, expiry)).thenReturn(invitationDto);
 
         ResponseEntity<InvitationDto> response =
-                invitationController.createInvitation(GROUP_ID, expiryIgnoredByController);
+                invitationController.createInvitation(GROUP_ID, expiry);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(invitationDto, response.getBody());
         assertEquals(VALID_CODE, response.getBody().getCode());
-        verify(invitationService, times(1)).createInvitation(GROUP_ID, null);
+        verify(invitationService, times(1)).createInvitation(GROUP_ID, expiry);
     }
 
     @Test
@@ -70,43 +70,44 @@ class InvitationControllerTest {
     @Test
     void createInvitation_withDifferentGroupId_success() {
         Long differentGroupId = 456L;
+        Long expiry = 100L;
         InvitationDto differentInvitation = new InvitationDto();
         differentInvitation.setGroupId(differentGroupId);
         differentInvitation.setCode("INV-XYZ789");
-        when(invitationService.createInvitation(differentGroupId, null)).thenReturn(differentInvitation);
+        when(invitationService.createInvitation(differentGroupId, expiry)).thenReturn(differentInvitation);
 
         ResponseEntity<InvitationDto> response =
-                invitationController.createInvitation(differentGroupId, 100L);
+                invitationController.createInvitation(differentGroupId, expiry);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(differentGroupId, response.getBody().getGroupId());
         assertEquals("INV-XYZ789", response.getBody().getCode());
-        verify(invitationService).createInvitation(differentGroupId, null);
+        verify(invitationService).createInvitation(differentGroupId, expiry);
     }
 
     @Test
-    void createInvitation_withZeroExpiry_stillPassesNull() {
+    void createInvitation_withZeroExpiry_success() {
         Long zeroExpiry = 0L;
-        when(invitationService.createInvitation(GROUP_ID, null)).thenReturn(invitationDto);
+        when(invitationService.createInvitation(GROUP_ID, zeroExpiry)).thenReturn(invitationDto);
 
         ResponseEntity<InvitationDto> response =
                 invitationController.createInvitation(GROUP_ID, zeroExpiry);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        verify(invitationService).createInvitation(GROUP_ID, null);
+        verify(invitationService).createInvitation(GROUP_ID, zeroExpiry);
     }
 
     @Test
-    void createInvitation_withNegativeExpiry_stillPassesNull() {
+    void createInvitation_withNegativeExpiry_success() {
         Long negativeExpiry = -100L;
-        when(invitationService.createInvitation(GROUP_ID, null)).thenReturn(invitationDto);
+        when(invitationService.createInvitation(GROUP_ID, negativeExpiry)).thenReturn(invitationDto);
 
         ResponseEntity<InvitationDto> response =
                 invitationController.createInvitation(GROUP_ID, negativeExpiry);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        verify(invitationService).createInvitation(GROUP_ID, null);
+        verify(invitationService).createInvitation(GROUP_ID, negativeExpiry);
     }
 
     @Test
@@ -236,17 +237,94 @@ class InvitationControllerTest {
     }
 
     @Test
-    void createInvitation_alwaysIgnoresExpiryParameter() {
-        Long[] expiryValues = {null, 0L, 1L, 100L, 9999L, -1L, Long.MAX_VALUE, Long.MIN_VALUE};
+    void createInvitation_withLargeExpiry_success() {
+        Long largeExpiry = 999999L;
+        when(invitationService.createInvitation(GROUP_ID, largeExpiry)).thenReturn(invitationDto);
 
-        for (Long expiry : expiryValues) {
-            reset(invitationService);
-            when(invitationService.createInvitation(GROUP_ID, null)).thenReturn(invitationDto);
+        ResponseEntity<InvitationDto> response =
+                invitationController.createInvitation(GROUP_ID, largeExpiry);
 
-                ResponseEntity<InvitationDto> response = invitationController.createInvitation(GROUP_ID, expiry);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(invitationService).createInvitation(GROUP_ID, largeExpiry);
+    }
 
-                assertEquals(HttpStatus.CREATED, response.getStatusCode());
-            verify(invitationService).createInvitation(eq(GROUP_ID), isNull());
-        }
+    @Test
+    void createInvitation_withMaxLongExpiry_success() {
+        Long maxExpiry = Long.MAX_VALUE;
+        when(invitationService.createInvitation(GROUP_ID, maxExpiry)).thenReturn(invitationDto);
+
+        ResponseEntity<InvitationDto> response =
+                invitationController.createInvitation(GROUP_ID, maxExpiry);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(invitationService).createInvitation(GROUP_ID, maxExpiry);
+    }
+
+    @Test
+    void createInvitation_withMinLongExpiry_success() {
+        Long minExpiry = Long.MIN_VALUE;
+        when(invitationService.createInvitation(GROUP_ID, minExpiry)).thenReturn(invitationDto);
+
+        ResponseEntity<InvitationDto> response =
+                invitationController.createInvitation(GROUP_ID, minExpiry);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(invitationService).createInvitation(GROUP_ID, minExpiry);
+    }
+
+    @Test
+    void createInvitation_multipleInvitationsWithDifferentExpiries_success() {
+        Long expiry1 = 100L;
+        Long expiry2 = 200L;
+        Long expiry3 = null;
+
+        InvitationDto inv1 = new InvitationDto();
+        inv1.setCode("CODE1");
+        InvitationDto inv2 = new InvitationDto();
+        inv2.setCode("CODE2");
+        InvitationDto inv3 = new InvitationDto();
+        inv3.setCode("CODE3");
+
+        when(invitationService.createInvitation(GROUP_ID, expiry1)).thenReturn(inv1);
+        when(invitationService.createInvitation(GROUP_ID, expiry2)).thenReturn(inv2);
+        when(invitationService.createInvitation(GROUP_ID, expiry3)).thenReturn(inv3);
+
+        ResponseEntity<InvitationDto> response1 = invitationController.createInvitation(GROUP_ID, expiry1);
+        ResponseEntity<InvitationDto> response2 = invitationController.createInvitation(GROUP_ID, expiry2);
+        ResponseEntity<InvitationDto> response3 = invitationController.createInvitation(GROUP_ID, expiry3);
+
+        assertEquals(HttpStatus.CREATED, response1.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response2.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response3.getStatusCode());
+        assertEquals("CODE1", response1.getBody().getCode());
+        assertEquals("CODE2", response2.getBody().getCode());
+        assertEquals("CODE3", response3.getBody().getCode());
+        verify(invitationService).createInvitation(GROUP_ID, expiry1);
+        verify(invitationService).createInvitation(GROUP_ID, expiry2);
+        verify(invitationService).createInvitation(GROUP_ID, expiry3);
+    }
+
+    @Test
+    void createInvitation_withZeroGroupId_success() {
+        Long zeroGroupId = 0L;
+        when(invitationService.createInvitation(zeroGroupId, null)).thenReturn(invitationDto);
+
+        ResponseEntity<InvitationDto> response =
+                invitationController.createInvitation(zeroGroupId, null);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(invitationService).createInvitation(zeroGroupId, null);
+    }
+
+    @Test
+    void createInvitation_withMaxLongGroupId_success() {
+        Long maxGroupId = Long.MAX_VALUE;
+        when(invitationService.createInvitation(maxGroupId, null)).thenReturn(invitationDto);
+
+        ResponseEntity<InvitationDto> response =
+                invitationController.createInvitation(maxGroupId, null);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        verify(invitationService).createInvitation(maxGroupId, null);
     }
 }

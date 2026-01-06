@@ -31,7 +31,6 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -365,7 +364,7 @@ class UserServiceTest {
 
         assertEquals(1L, id);
         assertEquals(UserEnums.TypeRole.ADMIN, toSave.getRole());
-        assertEquals(UserEnums.VerificationStatus.PENDING, toSave.getVerify());
+        assertEquals(UserEnums.VerificationStatus.NO_REQUEST, toSave.getVerify());
     }
 
     @Test
@@ -406,6 +405,7 @@ class UserServiceTest {
 
         Long id = userService.createUser(dto);
 
+        assertEquals(1L, id);
         assertEquals(UserEnums.TypeRole.USER, toSave.getRole());
     }
 
@@ -557,5 +557,409 @@ class UserServiceTest {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class,
             () -> userService.verifyUser(99L, UserEnums.VerificationStatus.VERIFIED));
+    }
+
+    @Test
+    void createUser_withNullEmail_defaultsToUser() {
+        UserDto dto = new UserDto();
+        dto.setName("User");
+        dto.setEmail(null);
+        dto.setPhone("123456789");
+
+        User toSave = new User();
+        when(mapper.toEntity(dto)).thenReturn(toSave);
+
+        ReflectionTestUtils.setField(userService, "adminEmailsStr", "admin@example.com");
+
+        User saved = new User();
+        saved.setId(1L);
+        when(userRepository.save(toSave)).thenReturn(saved);
+
+        Long id = userService.createUser(dto);
+
+        assertEquals(1L, id);
+        assertEquals(UserEnums.TypeRole.USER, toSave.getRole());
+    }
+
+    @Test
+    void createUser_adminEmailsWithSpaces_trimsAndMatches() {
+        UserDto dto = new UserDto();
+        dto.setName("Admin User");
+        dto.setEmail("admin@example.com");
+
+        User toSave = new User();
+        when(mapper.toEntity(dto)).thenReturn(toSave);
+
+        // Configurar con espacios
+        ReflectionTestUtils.setField(userService, "adminEmailsStr", "  admin@example.com  ,  other@example.com  ");
+
+        User saved = new User();
+        saved.setId(1L);
+        when(userRepository.save(toSave)).thenReturn(saved);
+
+        userService.createUser(dto);
+
+        assertEquals(UserEnums.TypeRole.ADMIN, toSave.getRole());
+    }
+
+    @Test
+    void createUser_caseInsensitiveEmailMatch_setsAdmin() {
+        UserDto dto = new UserDto();
+        dto.setEmail("ADMIN@EXAMPLE.COM");
+
+        User toSave = new User();
+        when(mapper.toEntity(dto)).thenReturn(toSave);
+
+        ReflectionTestUtils.setField(userService, "adminEmailsStr", "admin@example.com");
+
+        User saved = new User();
+        saved.setId(1L);
+        when(userRepository.save(toSave)).thenReturn(saved);
+
+        userService.createUser(dto);
+
+        assertEquals(UserEnums.TypeRole.ADMIN, toSave.getRole());
+    }
+
+    @Test
+    void createUser_emptyAdminEmailsString_defaultsToUser() {
+        UserDto dto = new UserDto();
+        dto.setEmail("test@example.com");
+
+        User toSave = new User();
+        when(mapper.toEntity(dto)).thenReturn(toSave);
+
+        ReflectionTestUtils.setField(userService, "adminEmailsStr", "");
+
+        User saved = new User();
+        saved.setId(1L);
+        when(userRepository.save(toSave)).thenReturn(saved);
+
+        userService.createUser(dto);
+
+        assertEquals(UserEnums.TypeRole.USER, toSave.getRole());
+    }
+
+    @Test
+    void createUser_adminEmailsBlankEntries_defaultsToUser() {
+        UserDto dto = new UserDto();
+        dto.setEmail("test@example.com");
+
+        User toSave = new User();
+        when(mapper.toEntity(dto)).thenReturn(toSave);
+
+        ReflectionTestUtils.setField(userService, "adminEmailsStr", "  ,  ,  ");
+
+        User saved = new User();
+        saved.setId(1L);
+        when(userRepository.save(toSave)).thenReturn(saved);
+
+        userService.createUser(dto);
+
+        assertEquals(UserEnums.TypeRole.USER, toSave.getRole());
+    }
+
+    @Test
+    void createUser_withPhone_setsPhone() {
+        UserDto dto = new UserDto();
+        dto.setEmail("test@example.com");
+        dto.setPhone("987654321");
+
+        User toSave = new User();
+        when(mapper.toEntity(dto)).thenReturn(toSave);
+
+        User saved = new User();
+        saved.setId(1L);
+        when(userRepository.save(toSave)).thenReturn(saved);
+
+        userService.createUser(dto);
+
+        assertEquals("987654321", toSave.getPhone());
+        verify(userRepository).save(toSave);
+    }
+
+    @Test
+    void createUser_withNullPhone_doesNotSetPhone() {
+        UserDto dto = new UserDto();
+        dto.setEmail("test@example.com");
+        dto.setPhone(null);
+
+        User toSave = new User();
+        when(mapper.toEntity(dto)).thenReturn(toSave);
+
+        User saved = new User();
+        saved.setId(1L);
+        when(userRepository.save(toSave)).thenReturn(saved);
+
+        userService.createUser(dto);
+
+        verify(userRepository).save(toSave);
+    }
+
+    @Test
+    void createUser_initializesCompanionRequestSets() {
+        UserDto dto = new UserDto();
+        dto.setEmail("test@example.com");
+
+        User toSave = new User();
+        when(mapper.toEntity(dto)).thenReturn(toSave);
+
+        User saved = new User();
+        saved.setId(1L);
+        when(userRepository.save(toSave)).thenReturn(saved);
+
+        userService.createUser(dto);
+
+        assertNotNull(toSave.getCompanionRequestsAccepted());
+        assertNotNull(toSave.getCompanionRequestsCreated());
+        assertTrue(toSave.getCompanionRequestsAccepted().isEmpty());
+        assertTrue(toSave.getCompanionRequestsCreated().isEmpty());
+    }
+
+    @Test
+    void getUser_withEmptyCollections_returnsDto() {
+        User entity = new User();
+        entity.setId(1L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(entity));
+
+        when(emergencyContactRepository.findByOwnerId(1L)).thenReturn(new HashSet<>());
+        when(externalContactRepository.findByOwnerId(1L)).thenReturn(new HashSet<>());
+        when(groupRepository.findByMembers_Id(1L)).thenReturn(new ArrayList<>());
+
+        UserDto dto = new UserDto();
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        UserDto result = userService.getUser(1L);
+
+        assertNotNull(result);
+        assertTrue(result.getEmergencyContacts().isEmpty());
+        assertTrue(result.getExternalContacts().isEmpty());
+        assertTrue(result.getGroups().isEmpty());
+    }
+
+    @Test
+    void getUserByClerkId_withEmptyCollections_returnsDto() {
+        String clerkId = "clerk_abc";
+        User entity = new User();
+        entity.setId(1L);
+        entity.setClerkId(clerkId);
+
+        when(userRepository.findByClerkId(clerkId)).thenReturn(Optional.of(entity));
+        when(emergencyContactRepository.findByOwnerId(1L)).thenReturn(new HashSet<>());
+        when(externalContactRepository.findByOwnerId(1L)).thenReturn(new HashSet<>());
+        when(groupRepository.findByMembers_Id(1L)).thenReturn(new ArrayList<>());
+
+        UserDto dto = new UserDto();
+        when(mapper.toDto(entity)).thenReturn(dto);
+
+        UserDto result = userService.getUserByClerkId(clerkId);
+
+        assertNotNull(result);
+        assertTrue(result.getEmergencyContacts().isEmpty());
+        assertTrue(result.getExternalContacts().isEmpty());
+        assertTrue(result.getGroups().isEmpty());
+    }
+
+    @Test
+    void deleteUser_withZeroId_throwsNotFound() {
+        when(userRepository.existsById(0L)).thenReturn(false);
+        assertThrows(NotFoundException.class, () -> userService.deleteUser(0L));
+    }
+
+    @Test
+    void deleteUser_withMaxLongId_throwsNotFound() {
+        when(userRepository.existsById(Long.MAX_VALUE)).thenReturn(false);
+        assertThrows(NotFoundException.class, () -> userService.deleteUser(Long.MAX_VALUE));
+    }
+
+    @Test
+    void deleteUser_existingUser_deletesSuccessfully() {
+        Long id = 123L;
+        when(userRepository.existsById(id)).thenReturn(true);
+
+        userService.deleteUser(id);
+
+        verify(userRepository).deleteById(id);
+    }
+
+    @Test
+    void userExistsByPhone_withEmptyPhone_returnsNull() {
+        when(userRepository.findByPhone("")).thenReturn(Optional.empty());
+
+        Long result = userService.userExistsByPhone("");
+
+        assertNull(result);
+    }
+
+    @Test
+    void userExistsByPhone_withDifferentPhone_returnsCorrectId() {
+        User user = new User();
+        user.setId(100L);
+        user.setPhone("+34666777888");
+
+        when(userRepository.findByPhone("+34666777888")).thenReturn(Optional.of(user));
+
+        Long result = userService.userExistsByPhone("+34666777888");
+
+        assertEquals(100L, result);
+    }
+
+    @Test
+    void addPhotoToUser_withEmptyString_updatesImage() {
+        Long id = 1L;
+        String photo = "";
+
+        User user = new User();
+        user.setId(id);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+
+        userService.addPhotoToUser(id, photo);
+
+        assertEquals(photo, user.getImage());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void addPhotoToUser_withNullImage_updatesImage() {
+        Long id = 1L;
+
+        User user = new User();
+        user.setId(id);
+        user.setImage("old_image");
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+
+        userService.addPhotoToUser(id, null);
+
+        assertNull(user.getImage());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void getUnverifiedUsers_withMultipleUsers_returnsAll() {
+        User user1 = new User();
+        user1.setId(1L);
+        User user2 = new User();
+        user2.setId(2L);
+        User user3 = new User();
+        user3.setId(3L);
+
+        when(userRepository.findByVerify(UserEnums.VerificationStatus.PENDING))
+                .thenReturn(List.of(user1, user2, user3));
+
+        UserDto dto1 = new UserDto();
+        dto1.setId(1L);
+        UserDto dto2 = new UserDto();
+        dto2.setId(2L);
+        UserDto dto3 = new UserDto();
+        dto3.setId(3L);
+
+        when(mapper.toDto(user1)).thenReturn(dto1);
+        when(mapper.toDto(user2)).thenReturn(dto2);
+        when(mapper.toDto(user3)).thenReturn(dto3);
+
+        List<UserDto> result = userService.getUnverifiedUsers();
+
+        assertEquals(3, result.size());
+        verify(mapper, times(3)).toDto(any(User.class));
+    }
+
+    @Test
+    void verifyUser_toNoRequest_ok() {
+        Long id = 1L;
+        User user = new User();
+        user.setId(id);
+        user.setVerify(UserEnums.VerificationStatus.VERIFIED);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+
+        userService.verifyUser(id, UserEnums.VerificationStatus.NO_REQUEST);
+
+        assertEquals(UserEnums.VerificationStatus.NO_REQUEST, user.getVerify());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void verifyUser_toPending_ok() {
+        Long id = 1L;
+        User user = new User();
+        user.setId(id);
+        user.setVerify(UserEnums.VerificationStatus.NO_REQUEST);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+
+        userService.verifyUser(id, UserEnums.VerificationStatus.PENDING);
+
+        assertEquals(UserEnums.VerificationStatus.PENDING, user.getVerify());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void createUser_withBothContactTypes_createsSuccessfully() {
+        UserDto dto = new UserDto();
+        dto.setEmail("test@example.com");
+
+        // Emergency contact
+        EmergencyContactDto ecDto = new EmergencyContactDto();
+        ecDto.setContactId(2L);
+        dto.setEmergencyContacts(Set.of(ecDto));
+
+        // External contact
+        ExternalContactDto extDto = new ExternalContactDto();
+        extDto.setName("External");
+        dto.setExternalContacts(Set.of(extDto));
+
+        User toSave = new User();
+        when(mapper.toEntity(dto)).thenReturn(toSave);
+
+        User contactUser = new User();
+        contactUser.setId(2L);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(contactUser));
+
+        EmergencyContact ec = new EmergencyContact();
+        when(emergencyContactMapper.toEntity(ecDto)).thenReturn(ec);
+
+        ExternalContact ext = new ExternalContact();
+        when(externalContactMapper.toEntity(extDto)).thenReturn(ext);
+
+        User saved = new User();
+        saved.setId(1L);
+        when(userRepository.save(toSave)).thenReturn(saved);
+
+        Long id = userService.createUser(dto);
+
+        assertEquals(1L, id);
+        verify(emergencyContactMapper).toEntity(ecDto);
+        verify(externalContactMapper).toEntity(extDto);
+    }
+
+    @Test
+    void updateUser_allFields_updatesCorrectly() {
+        Long id = 1L;
+        User existing = new User();
+        existing.setId(id);
+        existing.setName("Old Name");
+        existing.setEmail("old@example.com");
+
+        UserDto dto = new UserDto();
+        dto.setName("New Name");
+        dto.setEmail("new@example.com");
+        dto.setPhone("123456789");
+        java.util.Date dateOfBirth = new java.util.Date();
+        dto.setDateOfBirth(dateOfBirth);
+        dto.setVerify(UserEnums.VerificationStatus.VERIFIED);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(existing));
+
+        userService.updateUser(id, dto);
+
+        assertEquals("New Name", existing.getName());
+        assertEquals("new@example.com", existing.getEmail());
+        assertEquals("123456789", existing.getPhone());
+        assertEquals(dateOfBirth, existing.getDateOfBirth());
+        assertEquals(UserEnums.VerificationStatus.VERIFIED, existing.getVerify());
+        verify(userRepository).save(existing);
     }
 }

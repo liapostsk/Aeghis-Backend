@@ -4,7 +4,6 @@ import com.tfg.aegis.model.enums.CompanionRequestEnums;
 import com.tfg.aegis.service.CompanionRequestService;
 import com.tfg.aegis.model.dto.CompanionRequestDto;
 import com.tfg.aegis.model.dto.CreateCompanionRequestDto;
-import com.tfg.aegis.model.dto.JourneyDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
