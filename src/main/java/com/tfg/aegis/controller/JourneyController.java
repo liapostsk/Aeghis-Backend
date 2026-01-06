@@ -7,13 +7,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
 
-@Tag(name = "Journey", description = "API of Journeys")
-@RequestMapping(value = "/journey")
+@Tag(name = "Journeys", description = "Journey management API")
+@RequestMapping(value = "/journeys")
 @RestController
 @AllArgsConstructor
 public class JourneyController {
@@ -22,16 +23,16 @@ public class JourneyController {
 
     private static final Logger log = LoggerFactory.getLogger(JourneyController.class);
 
-    @Operation(summary = "Get Journey", description = "Method that gets a Journey")
-    @GetMapping(path = "{id}")
+    @Operation(summary = "Get journey", description = "Retrieves a journey by ID")
+    @GetMapping(path = "/{id}")
     public ResponseEntity<JourneyDto> getJourney(@PathVariable(name = "id") Long id) {
         JourneyDto journeyDto = journeyService.getJourney(id);
 
-        log.info("New group created: {}", journeyDto);
+        log.info("Journey fetched: {}", journeyDto);
         return ResponseEntity.ok(journeyDto);
     }
 
-    @Operation(summary = "Get Current Journey", description = "Method that gets the current Journey for a group")
+    @Operation(summary = "Get current journey", description = "Retrieves the current active journey for a specific group")
     @GetMapping(path = "/current/{groupId}")
     public ResponseEntity<JourneyDto> getCurrentJourneyForGroup(@PathVariable(name = "groupId") Long groupId) {
         JourneyDto journeyDto = journeyService.getCurrentJourneyForGroup(groupId);
@@ -40,7 +41,7 @@ public class JourneyController {
         return ResponseEntity.ok(journeyDto);
     }
 
-    @Operation(summary = "Get Active Journeys", description = "Method that gets all active Journeys")
+    @Operation(summary = "Get active journeys", description = "Retrieves all active journeys for the authenticated user")
     @GetMapping(path = "/active")
     public ResponseEntity<Set<JourneyDto>> getActiveJourneys() {
         Set<JourneyDto> journeys = journeyService.getActiveJourneys();
@@ -49,17 +50,17 @@ public class JourneyController {
         return ResponseEntity.ok(journeys);
     }
 
-    @Operation(summary = "Create Journey", description = "Method that creates a Journey")
-    @PostMapping(path = "/create")
+    @Operation(summary = "Create journey", description = "Creates a new journey")
+    @PostMapping
     public ResponseEntity<Long> createJourney(@RequestBody JourneyDto journeyDto) {
         Long id = journeyService.createJourney(journeyDto);
 
         log.info("New journey created with id: {}", id);
-        return ResponseEntity.status(201).body(id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
 
-    @Operation(summary = "Update Journey", description = "Method that updates a Journey")
-    @PutMapping(path = "/update")
+    @Operation(summary = "Update journey", description = "Updates an existing journey")
+    @PutMapping
     public ResponseEntity<Void> updateJourney( @RequestBody JourneyDto journeyDto) {
         journeyService.updateJourney(journeyDto);
 
@@ -67,8 +68,8 @@ public class JourneyController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Add Participation to Journey", description = "Method that adds a Participation to a Journey")
-    @PostMapping(path = "/{journeyId}/addParticipation/{participationId}")
+    @Operation(summary = "Add participation to journey", description = "Adds a participation to an existing journey")
+    @PostMapping(path = "/{journeyId}/participations/{participationId}")
     public ResponseEntity<Void> addParticipationToJourney(@PathVariable(name = "journeyId") Long journeyId,
                                                           @PathVariable(name = "participationId") Long participationId) {
         journeyService.addParticipationToJourney(journeyId, participationId);
@@ -76,7 +77,7 @@ public class JourneyController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Delete Journey", description = "Method that deletes a Journey")
+    @Operation(summary = "Delete journey", description = "Deletes a journey by ID")
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteJourney(@PathVariable(name = "id") Long id) {
         journeyService.deleteJourney(id);
@@ -85,7 +86,7 @@ public class JourneyController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Check if user is participant", description = "Returns true if the user belongs to the Journey")
+    @Operation(summary = "Check if user is participant", description = "Checks if the authenticated user is a participant in the specified journey")
     @GetMapping(path = "/{journeyId}/is-participant")
     public ResponseEntity<Boolean> isUserParticipant(@PathVariable(name = "journeyId") Long journeyId) {
         boolean isParticipant = journeyService.isUserParticipantInJourney(journeyId);
@@ -93,7 +94,7 @@ public class JourneyController {
         return ResponseEntity.ok(isParticipant);
     }
 
-    @Operation(summary = "Get all participants of a Journey", description = "Method that gets all Participants of a Journey")
+    @Operation(summary = "Get journey participants", description = "Retrieves all participant IDs of a journey")
     @GetMapping(path = "/{journeyId}/participants")
     public ResponseEntity<Set<Long>> getAllParticipantsOfJourney(@PathVariable(name = "journeyId") Long journeyId) {
         Set<Long> participantIds = journeyService.getAllParticipantsOfJourney(journeyId);
@@ -101,8 +102,8 @@ public class JourneyController {
         return ResponseEntity.ok(participantIds);
     }
 
-    @Operation(summary= "Change status of Journey", description = "Method that changes the status of a Journey")
-    @PostMapping(path = "/{journeyId}/change-status/{status}")
+    @Operation(summary = "Change journey status", description = "Updates the status of a journey")
+    @PutMapping(path = "/{journeyId}/status/{status}")
     public ResponseEntity<Void> changeJourneyStatus(@PathVariable(name = "journeyId") Long journeyId,
                                                     @PathVariable(name = "status") String status) {
         journeyService.changeJourneyStatus(journeyId, status);

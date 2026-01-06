@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Participation", description = "API of participations")
 @RestController
 @AllArgsConstructor
-@RequestMapping("/participation")
+@RequestMapping("/participations")
 public class ParticipationController {
     private final ParticipationService participationService;
 
@@ -23,16 +23,26 @@ public class ParticipationController {
     }
 
     @Operation(summary = "Create Participation", description = "Method that creates a Participation")
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<Long> createParticipation(@RequestBody ParticipationDto participationDto) {
         Long id = participationService.createParticipation(participationDto);
         return ResponseEntity.status(201).body(id);
     }
 
     @Operation(summary = "Update Participation", description = "Method that updates a Participation")
-    @PutMapping("/update")
+    @PutMapping
     public ResponseEntity<Void> updateParticipation(@RequestBody ParticipationDto participationDto) {
+        if (participationDto.getId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
         participationService.updateParticipation(participationDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Delete Participation", description = "Method that deletes a Participation")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteParticipation(@PathVariable Long id) {
+        participationService.deleteParticipation(id);
         return ResponseEntity.noContent().build();
     }
 }

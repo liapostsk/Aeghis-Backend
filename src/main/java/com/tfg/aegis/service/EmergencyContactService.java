@@ -138,4 +138,9 @@ public class EmergencyContactService {
             emergencyContactRepository.save(contact);
         }
     }
+
+    public EmergencyContactDto getEmergencyContactForCurrentUser(Long id) {
+        EmergencyContact contact = getOwnedContactOrThrow(id);
+        return emergencyContactMapper.toDto(contact);
+    }
 }

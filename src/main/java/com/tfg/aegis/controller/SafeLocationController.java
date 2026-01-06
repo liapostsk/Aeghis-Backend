@@ -4,41 +4,44 @@ import com.tfg.aegis.service.SafeLocationService;
 import com.tfg.aegis.model.dto.SafeLocationDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "SafeLocation", description = "API of safe locations")
+@Tag(name = "Safe Locations", description = "Safe locations API")
 @RestController
-@RequestMapping("/me/safe-location")
+@RequestMapping("/safe-locations")
 public class SafeLocationController {
 
     private final SafeLocationService safeLocationService;
-
-    private static final Logger log = LoggerFactory.getLogger(SafeLocationController.class);
 
     public SafeLocationController(SafeLocationService safeLocationService) {
         this.safeLocationService = safeLocationService;
     }
 
-    @Operation(summary = "Add", description = "Add a new SafeLocation for the current user")
-    @PostMapping("/add")
-    public ResponseEntity<Long> addSafeLocationForCurrentUser(@RequestBody SafeLocationDto safeLocationDto) {
-        Long id = safeLocationService.addSafeLocationForCurrentUser(safeLocationDto);
-        return ResponseEntity.ok(id);
+    @Operation(summary = "Get safe location", description = "Gets a safe location for the authenticated user")
+    @GetMapping("/{id}")
+    public ResponseEntity<SafeLocationDto> getSafeLocationForCurrentUser(@PathVariable Long id) {
+        SafeLocationDto safeLocationDto = safeLocationService.getSafeLocationForCurrentUser(id);
+        return ResponseEntity.ok(safeLocationDto);
     }
 
-    @Operation(summary = "Edit", description = "Method that edits an existing SafeLocation")
-    @PutMapping("/{id}/edit")
+    @Operation(summary = "Create safe location", description = "Creates a new safe location for the authenticated user")
+    @PostMapping
+    public ResponseEntity<Long> addSafeLocationForCurrentUser(@RequestBody SafeLocationDto safeLocationDto) {
+        Long id = safeLocationService.addSafeLocationForCurrentUser(safeLocationDto);
+        return ResponseEntity.status(201).body(id);
+    }
+
+    @Operation(summary = "Update safe location", description = "Updates an existing safe location for the authenticated user")
+    @PutMapping("/{id}")
     public ResponseEntity<Void> editSafeLocationForCurrentUser(@PathVariable Long id, @RequestBody SafeLocationDto safeLocationDto) {
         safeLocationService.editSafeLocationForCurrentUser(id, safeLocationDto);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Delete", description = "Method that delete a SafeLocation")
-    @DeleteMapping("/{id}/delete")
+    @Operation(summary = "Delete safe location", description = "Deletes a safe location for the authenticated user")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSafeLocationForCurrentUser(@PathVariable Long id) {
         safeLocationService.deleteSafeLocationForCurrentUser(id);
         return ResponseEntity.noContent().build();

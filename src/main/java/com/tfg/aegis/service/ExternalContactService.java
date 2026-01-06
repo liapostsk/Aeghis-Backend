@@ -95,21 +95,12 @@ public class ExternalContactService {
         return external;
     }
 
-    /* --- Helpers --- */
-    /*
-    private ExternalContact findOwned(Long ownerId, Long id) {
-        ExternalContact en = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("EmergencyNumber not found: " + id));
-        if (!en.getOwner().getId().equals(ownerId)) {
-            throw new EntityNotFoundException("EmergencyNumber not found for this owner"); // evita filtrar datos de otro owner
-        }
-        return en;
-    }
-    */
-    /** Normaliza a E.164. Sustituye por una implementación real (libphonenumber, etc.). */
     private String normalizeToE164(String raw) {
-        // Placeholder sencillo: quita espacios y usa tal cual.
-        // Reemplázalo por libphonenumber (Google) con región por defecto (p.ej. "ES").
         return raw.replaceAll("\\s+", "");
+    }
+
+    public ExternalContactDto getExternalContactForCurrentUser(Long id) {
+        ExternalContact externalContact = getExternalContactOrThrow(id);
+        return externalContactMapper.toDto(externalContact);
     }
 }

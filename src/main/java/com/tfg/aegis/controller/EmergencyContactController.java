@@ -15,10 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "EmergencyContact", description = "API of emergency contacts")
+@Tag(name = "Emergency Contacts", description = "Emergency contacts management API")
 @RestController
 @AllArgsConstructor
-@RequestMapping("/me/emergency-contact")
+@RequestMapping("/emergency-contacts")
 public class EmergencyContactController {
 
     private final EmergencyContactService emergencyContactService;
@@ -27,29 +27,36 @@ public class EmergencyContactController {
 
     private static final Logger log = LoggerFactory.getLogger(EmergencyContactController.class);
 
-    @Operation(summary = "Add", description = "Add a new EmergencyContact for the current user")
-    @PostMapping("add")
-    public ResponseEntity<EmergencyContactDto> addEmergencyContactForCurrentUser(@RequestBody EmergencyContactDto emergencyContactDto) {
-        EmergencyContactDto dto = emergencyContactService.addEmergencyContactForCurrentUser(emergencyContactDto);
-        return ResponseEntity.ok(dto);
+    @Operation(summary = "Get emergency contact", description = "Gets an emergency contact for the authenticated user")
+    @GetMapping("/{id}")
+    public ResponseEntity<EmergencyContactDto> getEmergencyContactForCurrentUser(@PathVariable Long id) {
+        EmergencyContactDto emergencyContactDto = emergencyContactService.getEmergencyContactForCurrentUser(id);
+        return ResponseEntity.ok(emergencyContactDto);
     }
 
-    @Operation(summary = "Edit", description = "Method that edits an existing EmergencyContact")
-    @PutMapping("/{id}/edit")
+    @Operation(summary = "Create emergency contact", description = "Creates a new emergency contact for the authenticated user")
+    @PostMapping
+    public ResponseEntity<EmergencyContactDto> addEmergencyContactForCurrentUser(@RequestBody EmergencyContactDto emergencyContactDto) {
+        EmergencyContactDto dto = emergencyContactService.addEmergencyContactForCurrentUser(emergencyContactDto);
+        return ResponseEntity.status(201).body(dto);
+    }
+
+    @Operation(summary = "Update emergency contact", description = "Updates an existing emergency contact")
+    @PutMapping("/{id}")
     public ResponseEntity<Void> editEmergencyContact(@PathVariable Long id, @RequestBody EmergencyContactDto emergencyContactDto) {
         emergencyContactService.editEmergencyContact(id, emergencyContactDto);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Delete", description = "Method that delete an EmergencyContact")
-    @DeleteMapping("/{id}/delete")
+    @Operation(summary = "Delete emergency contact", description = "Deletes an emergency contact")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmergencyContact(@PathVariable Long id) {
         emergencyContactService.deleteEmergencyContactForCurrentUser(id);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Trigger emergency", description = "Send an emergency push notification to all ACCEPTED emergency contacts")
-    @PostMapping("/trigger")
+    @Operation(summary = "Trigger emergency alert", description = "Sends an emergency push notification to all accepted emergency contacts")
+    @PostMapping("/alert")
     public ResponseEntity<Void> triggerEmergency(@RequestBody EmergencyTriggerRequestDto req) {
         String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserDto me = userService.getUserByClerkId(clerkId);

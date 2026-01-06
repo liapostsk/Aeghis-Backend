@@ -136,4 +136,9 @@ public class ParticipationService {
         }
     }
 
+    public void deleteParticipation(Long id) {
+        Participation participation = participationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Participation not found"));
+        participationRepository.delete(participation);
+    }
 }

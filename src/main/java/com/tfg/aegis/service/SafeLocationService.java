@@ -85,4 +85,11 @@ public class SafeLocationService {
             throw new IllegalStateException("No se borró el SafeLocation id=" + id);
         }
     }
+
+    public SafeLocationDto getSafeLocationForCurrentUser(Long id) {
+        String clerkId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserDto userDto = userService.getUserByClerkId(clerkId);
+        SafeLocation location = getOwnedLocationOrThrow(id);
+        return mapper.toDto(location, userDto);
+    }
 }
