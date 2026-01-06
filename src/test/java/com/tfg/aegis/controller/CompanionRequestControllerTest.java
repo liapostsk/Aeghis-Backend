@@ -175,35 +175,6 @@ class CompanionRequestControllerTest {
     }
 
     @Test
-    void submitIndividualJourney_success() {
-        when(companionRequestService.submitIndividualJourney(REQUEST_ID, journeyDto)).thenReturn(companionRequestDto);
-
-        ResponseEntity<CompanionRequestDto> response = 
-                companionRequestController.submitIndividualJourney(REQUEST_ID, journeyDto);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(companionRequestDto, response.getBody());
-        verify(companionRequestService).submitIndividualJourney(REQUEST_ID, journeyDto);
-    }
-
-    @Test
-    void submitIndividualJourney_withDifferentData_success() {
-        Long requestId = 111L;
-        JourneyDto journey = new JourneyDto();
-        journey.setGroupId(222L);
-        CompanionRequestDto result = new CompanionRequestDto();
-        when(companionRequestService.submitIndividualJourney(requestId, journey)).thenReturn(result);
-
-        ResponseEntity<CompanionRequestDto> response = 
-                companionRequestController.submitIndividualJourney(requestId, journey);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(companionRequestService).submitIndividualJourney(requestId, journey);
-    }
-
-    // Edit Companion Request Tests
-    @Test
     void editCompanionRequest_success() {
         when(companionRequestService.editCompanionRequest(REQUEST_ID, createCompanionRequestDto))
                 .thenReturn(companionRequestDto);
@@ -258,47 +229,6 @@ class CompanionRequestControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(companionRequestService).linkGroupToCompanionRequest(requestId, groupId);
-    }
-
-    @Test
-    void linkTrackingGroupToCompanionRequest_creatorGroup_success() {
-        when(companionRequestService.linkTrackingGroupToCompanionRequest(REQUEST_ID, GROUP_ID, true))
-                .thenReturn(companionRequestDto);
-
-        ResponseEntity<CompanionRequestDto> response = 
-                companionRequestController.linkTrackingGroupToCompanionRequest(REQUEST_ID, GROUP_ID, true);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(companionRequestDto, response.getBody());
-        verify(companionRequestService).linkTrackingGroupToCompanionRequest(REQUEST_ID, GROUP_ID, true);
-    }
-
-    @Test
-    void linkTrackingGroupToCompanionRequest_companionGroup_success() {
-        when(companionRequestService.linkTrackingGroupToCompanionRequest(REQUEST_ID, GROUP_ID, false))
-                .thenReturn(companionRequestDto);
-
-        ResponseEntity<CompanionRequestDto> response = 
-                companionRequestController.linkTrackingGroupToCompanionRequest(REQUEST_ID, GROUP_ID, false);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(companionRequestService).linkTrackingGroupToCompanionRequest(REQUEST_ID, GROUP_ID, false);
-    }
-
-    @Test
-    void linkTrackingGroupToCompanionRequest_withDifferentIds_success() {
-        Long requestId = 50L;
-        Long groupId = 60L;
-        CompanionRequestDto result = new CompanionRequestDto();
-        when(companionRequestService.linkTrackingGroupToCompanionRequest(requestId, groupId, true))
-                .thenReturn(result);
-
-        ResponseEntity<CompanionRequestDto> response = 
-                companionRequestController.linkTrackingGroupToCompanionRequest(requestId, groupId, true);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(companionRequestService).linkTrackingGroupToCompanionRequest(requestId, groupId, true);
     }
 
     @Test

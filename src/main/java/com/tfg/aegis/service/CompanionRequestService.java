@@ -10,7 +10,6 @@ import com.tfg.aegis.model.enums.CompanionRequestEnums;
 import com.tfg.aegis.repository.CompanionRequestRepository;
 import com.tfg.aegis.repository.GroupRepository;
 import com.tfg.aegis.model.entity.Group;
-import com.tfg.aegis.model.dto.JourneyDto;
 import com.tfg.aegis.repository.LocationRepository;
 import com.tfg.aegis.model.mapper.LocationMapper;
 import com.tfg.aegis.model.entity.Location;
@@ -131,119 +130,6 @@ public class CompanionRequestService {
         request.setCompanionGroup(group);
 
         log.info("Linking group with id: {} to companion request with id: {}", groupId, id);
-
-        return toDtoWithRelations(request);
-    }
-
-    /**
-     * Link a tracking group to a companion request
-     * @param id
-     * @param groupId
-     * @return
-     */
-    public CompanionRequestDto linkTrackingGroupToCompanionRequest(Long id, Long groupId, Boolean isCreatorGroup) {
-        CompanionRequest request = companionRequestRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
-
-        Long currentId = getCurrentUser().getId();
-        if (!request.getCreator().getId().equals(currentId)) {
-            throw new IllegalStateException("Solo el creador puede vincular un grupo de seguimiento a la solicitud");
-        }
-
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new EntityNotFoundException("Grupo no encontrado: " + groupId));
-
-        if (isCreatorGroup) {
-            request.setCreatorTrackingGroup(group);
-            log.info("Linking creator tracking group with id: {} to companion request with id: {}", groupId, id);
-        } else {
-            request.setCompanionTrackingGroup(group);
-            log.info("Linking companion tracking group with id: {} to companion request with id: {}", groupId, id);
-        }
-
-        return toDtoWithRelations(request);
-    }
-
-    /**
-     * Accept a companion request
-     * @param requestId
-     * @return
-     */
-    public CompanionRequestDto acceptCompanionRequest(Long requestId) {
-        CompanionRequest request = companionRequestRepository.findById(requestId)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + requestId));
-
-        User currentUser = userRepository.findById(getCurrentUser().getId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        // Solo el creador puede aceptar
-        if (!request.getCreator().getId().equals(currentUser.getId())) {
-            throw new IllegalStateException("Solo el creador puede aceptar la solicitud");
-        }
-
-        // Debe haber un acompañante pendiente
-        if (request.getCompanion() == null) {
-            throw new IllegalStateException("No hay ningún acompañante pendiente de aceptar");
-        }
-
-        if (request.getState() != CompanionRequestEnums.RequestStatus.PENDING) {
-            throw new IllegalStateException("La solicitud no está pendiente de aceptación");
-        }
-
-        request.setState(CompanionRequestEnums.RequestStatus.MATCHED);
-
-        log.info("Companion request with id: {} has been accepted", requestId);
-
-        return toDtoWithRelations(request);
-    }
-
-    public void rejectCompanionRequest(Long id) {
-        CompanionRequest request = companionRequestRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
-
-        User currentUser = userRepository.findById(getCurrentUser().getId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        if (!request.getCreator().getId().equals(currentUser.getId())) {
-            throw new IllegalStateException("Solo el creador puede rechazar la solicitud");
-        }
-
-        if (request.getCompanion() == null || request.getState() != CompanionRequestEnums.RequestStatus.PENDING) {
-            throw new IllegalStateException("La solicitud no está en un estado válido para ser rechazada");
-        }
-
-        request.setState(CompanionRequestEnums.RequestStatus.CREATED);
-        request.setCompanion(null);
-        request.setCompanionMessage(null);
-        log.info("Companion request with id: {} has been rejected", id);
-    }
-
-
-    public CompanionRequestDto submitIndividualJourney(Long id, JourneyDto journeyDto) {
-        return null;
-    }
-
-    public CompanionRequestDto finishCompanionRequest(Long id) {
-        CompanionRequest request = companionRequestRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
-
-        Long currentId = getCurrentUser().getId();
-        boolean isCreator = request.getCreator().getId().equals(currentId);
-        boolean isCompanion = request.getCompanion() != null
-                && request.getCompanion().getId().equals(currentId);
-
-        if (!isCreator && !isCompanion) {
-            throw new IllegalStateException("Solo el creador o el acompañante pueden finalizar la solicitud");
-        }
-
-        if (request.getState() != CompanionRequestEnums.RequestStatus.IN_PROGRESS
-                && request.getState() != CompanionRequestEnums.RequestStatus.MATCHED) {
-            throw new IllegalStateException("La solicitud no está en marcha");
-        }
-
-        request.setState(CompanionRequestEnums.RequestStatus.FINISHED);
-
-        log.info("Finishing companion request with id: {}", id);
 
         return toDtoWithRelations(request);
     }
@@ -419,8 +305,6 @@ public class CompanionRequestService {
         dto.setCreator(entity.getCreator() != null ? userMapper.toDto(entity.getCreator()) : null);
         dto.setCompanion(entity.getCompanion() != null ? userMapper.toDto(entity.getCompanion()) : null);
         dto.setCompanionGroupId(entity.getCompanionGroup() != null ? entity.getCompanionGroup().getId() : null);
-        dto.setCreatorTrackingGroup(entity.getCreatorTrackingGroup() != null ? entity.getCreatorTrackingGroup().getId() : null);
-        dto.setCompanionTrackingGroup(entity.getCompanionTrackingGroup() != null ? entity.getCompanionTrackingGroup().getId() : null);
         log.info("Mapped source {}, destination {}, and creator {}, and companion {} for companion request with id: {}",
                 dto.getSource(), dto.getDestination(), dto.getCreator(), dto.getCompanion() ,dto.getId());
         return dto;
@@ -454,6 +338,68 @@ public class CompanionRequestService {
 
         updateExpiredStateIfNeeded(request);
 
+        return toDtoWithRelations(request);
+    }
+
+    public CompanionRequestDto changeStatus(Long id, CompanionRequestEnums.RequestStatus status) {
+        CompanionRequest request = companionRequestRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada: " + id));
+
+        Long currentId = getCurrentUser().getId();
+        boolean isCreator = request.getCreator().getId().equals(currentId);
+        boolean isCompanion = request.getCompanion() != null
+                && request.getCompanion().getId().equals(currentId);
+
+        if (!isCreator && !isCompanion) {
+            throw new IllegalStateException("Solo el creador o el acompañante pueden cambiar el estado de la solicitud");
+        }
+
+        switch (status) {
+
+            case MATCHED -> {
+                if (!isCreator) {
+                    throw new IllegalStateException("Solo el creador puede aceptar la solicitud");
+                }
+                if (request.getCompanion() == null) {
+                    throw new IllegalStateException("No hay ningún acompañante pendiente de aceptar");
+                }
+                if (request.getState() != CompanionRequestEnums.RequestStatus.PENDING) {
+                    throw new IllegalStateException("La solicitud no está pendiente de aceptación");
+                }
+                request.setState(CompanionRequestEnums.RequestStatus.MATCHED);
+            }
+
+            case CREATED -> {
+                if (!isCreator) {
+                    throw new IllegalStateException("Solo el creador puede rechazar la solicitud");
+                }
+                if (request.getState() != CompanionRequestEnums.RequestStatus.PENDING) {
+                    throw new IllegalStateException("Solo se puede rechazar una solicitud en estado PENDING");
+                }
+                request.setState(CompanionRequestEnums.RequestStatus.CREATED);
+                request.setCompanion(null);
+                request.setCompanionMessage(null);
+            }
+
+            case IN_PROGRESS -> {
+                if (request.getState() != CompanionRequestEnums.RequestStatus.MATCHED) {
+                    throw new IllegalStateException("La solicitud debe estar en estado MATCHED para pasar a IN_PROGRESS");
+                }
+                request.setState(CompanionRequestEnums.RequestStatus.IN_PROGRESS);
+            }
+
+            case FINISHED -> {
+                if (request.getState() != CompanionRequestEnums.RequestStatus.IN_PROGRESS
+                        && request.getState() != CompanionRequestEnums.RequestStatus.MATCHED) {
+                    throw new IllegalStateException("La solicitud debe estar en marcha para ser finalizada");
+                }
+                request.setState(CompanionRequestEnums.RequestStatus.FINISHED);
+            }
+
+            default -> throw new IllegalStateException("Transición de estado no permitida a: " + status);
+        }
+
+        log.info("Changed status of companion request with id: {} to {}", id, status);
         return toDtoWithRelations(request);
     }
 }

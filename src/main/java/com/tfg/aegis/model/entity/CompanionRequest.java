@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Table(name = "companionRequest")
+@Table(name = "companion_request")
 public class CompanionRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,7 +38,7 @@ public class CompanionRequest {
     private String companionMessage;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "creador_id")
+    @JoinColumn(name = "creador_id", nullable = false)
     private User creator;
 
     @ManyToOne
@@ -48,12 +48,4 @@ public class CompanionRequest {
     @OneToOne
     @JoinColumn(name = "companion_group_id")
     private Group companionGroup;
-
-    @ManyToOne
-    @JoinColumn(name = "creator_tracking_group_id")
-    private Group creatorTrackingGroup;
-
-    @ManyToOne
-    @JoinColumn(name = "companion_tracking_group_id")
-    private Group companionTrackingGroup;
 }

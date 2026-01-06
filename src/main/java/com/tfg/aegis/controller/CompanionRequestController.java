@@ -1,5 +1,6 @@
 package com.tfg.aegis.controller;
 
+import com.tfg.aegis.model.enums.CompanionRequestEnums;
 import com.tfg.aegis.service.CompanionRequestService;
 import com.tfg.aegis.model.dto.CompanionRequestDto;
 import com.tfg.aegis.model.dto.CreateCompanionRequestDto;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Tag(name = "CompanionRequest", description = "API of companion requests")
-@RequestMapping(value = "/companion-request")
+@RequestMapping(value = "/companion-requests")
 @RestController
 @AllArgsConstructor
 public class CompanionRequestController {
@@ -38,22 +39,6 @@ public class CompanionRequestController {
         return ResponseEntity.ok(requestDto);
     }
 
-    @Operation(summary = "Accept Companion Request", description = "Method that accepts a Companion Request")
-    @PostMapping("/{id}/accept")
-    public ResponseEntity<CompanionRequestDto> accept(@PathVariable Long id) {
-        CompanionRequestDto dto = companionRequestService.acceptCompanionRequest(id);
-        log.info("Accepted a companion request");
-        return ResponseEntity.ok(dto);
-    }
-
-    @Operation(summary = "Reject Companion Request", description = "Method that rejects a Companion Request")
-    @PostMapping("/{id}/reject")
-    public ResponseEntity<Void> rejectCompanionRequest(@PathVariable Long id) {
-        companionRequestService.rejectCompanionRequest(id);
-        log.info("Declined a companion request");
-        return ResponseEntity.noContent().build();
-    }
-
     @Operation(summary = "Delete Companion Request", description = "Method that deletes a Companion Request")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCompanionRequest(@PathVariable Long id) {
@@ -62,19 +47,10 @@ public class CompanionRequestController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary= "Finish Companion Request", description= "Method that finishes a Companion Request")
-    @PostMapping("/{id}/finish")
-    public ResponseEntity<CompanionRequestDto> finishCompanionRequest(@PathVariable Long id) {
-        CompanionRequestDto dto = companionRequestService.finishCompanionRequest(id);
-        log.info("Finished a companion request");
-        return ResponseEntity.ok(dto);
-    }
-
-    @Operation(summary = "Creates an individual journey for the companion", description = "Method that creates an individual journey for the companion")
-    @PostMapping("/{id}/submit-journey")
-    public ResponseEntity<CompanionRequestDto> submitIndividualJourney(@PathVariable Long id, @RequestBody JourneyDto journeyDto) {
-        CompanionRequestDto dto = companionRequestService.submitIndividualJourney(id, journeyDto);
-        log.info("Created individual journey for companion");
+    @PutMapping("/{id}/status/{status}")
+    @Operation(summary = "Change Companion Request status", description = "Changes the status of a Companion Request (MATCHED, CREATED, FINISHED)")
+    public ResponseEntity<CompanionRequestDto> changeStatus(@PathVariable Long id, @PathVariable CompanionRequestEnums.RequestStatus status) {
+        CompanionRequestDto dto = companionRequestService.changeStatus(id, status);
         return ResponseEntity.ok(dto);
     }
 
@@ -91,17 +67,6 @@ public class CompanionRequestController {
     public ResponseEntity<CompanionRequestDto> linkGroupToCompanionRequest(@PathVariable Long id, @PathVariable Long groupId) {
         CompanionRequestDto updatedDto = companionRequestService.linkGroupToCompanionRequest(id, groupId);
         log.info("Linked group {} to companion request {}", groupId, id);
-        return ResponseEntity.ok(updatedDto);
-    }
-
-    @Operation(summary = "Link tracking group of creator or companion to Companion Request", description = "Method that links a tracking group to a Companion Request")
-    @PostMapping("/{id}/link-tracking-group/{groupId}")
-    public ResponseEntity<CompanionRequestDto> linkTrackingGroupToCompanionRequest(
-            @PathVariable Long id,
-            @PathVariable Long groupId,
-            @RequestParam boolean isCreatorTrackingGroup) {
-        CompanionRequestDto updatedDto = companionRequestService.linkTrackingGroupToCompanionRequest(id, groupId, isCreatorTrackingGroup);
-        log.info("Linked tracking group {} to companion request {}. Is creator tracking group: {}", groupId, id, isCreatorTrackingGroup);
         return ResponseEntity.ok(updatedDto);
     }
 
@@ -148,21 +113,19 @@ public class CompanionRequestController {
         return ResponseEntity.ok(requests);
     }
 
-    //searcher ask for joining to the companion request
-    @Operation(summary = "Request to join Companion Request", description = "Method that requests to join a Companion Request")
-    @PostMapping("/{id}/request-join")
+    @Operation(summary = "Request to join Companion Request", description = "Creates a join request")
+    @PostMapping("/{id}/join-request")
     public ResponseEntity<Void> requestToJoinCompanionRequest(@PathVariable Long id, @RequestBody(required = false) String message) {
         companionRequestService.requestToJoinCompanionRequest(id, message);
-        log.info("Requested to join a companion request {} and message {}", id, message);
+        log.info("Requested to join companion request {} with message {}", id, message);
         return ResponseEntity.noContent().build();
     }
 
-    //searcher cancels the request to join the companion request
-    @Operation(summary = "Cancel Companion Request", description = "Method that cancels a Companion Request")
-    @PostMapping("/{id}/request-join/cancel")
+    @Operation(summary = "Cancel join request", description = "Cancels the join request")
+    @DeleteMapping("/{id}/join-request")
     public ResponseEntity<Void> cancelCompanionRequest(@PathVariable Long id) {
         companionRequestService.cancelCompanionRequest(id);
-        log.info("Cancelled a companion request");
+        log.info("Cancelled join request for companion request {}", id);
         return ResponseEntity.noContent().build();
     }
 
@@ -170,7 +133,7 @@ public class CompanionRequestController {
      * Endpoint for both the creator and the searcher
      */
 
-    @Operation(summary = "Get Companion Request by ID", description = "Method that gets a Companion Request by its ID")
+    @Operation(summary = "Get companion request by ID", description = "Retrieves detailed information about a companion request by its ID")
     @GetMapping("/{id}")
     public ResponseEntity<CompanionRequestDto> getCompanionRequestById(@PathVariable Long id) {
         CompanionRequestDto dto = companionRequestService.getCompanionRequestById(id);

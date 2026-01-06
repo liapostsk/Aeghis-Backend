@@ -23,7 +23,6 @@ public class CompanionRequestMapperImpl implements CompanionRequestMapper {
         dto.setDescription(companionRequest.getDescription());
         dto.setCreationDate(companionRequest.getCreationDate());
         dto.setCompanionMessage(companionRequest.getCompanionMessage());
-        // source, destination, creator and companion are intentionally not set here
 
         return dto;
     }
@@ -39,7 +38,7 @@ public class CompanionRequestMapperImpl implements CompanionRequestMapper {
         companionRequest.setDescription(companionRequestDto.getDescription());
         companionRequest.setCreationDate(companionRequestDto.getCreationDate());
         companionRequest.setCompanionMessage(companionRequestDto.getCompanionMessage());
-        // source, destination, creator and companionId are intentionally not set here
+
         return companionRequest;
     }
 }
