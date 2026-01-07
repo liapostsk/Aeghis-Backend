@@ -42,8 +42,8 @@ public class JourneyMapperImpl implements JourneyMapper {
         journeyDto.setState(journey.getState());
         journeyDto.setJourneyType(journey.getJourneyType());
         journeyDto.setGroupId(journey.getGroup().getId());
-        journeyDto.setParticipantsIds(journey.getParticipations() != null
-                ? journey.getParticipations().stream().map(Participation::getId).collect(Collectors.toSet())
+        journeyDto.setParticipantsIds(journey.getParticipation() != null
+                ? journey.getParticipation().stream().map(Participation::getId).collect(Collectors.toSet())
                 : new HashSet<>());
         return journeyDto;
     }

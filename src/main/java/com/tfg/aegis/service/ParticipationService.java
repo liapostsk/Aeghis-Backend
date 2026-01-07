@@ -116,7 +116,7 @@ public class ParticipationService {
         Journey journey = journeyRepository.findById(journeyId)
                 .orElseThrow(() -> new RuntimeException("Journey not found: " + journeyId));
 
-        boolean allDone = journey.getParticipations().stream().allMatch(part ->
+        boolean allDone = journey.getParticipation().stream().allMatch(part ->
                 part.getState() == ParticipationEnums.ParticipationState.ARRIVED
                         || part.getState() == ParticipationEnums.ParticipationState.CANCELLED
         );

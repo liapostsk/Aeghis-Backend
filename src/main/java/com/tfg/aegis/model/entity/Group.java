@@ -13,7 +13,7 @@ import com.tfg.aegis.model.enums.GroupEnums.*;
 @Entity
 @Getter
 @Setter
-@Table(name = "groups")
+@Table(name = "group")
 public class Group {
 
     @Id
@@ -61,7 +61,7 @@ public class Group {
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Journey> journeys = new HashSet<>();
 
-    @OneToOne(mappedBy = "companionGroup")
+    @OneToOne(mappedBy = "companionGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     private CompanionRequest companionRequest;
 
     @PrePersist

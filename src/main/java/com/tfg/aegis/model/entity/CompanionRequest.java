@@ -38,14 +38,14 @@ public class CompanionRequest {
     private String companionMessage;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "creador_id", nullable = false)
+    @JoinColumn(name = "creator_id", nullable = false)
     private User creator;
 
     @ManyToOne
-    @JoinColumn(name = "acompaniante_id")
+    @JoinColumn(name = "companion_id")
     private User companion;
 
     @OneToOne
-    @JoinColumn(name = "companion_group_id")
+    @JoinColumn(name = "companion_group_id", unique = true)
     private Group companionGroup;
 }

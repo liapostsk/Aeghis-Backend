@@ -12,7 +12,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@Table(name = "users")
+@Table(name = "user")
 public class User extends Person {
 
     @Column(name = "clerkId", nullable = false)
@@ -39,6 +39,9 @@ public class User extends Person {
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EmergencyContact> emergencyContacts = new HashSet<>();
 
+    @OneToMany(mappedBy = "contact", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EmergencyContact> emergencyContactsAsContact = new HashSet<>();
+
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ExternalContact> externalContacts = new HashSet<>();
 
@@ -46,7 +49,7 @@ public class User extends Person {
     private Set<SafeLocation> safeLocations = new HashSet<>();
 
     @OneToMany(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Participation> participations = new HashSet<>();
+    private Set<Participation> participation = new HashSet<>();
 
     @ManyToMany(mappedBy = "members", fetch = FetchType.LAZY)
     private Set<Group> groups = new HashSet<>();
@@ -54,10 +57,10 @@ public class User extends Person {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<NotificationToken> notificationTokens = new HashSet<>();
 
-    @OneToMany(mappedBy = "creator")
-    private Set<CompanionRequest> companionRequestsCreated;
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private Set<CompanionRequest> companionRequestsCreated = new HashSet<>();
 
-    @OneToMany(mappedBy = "companion")
-    private Set<CompanionRequest> companionRequestsAccepted;
+    @OneToMany(mappedBy = "companion", cascade = CascadeType.REMOVE)
+    private Set<CompanionRequest> companionRequestsAccepted = new HashSet<>();
 
 }

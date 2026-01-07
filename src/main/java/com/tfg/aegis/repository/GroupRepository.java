@@ -15,6 +15,8 @@ public interface GroupRepository extends CrudRepository<Group, Long> {
 
     List<Group> findByMembers_Id(Long id);
 
+    List<Group> findByOwnerId(Long ownerId);
+
     @Query("""
         SELECT g
         FROM Group g JOIN g.members m
@@ -31,4 +33,5 @@ public interface GroupRepository extends CrudRepository<Group, Long> {
             @Param("userId") Long userId,
             @Param("now") LocalDateTime now
     );
+
 }

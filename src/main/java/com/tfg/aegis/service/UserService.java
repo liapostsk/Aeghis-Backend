@@ -2,15 +2,13 @@ package com.tfg.aegis.service;
 
 import com.tfg.aegis.common.exception.ConflictException;
 import com.tfg.aegis.common.exception.NotFoundException;
-import com.tfg.aegis.repository.UserRepository;
-import com.tfg.aegis.repository.EmergencyContactRepository;
+import com.tfg.aegis.model.entity.Group;
+import com.tfg.aegis.repository.*;
 import com.tfg.aegis.model.mapper.EmergencyContactMapper;
 import com.tfg.aegis.model.entity.EmergencyContact;
 import com.tfg.aegis.model.dto.EmergencyContactDto;
-import com.tfg.aegis.repository.GroupRepository;
 import com.tfg.aegis.model.mapper.GroupMapper;
 import com.tfg.aegis.model.dto.GroupDto;
-import com.tfg.aegis.repository.ExternalContactRepository;
 import com.tfg.aegis.model.mapper.ExternalContactMapper;
 import com.tfg.aegis.model.entity.ExternalContact;
 import com.tfg.aegis.model.dto.ExternalContactDto;
@@ -37,6 +35,8 @@ public class UserService {
     private final EmergencyContactRepository emergencyContactRepository;
     private final ExternalContactRepository externalContactRepository;
     private final GroupRepository groupRepository;
+    private final CompanionRequestRepository companionRequestRepository;
+    private final PersonRepository personRepository;
 
     private final UserMapper mapper;
     private final EmergencyContactMapper emergencyContactMapper;
@@ -202,10 +202,83 @@ public class UserService {
      */
     @Transactional
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new NotFoundException("User", id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User", id));
+
+        Random random = new Random();
+
+        // 1) Grupos donde el usuario es OWNER -> transferir ownership random o borrar el grupo si queda vacío
+        List<Group> ownedGroups = groupRepository.findByOwnerId(id);
+
+        for (Group group : ownedGroups) {
+            // quitar al usuario de admins/members
+            group.getAdmins().remove(user);
+            group.getMembers().remove(user);
+
+            // si se queda vacío, borrar el grupo
+            if (group.getMembers().isEmpty()) {
+                groupRepository.delete(group);
+                continue;
+            }
+
+            // transferir owner a un miembro random que queda
+            List<User> candidates = new ArrayList<>(group.getMembers());
+            User newOwner = candidates.get(random.nextInt(candidates.size()));
+            group.setOwner(newOwner);
+
+            // asegurar que el nuevo owner es admin
+            group.getAdmins().add(newOwner);
+
+            groupRepository.save(group);
         }
-        userRepository.deleteById(id);
+
+        // 2) Grupos donde el usuario es MEMBER/ADMIN (sin query extra y sin flush)
+        Set<Group> memberGroups = new HashSet<>(user.getGroups());
+
+        for (Group group : memberGroups) {
+            // por si alguno ya se procesó arriba o no lo contiene
+            if (!group.getMembers().contains(user)) continue;
+
+            // quitar de admins; si se queda sin admins, promover a otro miembro
+            if (group.getAdmins().contains(user)) {
+                group.getAdmins().remove(user);
+
+                if (group.getAdmins().isEmpty() && !group.getMembers().isEmpty()) {
+                    group.getMembers().stream()
+                            .filter(m -> !m.getId().equals(id))
+                            .findFirst()
+                            .ifPresent(group.getAdmins()::add);
+                }
+            }
+
+            // quitar de members
+            group.getMembers().remove(user);
+
+            // si el grupo queda vacío, borrarlo; si no, guardar
+            if (group.getMembers().isEmpty()) {
+                groupRepository.delete(group);
+            } else {
+                groupRepository.save(group);
+            }
+        }
+
+        // 3) EmergencyContact donde era "contact"
+        emergencyContactRepository.deleteByContactId(id);
+
+        // 4) CompanionRequest donde era companion -> companion null + state CREATED (+ romper companionGroup)
+        var requestsWhereWasCompanion = companionRequestRepository.findByCompanion_Id(id);
+        for (var req : requestsWhereWasCompanion) {
+            req.setCompanion(null);
+            req.setCompanionGroup(null);
+            req.setState(com.tfg.aegis.model.enums.CompanionRequestEnums.RequestStatus.CREATED);
+        }
+        companionRequestRepository.saveAll(requestsWhereWasCompanion);
+
+        // 5) Borrar user (cascades borran tokens/locations/contacts/participations/requests creadas, etc.)
+        userRepository.delete(user);
+
+        // 6) Borrar también Person (para que no quede huérfano)
+        personRepository.deleteById(id);
     }
 
     /**

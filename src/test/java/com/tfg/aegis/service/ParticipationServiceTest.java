@@ -9,7 +9,6 @@ import com.tfg.aegis.model.mapper.ParticipationMapper;
 import com.tfg.aegis.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -134,7 +133,7 @@ class ParticipationServiceTest {
         sameLocation.setId(1L);
         Journey journey = new Journey();
         journey.setId(10L);
-        journey.setParticipations(new HashSet<>());
+        journey.setParticipation(new HashSet<>());
         journey.setState(JourneyEnums.JourneyState.IN_PROGRESS);
 
         Group group = new Group();
@@ -320,7 +319,7 @@ class ParticipationServiceTest {
 
         Journey journey = new Journey();
         journey.setId(10L);
-        journey.setParticipations(new HashSet<>());
+        journey.setParticipation(new HashSet<>());
         journey.setState(JourneyEnums.JourneyState.IN_PROGRESS);
 
         Group group = new Group();
@@ -360,7 +359,7 @@ class ParticipationServiceTest {
 
         Journey journey = new Journey();
         journey.setId(10L);
-        journey.setParticipations(new HashSet<>());
+        journey.setParticipation(new HashSet<>());
         journey.setState(JourneyEnums.JourneyState.IN_PROGRESS);
 
         Group group = new Group();
@@ -437,7 +436,7 @@ class ParticipationServiceTest {
         group.setType(GroupEnums.TypeGroup.CONFIANZA);
         journey.setGroup(group);
 
-        journey.setParticipations(Set.of(p));
+        journey.setParticipation(Set.of(p));
         p.setJourney(journey);
 
         User user = new User();
@@ -473,7 +472,7 @@ class ParticipationServiceTest {
         Journey journey = new Journey();
         journey.setId(journeyId);
         journey.setState(JourneyEnums.JourneyState.IN_PROGRESS);
-        journey.setParticipations(Set.of(p));
+        journey.setParticipation(Set.of(p));
 
         Group group = new Group();
         group.setType(GroupEnums.TypeGroup.CONFIANZA);
@@ -515,7 +514,7 @@ class ParticipationServiceTest {
         Journey journey = new Journey();
         journey.setId(journeyId);
         journey.setState(JourneyEnums.JourneyState.IN_PROGRESS);
-        journey.setParticipations(Set.of(p1, p2));
+        journey.setParticipation(Set.of(p1, p2));
 
         Group group = new Group();
         group.setType(GroupEnums.TypeGroup.CONFIANZA);
@@ -548,7 +547,7 @@ class ParticipationServiceTest {
         Journey journey = new Journey();
         journey.setId(journeyId);
         journey.setState(JourneyEnums.JourneyState.IN_PROGRESS);
-        journey.setParticipations(Set.of(p));
+        journey.setParticipation(Set.of(p));
 
         Group group = new Group();
         group.setId(100L);
@@ -596,7 +595,7 @@ class ParticipationServiceTest {
         Journey journey = new Journey();
         journey.setId(journeyId);
         journey.setState(JourneyEnums.JourneyState.IN_PROGRESS);
-        journey.setParticipations(Set.of(p1, p2));
+        journey.setParticipation(Set.of(p1, p2));
 
         Group group = new Group();
         group.setType(GroupEnums.TypeGroup.CONFIANZA);
@@ -629,7 +628,7 @@ class ParticipationServiceTest {
         Journey journey = new Journey();
         journey.setId(journeyId);
         journey.setState(JourneyEnums.JourneyState.COMPLETED); // Ya completado
-        journey.setParticipations(Set.of(p));
+        journey.setParticipation(Set.of(p));
         p.setJourney(journey);
 
         when(participationRepository.findByJourney_IdAndParticipant_Id(journeyId, userId))

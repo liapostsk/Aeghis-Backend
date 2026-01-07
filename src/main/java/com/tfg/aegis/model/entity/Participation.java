@@ -11,7 +11,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@Table(name = "participants", uniqueConstraints = @UniqueConstraint(columnNames = {"journey_id", "user_id"})
+@Table(name = "participation", uniqueConstraints = @UniqueConstraint(columnNames = {"journey_id", "user_id"})
 )
 public class Participation {
     @Id

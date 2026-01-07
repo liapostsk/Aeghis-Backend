@@ -84,7 +84,7 @@ public class JourneyService {
         // Map JourneyDto to Journey entity
         Journey journey = journeyMapper.toEntity(journeyDto);
 
-        journey.setParticipations(new HashSet<>());
+        journey.setParticipation(new HashSet<>());
 
         if (journey.getState() == null) {
             journey.setState(JourneyEnums.JourneyState.PENDING);
@@ -123,7 +123,7 @@ public class JourneyService {
                     .orElseThrow(() -> new RuntimeException("Participation with id %s not found".formatted(participationId)));
                 participations.add(participation);
             }
-            updatedJourney.setParticipations(participations);
+            updatedJourney.setParticipation(participations);
         }
         journeyRepository.save(updatedJourney);
     }
@@ -149,7 +149,7 @@ public class JourneyService {
             .orElseThrow(() -> new RuntimeException("Journey with id %s not found".formatted(journeyId)));
         Participation participation = participationRepository.findById(participationId)
             .orElseThrow(() -> new RuntimeException("Participation with id %s not found".formatted(participationId)));
-        journey.getParticipations().add(participation);
+        journey.getParticipation().add(participation);
         journeyRepository.save(journey);
     }
 
@@ -175,10 +175,10 @@ public class JourneyService {
     public Set<Long> getAllParticipantsOfJourney(Long journeyId) {
         Journey journey = journeyRepository.findById(journeyId)
                 .orElseThrow(() -> new NotFoundException("Journey not found with id: " + journeyId));
-        if (journey.getParticipations() == null) {
+        if (journey.getParticipation() == null) {
             return Set.of();
         }
-        return journey.getParticipations().stream()
+        return journey.getParticipation().stream()
                 .map(p -> p.getParticipant().getId())
                 .collect(Collectors.toSet());
     }

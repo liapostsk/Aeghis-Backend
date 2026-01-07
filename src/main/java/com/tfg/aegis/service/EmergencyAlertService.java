@@ -1,6 +1,6 @@
 package com.tfg.aegis.service;
 
-import com.tfg.aegis.common.constants.Constants;
+import com.tfg.aegis.common.utils.Constants;
 import com.tfg.aegis.model.dto.EmergencyTriggerRequestDto;
 import com.tfg.aegis.model.entity.EmergencyContact;
 import com.tfg.aegis.model.entity.NotificationToken;

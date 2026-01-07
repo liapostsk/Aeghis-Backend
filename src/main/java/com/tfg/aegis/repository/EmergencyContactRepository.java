@@ -6,7 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.Set;
 
 public interface EmergencyContactRepository extends CrudRepository<EmergencyContact, Long> {
-
+    void deleteByContactId(Long contactId);
     Set<EmergencyContact> findByOwnerId(Long ownerId);
     Set<EmergencyContact> findByOwner_IdAndStatus(Long ownerId, EmergencyContactEnum.Status status);
 

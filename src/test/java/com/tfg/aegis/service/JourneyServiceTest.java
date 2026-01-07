@@ -22,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -236,7 +235,7 @@ class JourneyServiceTest {
 
         assertEquals(10L, result);
         assertEquals(JourneyEnums.JourneyState.PENDING, journey.getState());
-        assertNotNull(journey.getParticipations());
+        assertNotNull(journey.getParticipation());
         assertEquals(group, journey.getGroup());
         verify(journeyRepository).save(journey);
     }
@@ -332,8 +331,8 @@ class JourneyServiceTest {
 
         service.updateJourney(dto);
 
-        assertNotNull(journey.getParticipations());
-        assertEquals(2, journey.getParticipations().size());
+        assertNotNull(journey.getParticipation());
+        assertEquals(2, journey.getParticipation().size());
         verify(journeyRepository).save(journey);
     }
 
@@ -439,7 +438,7 @@ class JourneyServiceTest {
 
         Journey journey = new Journey();
         journey.setId(journeyId);
-        journey.setParticipations(new HashSet<>());
+        journey.setParticipation(new HashSet<>());
 
         Participation participation = new Participation();
         participation.setId(participationId);
@@ -449,7 +448,7 @@ class JourneyServiceTest {
 
         service.addParticipationToJourney(journeyId, participationId);
 
-        assertTrue(journey.getParticipations().contains(participation));
+        assertTrue(journey.getParticipation().contains(participation));
         verify(journeyRepository).save(journey);
     }
 
@@ -564,7 +563,7 @@ class JourneyServiceTest {
         Participation p2 = new Participation();
         p2.setParticipant(u2);
 
-        journey.setParticipations(new HashSet<>(Arrays.asList(p1, p2)));
+        journey.setParticipation(new HashSet<>(Arrays.asList(p1, p2)));
 
         when(journeyRepository.findById(journeyId)).thenReturn(Optional.of(journey));
 
@@ -581,7 +580,7 @@ class JourneyServiceTest {
         Long journeyId = 1L;
         Journey journey = new Journey();
         journey.setId(journeyId);
-        journey.setParticipations(null);
+        journey.setParticipation(null);
 
         when(journeyRepository.findById(journeyId)).thenReturn(Optional.of(journey));
 

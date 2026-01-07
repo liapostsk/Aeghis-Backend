@@ -12,6 +12,8 @@ import com.tfg.aegis.model.entity.ExternalContact;
 import com.tfg.aegis.model.dto.ExternalContactDto;
 import com.tfg.aegis.repository.UserRepository;
 import com.tfg.aegis.repository.GroupRepository;
+import com.tfg.aegis.repository.CompanionRequestRepository;
+import com.tfg.aegis.repository.PersonRepository;
 import com.tfg.aegis.model.mapper.UserMapper;
 import com.tfg.aegis.model.mapper.GroupMapper;
 import com.tfg.aegis.model.enums.UserEnums;
@@ -46,6 +48,10 @@ class UserServiceTest {
     private ExternalContactRepository externalContactRepository;
     @Mock
     private GroupRepository groupRepository;
+    @Mock
+    private CompanionRequestRepository companionRequestRepository;
+    @Mock
+    private PersonRepository personRepository;
     @Mock
     private EmergencyContactMapper emergencyContactMapper;
     @Mock
@@ -189,16 +195,23 @@ class UserServiceTest {
     @Test
     void deleteUser_ok_deletesById() {
         Long id = 10L;
-        when(userRepository.existsById(id)).thenReturn(true);
+        User user = new User();
+        user.setId(id);
+        user.setGroups(new HashSet<>());
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        when(groupRepository.findByOwnerId(id)).thenReturn(Collections.emptyList());
+        when(companionRequestRepository.findByCompanion_Id(id)).thenReturn(Collections.emptyList());
 
         userService.deleteUser(id);
 
-        verify(userRepository).deleteById(id);
+        verify(userRepository).delete(user);
+        verify(personRepository).deleteById(id);
     }
 
     @Test
     void deleteUser_notFound_throwsNotFound() {
-        when(userRepository.existsById(11L)).thenReturn(false);
+        when(userRepository.findById(11L)).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> userService.deleteUser(11L));
     }
 
@@ -763,24 +776,31 @@ class UserServiceTest {
 
     @Test
     void deleteUser_withZeroId_throwsNotFound() {
-        when(userRepository.existsById(0L)).thenReturn(false);
+        when(userRepository.findById(0L)).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> userService.deleteUser(0L));
     }
 
     @Test
     void deleteUser_withMaxLongId_throwsNotFound() {
-        when(userRepository.existsById(Long.MAX_VALUE)).thenReturn(false);
+        when(userRepository.findById(Long.MAX_VALUE)).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> userService.deleteUser(Long.MAX_VALUE));
     }
 
     @Test
     void deleteUser_existingUser_deletesSuccessfully() {
         Long id = 123L;
-        when(userRepository.existsById(id)).thenReturn(true);
+        User user = new User();
+        user.setId(id);
+        user.setGroups(new HashSet<>());
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        when(groupRepository.findByOwnerId(id)).thenReturn(Collections.emptyList());
+        when(companionRequestRepository.findByCompanion_Id(id)).thenReturn(Collections.emptyList());
 
         userService.deleteUser(id);
 
-        verify(userRepository).deleteById(id);
+        verify(userRepository).delete(user);
+        verify(personRepository).deleteById(id);
     }
 
     @Test

@@ -21,4 +21,6 @@ public interface CompanionRequestRepository extends CrudRepository<CompanionRequ
     boolean existsByCreatorIdAndState(Long userId, CompanionRequestEnums.RequestStatus requestStatus);
 
     Optional<CompanionRequest> findByCompanionGroupId(Long groupId);
+
+    List<CompanionRequest> findByCompanion_Id(Long companionId);
 }

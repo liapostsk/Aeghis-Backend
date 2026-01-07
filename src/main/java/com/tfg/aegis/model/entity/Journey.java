@@ -13,7 +13,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@Table(name = "trayectos")
+@Table(name = "journey")
 public class Journey {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,9 +30,9 @@ public class Journey {
     private LocalDateTime endDate;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "grupo_id", nullable = false)
+    @JoinColumn(name = "group_id", nullable = false)
     private Group group;
 
     @OneToMany(mappedBy = "journey", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Participation> participations = new HashSet<>();
+    private Set<Participation> participation = new HashSet<>();
 }
