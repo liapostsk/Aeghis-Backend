@@ -42,7 +42,6 @@ public class PushController {
                 Optional.ofNullable(req.channelId()).orElse("myNotificationChannel")
         );
 
-        // Devuelvo tokens y tickets (id/status).
         List<Map<String,Object>> t = tickets.stream().map(ticket -> {
             Map<String,Object> m = new LinkedHashMap<>();
             m.put("status", ticket.getStatus());
