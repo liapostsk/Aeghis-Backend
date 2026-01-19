@@ -6,31 +6,31 @@ import com.google.firebase.FirebaseOptions;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 
 @Configuration
 public class FirebaseConfig {
 
     @PostConstruct
-    public void init() {
-        try {
-            InputStream serviceAccount = getClass()
-                .getClassLoader()
-                .getResourceAsStream("firebase/firebase-adminsdk.json");
+    public void init() throws Exception {
+        String b64 = System.getenv("FIREBASE_ADMINSDK_B64");
+        if (b64 == null || b64.isBlank()) {
+            throw new IllegalStateException("Falta FIREBASE_ADMINSDK_B64 en Heroku Config Vars");
+        }
 
-            assert serviceAccount != null;
+        byte[] jsonBytes = Base64.getDecoder().decode(b64);
+
+        try (ByteArrayInputStream in = new ByteArrayInputStream(jsonBytes)) {
             FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setCredentials(GoogleCredentials.fromStream(in))
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseApp.initializeApp(options);
-                System.out.println("Firebase Admin SDK inicializado correctamente.");
             }
-
-        } catch (IOException e) {
-            throw new RuntimeException("No se pudo inicializar Firebase", e);
         }
     }
 }
