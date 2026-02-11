@@ -26,13 +26,6 @@ Ha sido desarrollado utilizando **Spring Boot**, siguiendo una arquitectura basa
 
 ---
 
-## Requisitos previos
-
-- Java JDK 17 (recomendado)
-- Maven
-
----
-
 ## Documentación de la API
 
 La API REST está documentada mediante **Swagger / OpenAPI**.
@@ -42,13 +35,3 @@ La API REST está documentada mediante **Swagger / OpenAPI**.
 
 - Entorno local (modo desarrollo):  
   http://localhost:8080/swagger-ui/index.html
-
----
-
-## Instalación y ejecución
-
-### Clonar el repositorio
-
-```bash
-git clone https://github.com/tu-usuario/Aegis-Backend.git
-cd Aegis-Backend
